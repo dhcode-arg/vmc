@@ -364,7 +364,7 @@
 </div>
 
 <script>
-var APP_VERSION = "v1.34";
+var APP_VERSION = "v1.35";
 /* Largo del canal del WaveTrend. El motor venía con 9 (default de VuManChu), pero el
    indicador que Damián usa en TradingView está en 10, y su gráfico es la fuente de verdad:
    todo el expediente y la calibración de umbrales salieron de mirar ESE gráfico.
@@ -1802,8 +1802,11 @@ async function llamarGemini(prompt, apiKey, onEstado){
   }
   // Sin búsqueda web: 2 intentos, JSON nativo y thinking apagado
   var intentos = [{modelo:MODELOS_GEMINI[0]},{modelo:MODELOS_GEMINI[1]}];
-  var usarThinkingConfig = true;
-  var RE_SALTAR = /not found|no longer available|deprecated|discontinued|404|not supported|unsupported|invalid/i;
+  // Degradación progresiva del cuerpo: si el modelo rechaza un parámetro, se saca ese
+  // parámetro y se reintenta el MISMO modelo, en vez de descartarlo.
+  var usarThinkingConfig = true, usarJSONNativo = true;
+  var RE_SALTAR = /not found|no longer available|deprecated|discontinued|404|not supported|unsupported/i;
+  var RE_PARAM = /invalid argument|invalid.*(field|param|value)|thinking|mime|generationConfig|unknown name/i;
   var RE_SOBRECARGA = /503|overloaded|unavailable|internal/i;
   var presupuestoEsperaMs = 45000;
   var inicioMs = Date.now(), TIEMPO_MAX_MS = 90000;
@@ -1817,8 +1820,9 @@ async function llamarGemini(prompt, apiKey, onEstado){
       ultimoLlamadoGeminiMs = Date.now();
       var body = {
         contents:[{parts:[{text:prompt}]}],
-        generationConfig:{ maxOutputTokens:MAX_SALIDA, responseMimeType:"application/json", temperature:0.1 }
+        generationConfig:{ maxOutputTokens:MAX_SALIDA, temperature:0.1 }
       };
+      if(usarJSONNativo) body.generationConfig.responseMimeType = "application/json";
       if(usarThinkingConfig) body.generationConfig.thinkingConfig = { thinkingBudget:0 };
       var resp = await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+it.modelo+":generateContent",{
         method:"POST",
@@ -1829,13 +1833,17 @@ async function llamarGemini(prompt, apiKey, onEstado){
       if(data.error || !resp.ok){
         var msg = (data.error && data.error.message) || ("HTTP "+resp.status+" del API de Gemini");
         ultimoError = new Error(msg);
+        var es429 = resp.status===429 || /quota|exceeded|rate limit/i.test(msg);
         if(resp.status===403 || /denied access|PERMISSION_DENIED|API key not valid|API_KEY_INVALID|suspended|has been disabled/i.test(msg)){
           var eTerm = new Error("Google bloqueó el acceso de tu proyecto/API key (403: "+msg+"). En aistudio.google.com creá una API key NUEVA eligiendo «Create API key in NEW project», pegala con 🔑, o cambiá a Claude.");
           eTerm.terminal = true;
           throw eTerm;
         }
-        var es429 = resp.status===429 || /quota|exceeded|rate limit/i.test(msg);
-        if(usarThinkingConfig && /thinking/i.test(msg)){ usarThinkingConfig = false; i--; continue; }
+        // Ante un rechazo de parámetro se sacan los opcionales de a uno, sobre el mismo modelo.
+        if(!es429 && RE_PARAM.test(msg)){
+          if(usarThinkingConfig){ usarThinkingConfig = false; avisar("El modelo rechazó un parámetro: reintento sin el ajuste de razonamiento…"); i--; continue; }
+          if(usarJSONNativo){ usarJSONNativo = false; avisar("Reintento pidiendo el JSON por texto…"); i--; continue; }
+        }
         if(es429){
           hubo429 = true;
           var espSug = extraerEsperaRetry(msg);
@@ -1872,7 +1880,7 @@ async function llamarGemini(prompt, apiKey, onEstado){
       throw new Error("Gemini devolvió 429 en todos los modelos: lo más probable es que la cuota DIARIA gratuita esté agotada (se renueva a la medianoche del Pacífico, ~04:00-05:00 de Argentina). Reintentos pausados 10 min; mientras tanto cambiá a Claude.");
     throw new Error("Límite por minuto de Gemini persistente. Reintentos pausados 10 min para no quemar cuota.");
   }
-  throw ultimoError || new Error("Gemini no disponible");
+  throw ultimoError || new Error("Gemini no disponible: ningún modelo respondió");
 }
 async function llamarIA(prompt, onEstado){
   if(estadoIA.proveedor==="gemini") return llamarGemini(prompt, estadoIA.claves.gemini, onEstado);
