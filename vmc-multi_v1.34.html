@@ -1,0 +1,2183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Motor VMC · Multi-cripto</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230A0E13'/%3E%3Cpath d='M8 40c6-18 12 8 18-10s10 16 16 4 8-8 14-14' stroke='%234CC9F0' stroke-width='5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230A0E13'/%3E%3Cpath d='M8 40c6-18 12 8 18-10s10 16 16 4 8-8 14-14' stroke='%234CC9F0' stroke-width='5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Motor%20VMC%20Multi-cripto%22%2C%22short_name%22%3A%22VMC%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230A0E13%22%2C%22theme_color%22%3A%22%230A0E13%22%2C%22start_url%22%3A%22.%22%7D">
+<meta name="theme-color" content="#0A0E13">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="VMC">
+<style>
+  :root{
+    --bg:#0A0E13; --panel:#121A23; --panel-2:#0E141B; --line:#1E2935; --line-2:#28374a;
+    --text:#EAF0F6; --muted:#8A98A6; --dim:#5C6B7A;
+    --live:#4CC9F0; --ai:#F4A259;
+    --up:#3DDC97; --down:#FF5D73; --warn:#F9C74F; --eth:#7AA2FF;
+    --radius:16px;
+    --mono:ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:radial-gradient(1200px 500px at 50% -10%, #10202e 0%, var(--bg) 55%) fixed, var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    font-size:14px; line-height:1.45; padding:20px 16px 60px;
+  }
+  .wrap{max-width:1200px;margin:0 auto}
+
+  header{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin-bottom:8px}
+  header h1{font-size:21px;font-weight:800;letter-spacing:.2px}
+  header h1 .accent{background:linear-gradient(90deg,var(--live),#7AE0FF);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .version{font-family:var(--mono);font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:6px;
+    background:rgba(76,201,240,.1);color:var(--live);border:1px solid rgba(76,201,240,.3)}
+  #fecha-hoy{color:var(--muted);font-size:13px;text-transform:capitalize}
+  .header-actions{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+  .card{
+    background:linear-gradient(180deg,#141D27 0%,var(--panel-2) 100%);
+    border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;
+    transition:border-color .2s;
+  }
+  .card:hover{border-color:var(--line-2)}
+  .card-head{display:flex;align-items:center;gap:8px;padding:13px 15px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .card-head h2{font-size:13px;font-weight:700;letter-spacing:.02em;display:flex;align-items:center;gap:7px}
+  .card-head h2::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--live);box-shadow:0 0 8px var(--live)}
+  .tag{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:2px 7px;border-radius:5px}
+  .tag.live{background:rgba(76,201,240,.12);color:var(--live);border:1px solid rgba(76,201,240,.3)}
+  .card-body{padding:13px 15px}
+  .card-head .spacer{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .fuente{font-size:10px;color:var(--dim);margin-top:8px}
+
+  /* Secciones */
+  .seccion{margin-top:22px}
+  .sec-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:11px}
+  .sec-head h2{font-size:15px;font-weight:800;letter-spacing:.01em}
+  .sec-head .matriz{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
+    padding:3px 9px;border-radius:6px;background:var(--panel-2);border:1px solid var(--line);color:var(--muted)}
+  .sec-head .matriz.base{color:var(--live);border-color:rgba(76,201,240,.3)}
+  .sec-head .matriz.asim{color:var(--warn);border-color:rgba(249,199,116,.3)}
+  .sec-desc{font-size:11.5px;color:var(--dim);margin-bottom:11px;line-height:1.6}
+  .sec-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+  .sec-tools label{font-size:11px;color:var(--muted);font-weight:600}
+  .par{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:940px){.par{grid-template-columns:1fr}}
+
+  .edad{font-size:10px;font-family:var(--mono);padding:2px 7px;border-radius:5px;white-space:nowrap}
+  .edad.ok{color:var(--up);background:rgba(61,220,151,.08)}
+  .edad.viejo{color:var(--warn);background:rgba(249,199,116,.08)}
+  .edad.vencido{color:var(--down);background:rgba(255,93,115,.08)}
+  .edad.vacio{color:var(--dim)}
+
+  button{
+    background:rgba(255,255,255,.02);color:var(--text);border:1px solid var(--line);
+    border-radius:9px;padding:6px 13px;font-size:12px;cursor:pointer;
+    font-family:inherit;transition:border-color .15s,background .15s;
+  }
+  button:hover{border-color:var(--live);background:rgba(76,201,240,.06)}
+  button.btn-ia{border-color:rgba(244,162,89,.4);color:var(--ai)}
+  button.btn-ia:hover{background:rgba(244,162,89,.08)}
+  button.mini{padding:4px 9px;font-size:11px}
+  button:disabled{opacity:.45;cursor:wait}
+  button:focus-visible{outline:2px solid var(--live);outline-offset:2px}
+  select{
+    background:var(--panel);color:var(--text);border:1px solid var(--line);
+    border-radius:9px;padding:6px 10px;font-size:12px;font-family:inherit;cursor:pointer;max-width:100%;
+  }
+  select:hover{border-color:var(--ai)}
+  select:focus-visible{outline:2px solid var(--live);outline-offset:2px}
+
+  .pos{color:var(--up)} .neg{color:var(--down)} .neu{color:var(--muted)} .wrn{color:var(--warn)}
+  .error-msg{color:var(--down);font-size:12px;padding:6px 0}
+  .cargando{color:var(--dim);font-size:12px;padding:6px 0}
+
+  /* Cards Motor VMC (idéntico al panel) */
+  .dot-banner{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;margin-bottom:13px;
+    font-weight:700;font-size:13px;flex-wrap:wrap}
+  .dot-banner.verde{background:rgba(61,220,151,.12);border:1px solid rgba(61,220,151,.4);color:var(--up)}
+  .dot-banner.rojo{background:rgba(255,93,115,.12);border:1px solid rgba(255,93,115,.4);color:var(--down)}
+  .dot-banner.nada{background:var(--panel-2);border:1px solid var(--line);color:var(--muted);font-weight:600}
+  .dot-banner.vigente{border-style:dashed;opacity:.88}
+  .dot-banner .accion{margin-left:auto;font-size:11px;font-weight:600;color:var(--muted)}
+  .osc-titulo{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);font-weight:700;margin-bottom:6px}
+  .osc{position:relative;height:14px;border-radius:8px;margin:4px 0 2px;
+    background:linear-gradient(90deg,var(--up) 0%,var(--up) 20%,rgba(61,220,151,.25) 30%,
+      #3a4656 43%,#3a4656 57%,rgba(255,93,115,.25) 70%,var(--down) 80%,var(--down) 100%)}
+  .osc .marca{position:absolute;top:-3px;bottom:-3px;width:2px;background:rgba(255,255,255,.25)}
+  .osc .wt2d{position:absolute;top:50%;width:13px;height:13px;border-radius:50%;background:#8A98A6;
+    border:2px solid var(--bg);transform:translate(-50%,-50%)}
+  .osc .wt1d{position:absolute;top:50%;width:17px;height:17px;border-radius:50%;background:#fff;
+    border:3px solid var(--bg);transform:translate(-50%,-50%);box-shadow:0 0 10px rgba(255,255,255,.5)}
+  .osc-labs{display:flex;justify-content:space-between;font-size:9px;color:var(--dim);font-family:var(--mono);margin-top:3px}
+  .osc-valores{display:flex;gap:14px;margin:8px 0 2px;font-family:var(--mono);font-size:12px;flex-wrap:wrap}
+  .osc-valores b{font-size:14px}
+  .graf{display:block;width:100%;height:auto;margin:2px 0 0}
+  .graf .gl{font-size:8px;font-family:var(--mono)}
+  .graf-leg{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-top:7px;
+    font-family:var(--mono);font-size:11px;color:var(--muted)}
+  .graf-leg i{display:inline-block;width:14px;height:2px;vertical-align:middle;margin-right:5px;border-radius:1px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+  @media(max-width:470px){.grid2{grid-template-columns:1fr}}
+  .minibox{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:9px 11px}
+  .minibox .t{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);font-weight:700;margin-bottom:4px}
+  .minibox .v{font-family:var(--mono);font-size:14px;font-weight:700}
+  .minibox .sub{font-size:11px;color:var(--muted);margin-top:2px}
+  .minibox .sub-tec{font-size:10px;color:var(--dim);margin-top:3px;font-family:var(--mono)}
+  .minibox.info{border-style:dashed;border-color:var(--line-2)}
+  .minibox.info .t{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .minibox.info .t .aclara{margin-left:auto;text-transform:none;letter-spacing:0;font-weight:400;
+    font-size:10px;color:var(--dim)}
+  .ayuda{display:inline-block;width:13px;height:13px;line-height:13px;text-align:center;border-radius:50%;
+    background:var(--line);color:var(--muted);font-size:9px;cursor:help;font-family:sans-serif;vertical-align:middle}
+  .ayuda:hover{background:var(--live);color:var(--bg)}
+  .aviso-div{margin-top:12px;padding:9px 11px;border-radius:10px;font-size:12.5px;
+    background:rgba(249,199,116,.08);border:1px solid rgba(249,199,116,.3);color:var(--warn)}
+  .aviso-techo{margin:0 0 12px;padding:10px 12px;border-radius:10px;font-size:13px;font-weight:700;
+    background:rgba(255,93,115,.14);color:var(--down);border:1px solid rgba(255,93,115,.5)}
+  .aviso-hist{margin:0 0 12px;padding:9px 11px;border-radius:10px;font-size:12px;
+    background:rgba(249,199,116,.07);border:1px solid rgba(249,199,116,.28);color:var(--warn)}
+  .pie-vmc{margin-top:12px;padding:9px 11px;background:var(--panel-2);border-radius:10px;border-left:2px solid var(--live);
+    font-size:11.5px;color:var(--muted)}
+  .pie-vmc b{color:var(--text)}
+  .chk-curso{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted);cursor:pointer;
+    border:1px solid var(--line);border-radius:9px;padding:5px 10px;user-select:none}
+  .chk-curso:hover{border-color:var(--warn);color:var(--warn)}
+  .chk-curso input{accent-color:var(--warn);cursor:pointer;margin:0}
+  .precio{font-family:var(--mono);font-size:13px;font-weight:800;white-space:nowrap}
+  .precio .var{font-size:11px;font-weight:700;margin-left:4px}
+  .vela-badge{font-size:10px;font-family:var(--mono);color:var(--up);background:rgba(61,220,151,.08);padding:2px 7px;border-radius:5px;white-space:nowrap}
+
+  /* Checklist del motor */
+  .chk{margin-top:13px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .chk-head{display:flex;align-items:center;gap:8px;padding:8px 11px;background:var(--panel-2);
+    font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--dim);font-weight:700;flex-wrap:wrap}
+  .chk-head .lado{color:var(--text);letter-spacing:.02em}
+  .chk table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
+  .chk td{padding:8px 11px;border-top:1px solid var(--line);vertical-align:top}
+  .chk td:first-child{color:var(--muted);width:56%;line-height:1.35}
+  .chk td:last-child{text-align:right;font-family:var(--mono)}
+  .chk .nota{display:block;font-family:inherit;font-size:10.5px;line-height:1.45;
+    margin-top:3px;color:var(--dim);white-space:normal;font-weight:400}
+  .chk .nota.mal{color:var(--down)}
+  .chk .nr{color:var(--dim);font-size:11px}
+  .chk-head .motivo{margin-left:auto;text-transform:none;letter-spacing:0;font-weight:400;
+    font-size:10.5px;text-align:right;max-width:100%}
+  .chk-pie{padding:7px 11px;border-top:1px solid var(--line);font-size:11px;color:var(--dim);background:var(--panel-2)}
+
+  /* Veredicto IA */
+  .ver{margin-top:13px;border-radius:12px;border:1px solid rgba(244,162,89,.35);overflow:hidden}
+  .ver-head{display:flex;align-items:center;gap:9px;padding:10px 12px;font-weight:800;font-size:14px;flex-wrap:wrap;
+    background:rgba(244,162,89,.07)}
+  .ver-head.comprar{background:rgba(61,220,151,.12);color:var(--up)}
+  .ver-head.vender{background:rgba(255,93,115,.12);color:var(--down)}
+  .ver-head.esperar{background:rgba(249,199,116,.1);color:var(--warn)}
+  .ver-head .conf{margin-left:auto;font-size:11px;font-weight:700;color:var(--muted);font-family:var(--mono)}
+  .ver-body{padding:10px 12px;font-size:12.5px}
+  .ver-body li{margin:0 0 5px 16px;color:var(--muted)}
+  .ver-linea{margin-top:8px;padding-top:8px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
+  .ver-linea b{color:var(--text)}
+  .ver-meta{padding:7px 12px;background:var(--panel-2);border-top:1px solid var(--line);font-size:10.5px;color:var(--dim);
+    display:flex;gap:10px;flex-wrap:wrap}
+  .tp{margin-top:8px;padding:8px 10px;border-radius:9px;background:rgba(122,162,255,.09);
+    border:1px solid rgba(122,162,255,.3);color:var(--eth);font-size:12px;font-weight:600}
+
+  /* Valores crudos */
+  .crudo{margin-top:11px;border:1px dashed var(--line-2);border-radius:10px;padding:10px 11px;background:var(--panel-2)}
+  .crudo h4{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--dim);margin-bottom:7px}
+  .crudo table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px}
+  .crudo th{font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);text-align:right;padding:3px 5px;font-weight:600}
+  .crudo th:first-child,.crudo td:first-child{text-align:left}
+  .crudo td{padding:4px 5px;border-top:1px solid var(--line);text-align:right}
+  .crudo .piv{margin-top:9px;font-size:11px;color:var(--muted);font-family:var(--mono);line-height:1.7}
+  .crudo .como{margin-top:9px;font-size:11px;color:var(--dim);font-family:inherit;line-height:1.6}
+
+  .banda{margin:14px 0 0;padding:11px 13px;border-radius:12px;background:var(--panel-2);
+    border:1px solid var(--line);border-left:2px solid var(--live);font-size:12px;color:var(--muted);line-height:1.65}
+  .banda b{color:var(--text)}
+  /* Celular: la cabecera deja de competir por el ancho y los controles se agrandan
+     para el dedo (los de 12px eran chicos para tocar con precisión). */
+  @media(max-width:600px){
+    body{padding:14px 10px 44px;font-size:14px}
+    header{gap:8px}
+    header h1{font-size:19px;width:100%}
+    #fecha-hoy{font-size:12px}
+    .header-actions{margin-left:0;width:100%;gap:6px}
+    .header-actions button,.header-actions select,.chk-curso{flex:1 1 auto;min-height:40px;font-size:13px}
+    #sel-proveedor{flex:1 1 100%}
+    .card-head{padding:11px 12px}
+    .card-head .spacer{width:100%;margin-left:0;justify-content:flex-start}
+    .card-head .spacer button{min-height:38px}
+    .card-body{padding:12px}
+    .sec-tools{gap:6px}
+    .sec-tools select{flex:1 1 100%}
+    .sec-tools button{min-height:38px}
+    .chk td{padding:9px 10px}
+    .chk td:first-child{width:50%}
+    .osc-labs{font-size:8px}
+    .precio{font-size:12px}
+  }
+  .aviso-storage{margin:10px 0 0;padding:10px 12px;border-radius:10px;font-size:12px;
+    background:rgba(249,199,116,.09);border:1px solid rgba(249,199,116,.3);color:var(--warn)}
+  .foot{margin-top:26px;color:var(--dim);font-size:11px;text-align:center;line-height:1.7}
+  .foot b{color:var(--muted)}
+  @media (prefers-reduced-motion:no-preference){
+    .card{animation:sube .35s ease both}
+    @keyframes sube{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Motor <span class="accent">VMC</span> · Multi-cripto</h1>
+    <span class="version" id="ver-app"></span>
+    <span id="fecha-hoy"></span>
+    <div class="header-actions">
+      <span class="edad vacio" id="uso-ia"></span>
+      <select id="sel-proveedor" aria-label="Proveedor de IA" onchange="cambiarProveedor(this.value)"></select>
+      <button id="btn-key" style="display:none" onclick="configurarClave()">🔑 API key</button>
+      <label class="chk-curso" title="Por defecto el motor solo lee velas cerradas, como el vigía. Si lo activás, la card incluye la vela en formación: te anticipa, pero el indicador repinta y el punto puede desaparecer.">
+        <input type="checkbox" id="chk-curso" onchange="cambiarEnCurso(this.checked)"> vela en curso
+      </label>
+      <label class="chk-curso" title="Largo del canal del WaveTrend. Tiene que coincidir con «WT Channel Length» en la configuración del indicador en TradingView. Si no coincide, los valores se corren unos 2 puntos.">
+        canal <select id="sel-canal" onchange="cambiarCanal(this.value)" style="padding:2px 6px;font-size:11px;border:none;background:transparent;color:inherit">
+          <option value="10">10</option><option value="9">9</option></select>
+      </label>
+      <button id="btn-diag" onclick="diagnosticar()">🩺 Diagnóstico</button>
+      <button id="btn-refrescar" onclick="recargarTodo()">↻ Actualizar</button>
+    </div>
+  </header>
+
+  <div class="banda">
+    <b>Capa indicador</b> (0 tokens): las cards calculan el WaveTrend del Cipher B en tu navegador sobre velas cerradas de Binance, con las fórmulas certificadas del panel.
+    <b>Capa juez</b>: el botón <b>Analizar con IA</b> aplica la matriz del skill <b>/vmc</b> sobre esos números. El checklist debajo de cada card lo calcula el motor —
+    si la IA se aparta de él, se nota. Ninguna de las dos reemplaza mirar el gráfico.
+  </div>
+
+  <div class="aviso-storage" id="aviso-storage" style="display:none"></div>
+  <div class="banda" id="diag" style="display:none"></div>
+
+  <!-- ================= SECCIÓN 1 · BTC ================= -->
+  <section class="seccion" aria-label="Bitcoin">
+    <div class="sec-head">
+      <h2>1 · Bitcoin</h2>
+      <span class="matriz base">Matriz base · certificada</span>
+    </div>
+    <div class="sec-desc">Camino certificado del panel: <b>BTCUSDT</b> en 1D y 1S, mismo código y misma fuente. Sin selector, para no tocar lo que ya está validado.</div>
+    <div class="par">
+      <div class="card">
+        <div class="card-head"><h2>BTC · 1D</h2><span class="tag live">En vivo</span><span class="precio" id="precio-btc-1D"></span>
+          <div class="spacer"><span class="vela-badge" id="vela-btc-1D"></span>
+            <button class="mini" id="btn-crudo-btc-1D" onclick="alternarCrudos('btc','1D')">🔬 Valores crudos</button>
+            <button class="btn-ia mini" id="btn-ia-btc-1D" onclick="analizarConIA('btc','1D')">Analizar con IA</button></div></div>
+        <div class="card-body" id="c-btc-1D"><div class="cargando">Calculando WaveTrend diario…</div></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>BTC · 1S</h2><span class="tag live">En vivo</span><span class="precio" id="precio-btc-1S"></span>
+          <div class="spacer"><span class="vela-badge" id="vela-btc-1S"></span>
+            <button class="mini" id="btn-crudo-btc-1S" onclick="alternarCrudos('btc','1S')">🔬 Valores crudos</button>
+            <button class="btn-ia mini" id="btn-ia-btc-1S" onclick="analizarConIA('btc','1S')">Analizar con IA</button></div></div>
+        <div class="card-body" id="c-btc-1S"><div class="cargando">Calculando WaveTrend semanal…</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SECCIÓN 2 · MAJORS LÍQUIDAS ================= -->
+  <section class="seccion" aria-label="Majors líquidas">
+    <div class="sec-head">
+      <h2>2 · Majors líquidas</h2>
+      <span class="matriz base">Matriz base</span>
+    </div>
+    <div class="sec-desc">Top 30 de capitalización con par USDT en Binance, sin stablecoins ni versiones envueltas o en staking. Misma matriz que BTC.</div>
+    <div class="sec-tools">
+      <label for="sel-liq">Activo</label>
+      <select id="sel-liq" onchange="cambiarActivo('liq',this.value)"><option>Cargando top 100…</option></select>
+      <button class="mini" id="btn-desc-liq" style="display:none" onclick="alternarDescartados('liq')">🔍 Ver descartados</button>
+      <button class="mini" id="btn-retry-liq" onclick="reintentarUniverso()">🔄 Recargar lista</button>
+      <span class="edad vacio" id="info-liq"></span>
+      <label class="chk-curso" title="La clasificación sale del ranking de capitalización. Si el activo se comporta como ilíquido (mechas violentas, poco volumen), forzá la regla estricta: las compras exigen divergencia siempre y el money flow es el candado final.">
+        <input type="checkbox" id="chk-estricta" onchange="cambiarEstricta(this.checked)"> tratar como ilíquida
+      </label>
+    </div>
+    <div id="desc-liq" style="display:none"></div>
+    <div class="par">
+      <div class="card">
+        <div class="card-head"><h2 id="tit-liq-1D">1D</h2><span class="tag live">En vivo</span><span class="precio" id="precio-liq-1D"></span>
+          <div class="spacer"><span class="vela-badge" id="vela-liq-1D"></span>
+            <button class="mini" id="btn-crudo-liq-1D" onclick="alternarCrudos('liq','1D')">🔬 Valores crudos</button>
+            <button class="btn-ia mini" id="btn-ia-liq-1D" onclick="analizarConIA('liq','1D')">Analizar con IA</button></div></div>
+        <div class="card-body" id="c-liq-1D"><div class="cargando">Elegí un activo…</div></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2 id="tit-liq-1S">1S</h2><span class="tag live">En vivo</span><span class="precio" id="precio-liq-1S"></span>
+          <div class="spacer"><span class="vela-badge" id="vela-liq-1S"></span>
+            <button class="mini" id="btn-crudo-liq-1S" onclick="alternarCrudos('liq','1S')">🔬 Valores crudos</button>
+            <button class="btn-ia mini" id="btn-ia-liq-1S" onclick="analizarConIA('liq','1S')">Analizar con IA</button></div></div>
+        <div class="card-body" id="c-liq-1S"><div class="cargando">Elegí un activo…</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SECCIÓN 3 · ALTCOINS ILÍQUIDAS ================= -->
+  <section class="seccion" aria-label="Altcoins ilíquidas">
+    <div class="sec-head">
+      <h2>3 · Altcoins ilíquidas</h2>
+      <span class="matriz asim">Regla asimétrica</span>
+    </div>
+    <div class="sec-desc">Rank 31 a 100. Las compras exigen divergencia siempre y el money flow es el candado final; las ventas de continuación se permiten sin divergencia solo con bajista inobjetable y MF rojo persistente, y nunca por encima de confianza Baja.</div>
+    <div class="sec-tools">
+      <label for="sel-ili">Activo</label>
+      <select id="sel-ili" onchange="cambiarActivo('ili',this.value)"><option>Cargando top 100…</option></select>
+      <button class="mini" id="btn-desc-ili" style="display:none" onclick="alternarDescartados('ili')">🔍 Ver descartados</button>
+      <button class="mini" id="btn-retry-ili" onclick="reintentarUniverso()">🔄 Recargar lista</button>
+      <span class="edad vacio" id="info-ili"></span>
+    </div>
+    <div id="desc-ili" style="display:none"></div>
+    <div class="par">
+      <div class="card">
+        <div class="card-head"><h2 id="tit-ili-1D">1D</h2><span class="tag live">En vivo</span><span class="precio" id="precio-ili-1D"></span>
+          <div class="spacer"><span class="vela-badge" id="vela-ili-1D"></span>
+            <button class="mini" id="btn-crudo-ili-1D" onclick="alternarCrudos('ili','1D')">🔬 Valores crudos</button>
+            <button class="btn-ia mini" id="btn-ia-ili-1D" onclick="analizarConIA('ili','1D')">Analizar con IA</button></div></div>
+        <div class="card-body" id="c-ili-1D"><div class="cargando">Elegí un activo…</div></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2 id="tit-ili-1S">1S</h2><span class="tag live">En vivo</span><span class="precio" id="precio-ili-1S"></span>
+          <div class="spacer"><span class="vela-badge" id="vela-ili-1S"></span>
+            <button class="mini" id="btn-crudo-ili-1S" onclick="alternarCrudos('ili','1S')">🔬 Valores crudos</button>
+            <button class="btn-ia mini" id="btn-ia-ili-1S" onclick="analizarConIA('ili','1S')">Analizar con IA</button></div></div>
+        <div class="card-body" id="c-ili-1S"><div class="cargando">Elegí un activo…</div></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="foot">
+    Velas de <b>Binance</b> (klines cerradas, UTC · semanas de lunes). Universo del <b>top 100 de CoinGecko</b>, cacheado 24 h.<br>
+    IA bajo demanda, <b>sin búsqueda web</b> y cacheada por vela cerrada — Gemini (API key gratis en aistudio.google.com/apikey) o Claude.
+    Análisis técnico educativo, no es asesoramiento financiero.
+  </div>
+</div>
+
+<script>
+var APP_VERSION = "v1.34";
+/* Largo del canal del WaveTrend. El motor venía con 9 (default de VuManChu), pero el
+   indicador que Damián usa en TradingView está en 10, y su gráfico es la fuente de verdad:
+   todo el expediente y la calibración de umbrales salieron de mirar ESE gráfico.
+   Con 9 el motor daba ~2,3 puntos de desvío contra el data window. */
+var PROMPT_VER = 7;   // subir cuando cambie MATRIZ_VMC: invalida los veredictos guardados
+var WT_CANAL = 10;
+var INCLUIR_EN_CURSO = false;   // por defecto solo velas cerradas (el Cipher B repinta)
+var TOPE_DIARIO = 40;          // freno autoimpuesto de llamadas a la IA por día
+var MAX_SALIDA = 400;          // tokens de salida máximos por análisis
+
+/* =====================================================================
+   HELPERS
+   ===================================================================== */
+function escaparHTML(s){
+  return String(s===undefined||s===null?"":s)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+function esperar(ms){ return new Promise(function(res){ setTimeout(res, ms); }); }
+function fechaISO(d){ return d.toISOString().slice(0,10); }
+function fechaLarga(d){
+  return d.toLocaleDateString("es-AR",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+}
+function fechaCorta(iso){
+  var d = new Date(iso+"T00:00:00Z");
+  return d.getUTCDate()+"-"+["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"][d.getUTCMonth()];
+}
+/* El mismo formateador tiene que servir para BTC a 100.000 y para una alt a 0,0031 */
+function formatoPrecio(v){
+  if(v===null||v===undefined||isNaN(v)) return "–";
+  var a = Math.abs(v);
+  if(a>=1000)  return "$"+v.toLocaleString("es-AR",{maximumFractionDigits:0});
+  if(a>=1)     return "$"+v.toLocaleString("es-AR",{minimumFractionDigits:2,maximumFractionDigits:2});
+  if(a>=0.01)  return "$"+v.toFixed(4);
+  if(a>=0.0001)return "$"+v.toFixed(6);
+  return "$"+v.toFixed(8);
+}
+function num(v,d){ return (v===null||v===undefined||isNaN(v)) ? "–" : v.toFixed(d===undefined?1:d); }
+
+/* Storage: window.storage (claude.ai) → localStorage (archivo local) → memoria */
+var memCache = {};
+function storageDisponible(){ return typeof window!=="undefined" && window.storage && typeof window.storage.get==="function"; }
+function localStorageDisponible(){
+  try{
+    if(typeof localStorage==="undefined") return false;
+    localStorage.setItem("__vmcm_test","1"); localStorage.removeItem("__vmcm_test");
+    return true;
+  }catch(e){ return false; }
+}
+async function cacheLeer(clave){
+  if(storageDisponible()){
+    try{ var r = await window.storage.get(clave); return r&&r.value ? JSON.parse(r.value) : null; }catch(e){ return null; }
+  }
+  if(localStorageDisponible()){
+    try{ var v = localStorage.getItem(clave); return v ? JSON.parse(v) : null; }catch(e){ return null; }
+  }
+  return memCache[clave] ? JSON.parse(JSON.stringify(memCache[clave])) : null;
+}
+async function cacheGuardar(clave, obj){
+  if(storageDisponible()){
+    try{ await window.storage.set(clave, JSON.stringify(obj)); return; }catch(e){}
+  }
+  if(localStorageDisponible()){
+    try{ localStorage.setItem(clave, JSON.stringify(obj)); return; }catch(e){}
+  }
+  memCache[clave] = JSON.parse(JSON.stringify(obj));
+}
+/* Toda llamada lleva timeout: sin esto, un host bloqueado por la red deja la carga
+   colgada para siempre y el selector nunca se llena. */
+async function fetchJSON(url, ms){
+  var lim = ms || 15000;
+  var ctrl = (typeof AbortController!=="undefined") ? new AbortController() : null;
+  var to = ctrl ? setTimeout(function(){ ctrl.abort(); }, lim) : null;
+  try{
+    var r = await fetch(url, ctrl ? {signal:ctrl.signal} : undefined);
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    return await r.json();
+  }catch(e){
+    if(e && e.name==="AbortError") throw new Error("no respondió en "+Math.round(lim/1000)+" s");
+    throw e;
+  }finally{ if(to) clearTimeout(to); }
+}
+/* Binance con hosts alternativos (algunas redes/regiones bloquean el principal) */
+var HOSTS_BINANCE = ["https://api.binance.com","https://data-api.binance.vision","https://api-gcp.binance.com"];
+var hostBinanceOK = null;
+async function fetchBinance(path, ms){
+  var orden = hostBinanceOK ? [hostBinanceOK].concat(HOSTS_BINANCE.filter(function(h){return h!==hostBinanceOK;})) : HOSTS_BINANCE;
+  var ultimo;
+  for(var i=0;i<orden.length;i++){
+    try{ var j = await fetchJSON(orden[i]+path, ms); hostBinanceOK = orden[i]; return j; }
+    catch(e){ ultimo = e; }
+  }
+  throw ultimo || new Error("Binance no disponible");
+}
+
+/* =====================================================================
+   MOTOR VMC · capa indicador
+   CÓDIGO CERTIFICADO 20/20 contra el dataset Bitstamp del vigía y los
+   anclajes del expediente. Copiado sin cambios desde el panel v24.
+   ===================================================================== */
+// === VMC ===
+function vmcEMA(valores, periodo){
+  var k = 2/(periodo+1), out = [], prev = null;
+  for(var i=0;i<valores.length;i++){
+    var v = valores[i];
+    prev = (prev===null) ? v : v*k + prev*(1-k);
+    out.push(prev);
+  }
+  return out;
+}
+function vmcSMA(valores, periodo){
+  var out = [], suma = 0;
+  for(var i=0;i<valores.length;i++){
+    suma += valores[i];
+    if(i>=periodo) suma -= valores[i-periodo];
+    out.push(i>=periodo-1 ? suma/periodo : null);
+  }
+  return out;
+}
+// velas: [{date, open, high, low, close}] SOLO CERRADAS
+// ÚNICA diferencia con el motor del panel v24: el largo del canal es parámetro (WT_CANAL)
+// en vez de estar fijo en 9, para poder igualar la configuración real del gráfico.
+function vmcCalcular(velas, canal){
+  var n = velas.length;
+  var ch = canal || WT_CANAL;
+  var hlc3 = velas.map(function(v){ return (v.high+v.low+v.close)/3; });
+  var esa = vmcEMA(hlc3, ch);
+  var absDif = hlc3.map(function(v,i){ return Math.abs(v-esa[i]); });
+  var de = vmcEMA(absDif, ch);
+  var ci = hlc3.map(function(v,i){ return de[i]>0 ? (v-esa[i])/(0.015*de[i]) : 0; });
+  var wt1 = vmcEMA(ci, 12);
+  var wt2 = vmcSMA(wt1, 3);
+  // Money Flow (RSIMFI): sma(((close-open)/(high-low))*150, 60) - 2.5
+  var mfRaw = velas.map(function(v){
+    var rango = v.high - v.low;
+    return rango>0 ? ((v.close-v.open)/rango)*150 : 0;
+  });
+  var mfSma = vmcSMA(mfRaw, 60);
+  var mf = mfSma.map(function(v){ return v===null ? null : v-2.5; });
+  // Puntos: cruce de WT1/WT2 en la vela i (comparando con i-1)
+  var dots = new Array(n).fill(null);
+  for(var i=1;i<n;i++){
+    if(wt2[i]===null||wt2[i-1]===null) continue;
+    if(wt1[i]>wt2[i] && wt1[i-1]<=wt2[i-1]) dots[i]="verde";
+    else if(wt1[i]<wt2[i] && wt1[i-1]>=wt2[i-1]) dots[i]="rojo";
+  }
+  var sma50 = vmcEMA(velas.map(function(v){return v.close;}), 50);   // EMA: coincide con las medias del chart
+  var sma200 = vmcEMA(velas.map(function(v){return v.close;}), 200);
+  return { wt1:wt1, wt2:wt2, mf:mf, dots:dots, sma50:sma50, sma200:sma200 };
+}
+function vmcZona(wt){
+  if(wt===null||wt===undefined) return {clave:"na", texto:"–"};
+  if(wt<=-53) return {clave:"compra", texto:"zona de compra (≤−53"+(wt<=-60?", ideal":"")+")"};
+  if(wt<=-40) return {clave:"borde-compra", texto:"borde/rango (−40/−53)"};
+  if(wt<0)    return {clave:"neutral-baja", texto:"zona media (negativa)"};
+  if(wt<40)   return {clave:"neutral-alta", texto:"zona media (positiva)"};
+  if(wt<53)   return {clave:"borde-venta", texto:"borde/rango (+40/+53)"};
+  return {clave:"venta", texto:"zona de venta (≥+53"+(wt>=60?", ideal":"")+")"};
+}
+function vmcDotInZone(calc, i){
+  var dot = calc.dots[i];
+  if(!dot) return {hay:false};
+  var wt = calc.wt1[i];
+  var z = vmcZona(wt);
+  var operable = (dot==="verde" && z.clave==="compra") ||
+                 (dot==="rojo"  && z.clave==="venta");
+  var borde = (dot==="verde" && z.clave==="borde-compra") ||
+              (dot==="rojo"  && z.clave==="borde-venta");
+  return {hay:true, dot:dot, wt:wt, zona:z, enZona:operable, borde:borde};
+}
+function vmcUltimoDot(calc, i){
+  for(var k=i;k>=0;k--){
+    if(calc.dots[k]) return {color:calc.dots[k], hace:i-k, wt:calc.wt1[k]};
+  }
+  return null;
+}
+function vmcPivotes(calc, velas, tipo){
+  var out = [];
+  var n = velas.length;
+  for(var i=2;i<n-2;i++){
+    var esP = true;
+    for(var g=1;g<=2;g++){
+      if(tipo==="min" && (calc.wt1[i]>calc.wt1[i-g] || calc.wt1[i]>calc.wt1[i+g])) { esP=false; break; }
+      if(tipo==="max" && (calc.wt1[i]<calc.wt1[i-g] || calc.wt1[i]<calc.wt1[i+g])) { esP=false; break; }
+    }
+    if(esP) out.push(i);
+  }
+  return out;
+}
+function vmcDivergencia(calc, velas){
+  var n = velas.length, VENTANA = 75, MIN_DIF_WT = 2;
+  var iFin = n-1;
+  function detectar(tipo){
+    var pivotes = vmcPivotes(calc, velas, tipo).filter(function(i){ return i>=iFin-VENTANA; });
+    if(pivotes.length<2) return null;
+    var actual = pivotes[pivotes.length-1];
+    if(iFin-actual>6) return null; // el pivote actual debe ser reciente para ser accionable
+    var previo = null;
+    for(var j=0;j<pivotes.length-1;j++){
+      var p = pivotes[j];
+      if(p < actual-2 && p >= actual-VENTANA){
+        if(previo===null) previo=p;
+        else if(tipo==="min" && calc.wt1[p]<calc.wt1[previo]) previo=p;
+        else if(tipo==="max" && calc.wt1[p]>calc.wt1[previo]) previo=p;
+      }
+    }
+    if(previo===null) return null;
+    var wtA = calc.wt1[actual], wtP = calc.wt1[previo];
+    if(tipo==="min"){
+      var precioBaja = velas[actual].low < velas[previo].low;
+      if(precioBaja && (wtA - wtP) > MIN_DIF_WT)
+        return {tipo:"alcista", actual:actual, previo:previo, wtA:wtA, wtP:wtP};
+    } else {
+      var precioSube = velas[actual].high > velas[previo].high;
+      if(precioSube && (wtP - wtA) > MIN_DIF_WT)
+        return {tipo:"bajista", actual:actual, previo:previo, wtA:wtA, wtP:wtP};
+    }
+    return null;
+  }
+  return detectar("min") || detectar("max");
+}
+function vmcRegimen(calc, velas, i){
+  var c = velas[i].close, e50 = calc.sma50[i], e200 = calc.sma200[i];
+  if(e50===null||e50===undefined||e200===null||e200===undefined) return {texto:"Sin datos", clase:"neu", detalle:"", explica:"", ayuda:""};
+  var subiendo = (i>=5) ? (e50>calc.sma50[i-5]) : true;
+  var pend = subiendo ? "↗" : "↘";
+  var TOL = 0.01;
+  function rel(precio, media){
+    if(Math.abs(precio-media)/media < TOL) return {sig:"≈", encima:null};
+    return precio>media ? {sig:">", encima:true} : {sig:"<", encima:false};
+  }
+  var r50 = rel(c, e50), r200 = rel(c, e200);
+  function relTxt(r, nombre){
+    if(r.sig==="≈") return "pegado a "+nombre;
+    return (r.encima ? "sobre " : "bajo ")+nombre;
+  }
+  var posPrecio;
+  if(r50.encima===false && r200.encima===false) posPrecio = "precio bajo ambas EMAs";
+  else if(r50.encima===true && r200.encima===true) posPrecio = "precio sobre ambas EMAs";
+  else posPrecio = "precio "+relTxt(r50,"EMA50")+", "+relTxt(r200,"EMA200");
+  var ordenMedias = e50>e200 ? "EMA50 sobre EMA200" : "EMA50 bajo EMA200";
+  var det = posPrecio+" · "+ordenMedias+" · EMA50 "+pend;
+  var ayuda = "Tendencia de fondo de BTC según dos medias exponenciales del precio: EMA de 50 velas y EMA de 200, las mismas que ves en tu gráfico. Bajista = precio claramente bajo ambas. Alcista = precio claramente sobre ambas. Mixto = precio entre las EMAs o pegado a alguna (transición). Si el precio está a menos de 1% de una media se marca ≈ (pegado), porque ahí la tendencia no está definida. En tu VMC filtra los pullbacks.";
+  if(r50.encima===true && r200.encima===true) return {texto:"Alcista", clase:"pos", detalle:det, explica:"precio sobre ambas EMAs", ayuda:ayuda};
+  if(r50.encima===false && r200.encima===false) return {texto:"Bajista", clase:"neg", detalle:det, explica:"precio bajo ambas EMAs", ayuda:ayuda};
+  var sesgo, claseMix;
+  if(r200.encima===true){ sesgo="sesgo alcista"; claseMix="pos"; }
+  else if(r200.encima===false){ sesgo="sesgo bajista"; claseMix="neg"; }
+  else { sesgo="neutral"; claseMix="wrn"; }
+  var baseMix = (r50.sig==="≈") ? "precio pegado a la EMA50" : "precio entre las EMAs";
+  return {texto:"Mixto", clase:"wrn", detalle:det, explica:baseMix+" · "+sesgo, ayuda:ayuda, sesgoClase:claseMix};
+}
+function vmcEstadoMF(calc, i){
+  var m = calc.mf[i];
+  if(m===null||m===undefined) return {valor:null, texto:"–", clase:"neu", giro:""};
+  var prev = (i>=5) ? calc.mf[i-5] : null;
+  var giro = "";
+  if(prev!==null){
+    if(m>prev+1) giro = "girando al alza";
+    else if(m<prev-1) giro = "girando a la baja";
+    else giro = "estable";
+  }
+  return {valor:m, texto:(m>=0?"+":"")+m.toFixed(1)+" "+(m>=0?"🟢":"🔴"), clase:(m>=0?"pos":"neg"), giro:giro};
+}
+function vmcTechoCiclo(calc, velas, i, div){
+  if(!(div && div.tipo==="bajista" && div.wtA>=30)) return false;
+  if(i - div.actual > 5) return false;               // divergencia del techo actual, no vieja
+  var ud = vmcUltimoDot(calc, i);
+  if(!(ud && ud.color==="rojo" && ud.hace<=2)) return false;
+  var maxHist = 0;
+  for(var k=0;k<=i;k++) if(velas[k].high>maxHist) maxHist=velas[k].high;
+  return velas[div.actual].high >= maxHist*0.90;
+}
+function vmcAgregarSemanal(velasDiarias){
+  var semanas = {}, orden = [];
+  for(var i=0;i<velasDiarias.length;i++){
+    var v = velasDiarias[i];
+    var d = new Date(v.date+"T00:00:00Z");
+    var dow = d.getUTCDay();                       // 0=domingo
+    var lunes = new Date(d.getTime() - ((dow+6)%7)*86400000);
+    var clave = lunes.toISOString().slice(0,10);
+    if(!semanas[clave]){ semanas[clave]={date:clave,open:v.open,high:v.high,low:v.low,close:v.close}; orden.push(clave); }
+    else{
+      var s = semanas[clave];
+      if(v.high>s.high) s.high=v.high;
+      if(v.low<s.low) s.low=v.low;
+      s.close = v.close;
+    }
+  }
+  return orden.map(function(k){ return semanas[k]; });
+}
+// === END VMC ===
+
+/* =====================================================================
+   QQE SIGNALS · capa informativa, aislada
+   Réplica de "QQE signals" (colinmck) con los parámetros del gráfico del usuario:
+   RSI 14 · suavizado 5 · factor QQE 4.238 · umbral 10.
+   NO participa de la matriz: no toca el checklist, no viaja en el payload de la IA
+   y no abre ni cierra ningún camino. Es un dato para leer, nada más.
+   MARCADO BETA hasta certificar las fechas de sus etiquetas contra TradingView.
+   ===================================================================== */
+var QQE_PAR = {rsi:14, suav:5, factor:4.238, umbral:10};
+
+// Pine usa RMA (suavizado de Wilder) para el RSI y EMA común para el resto
+function qqeRMA(v, p){
+  var out=[], prev=null, suma=0;
+  for(var i=0;i<v.length;i++){
+    if(i<p){ suma+=v[i]; out.push(null); if(i===p-1){ prev=suma/p; out[i]=prev; } continue; }
+    prev = (v[i] + prev*(p-1))/p; out.push(prev);
+  }
+  return out;
+}
+function qqeRSI(cierres, p){
+  var gan=[0], per=[0];
+  for(var i=1;i<cierres.length;i++){
+    var d = cierres[i]-cierres[i-1];
+    gan.push(d>0?d:0); per.push(d<0?-d:0);
+  }
+  var mg=qqeRMA(gan,p), mp=qqeRMA(per,p), out=[];
+  for(var i=0;i<cierres.length;i++){
+    if(mg[i]===null||mp[i]===null){ out.push(null); continue; }
+    out.push(mp[i]===0 ? 100 : 100 - 100/(1 + mg[i]/mp[i]));
+  }
+  return out;
+}
+function qqeCalcular(velas){
+  var n=velas.length, P=QQE_PAR;
+  var W = P.rsi*2-1;
+  var rsi = qqeRSI(velas.map(function(v){return v.close;}), P.rsi);
+  var base = rsi.map(function(x,i){ return x===null ? (rsi.find(function(y){return y!==null;})||50) : x; });
+  var rsiMa = vmcEMA(base, P.suav);
+  var atrRsi = rsiMa.map(function(x,i){ return i===0 ? 0 : Math.abs(rsiMa[i-1]-x); });
+  var maAtr = vmcEMA(atrRsi, W);
+  var dar = vmcEMA(maAtr, W).map(function(x){ return x*P.factor; });
+
+  var longband=new Array(n).fill(0), shortband=new Array(n).fill(0), trend=new Array(n).fill(1);
+  for(var i=1;i<n;i++){
+    var idx=rsiMa[i], idxP=rsiMa[i-1];
+    var nl=idx-dar[i], ns=idx+dar[i];
+    longband[i]  = (idxP>longband[i-1]  && idx>longband[i-1])  ? Math.max(longband[i-1], nl)  : nl;
+    shortband[i] = (idxP<shortband[i-1] && idx<shortband[i-1]) ? Math.min(shortband[i-1], ns) : ns;
+    var cruzaArriba = (idxP<=shortband[i-1] && idx>shortband[i-1]);
+    var cruzaAbajo  = (longband[i-1]>=idxP && longband[i-1]<idx) ? false
+                      : (idxP>=longband[i-1] && idx<longband[i-1]);
+    trend[i] = cruzaArriba ? 1 : (cruzaAbajo ? -1 : trend[i-1]);
+  }
+  var linea = trend.map(function(t,i){ return t===1 ? longband[i] : shortband[i]; });
+  var etiquetas=[];
+  for(var i=1;i<n;i++){
+    if(trend[i]===1 && trend[i-1]!==1) etiquetas.push({i:i, tipo:"Long"});
+    else if(trend[i]===-1 && trend[i-1]!==-1) etiquetas.push({i:i, tipo:"Short"});
+  }
+  return {rsiMa:rsiMa, linea:linea, trend:trend, etiquetas:etiquetas};
+}
+/* Estado a mostrar: última etiqueta, antigüedad y si la condición sigue en pie */
+function qqeEstado(velas, marco){
+  if(velas.length < 80) return null;
+  var q = qqeCalcular(velas), i = velas.length-1;
+  if(!q.etiquetas.length) return {tipo:null, hace:null, vigente:false, rsiMa:q.rsiMa[i]};
+  var ult = q.etiquetas[q.etiquetas.length-1];
+  var vigente = (ult.tipo==="Long") ? (q.trend[i]===1) : (q.trend[i]===-1);
+  return {tipo:ult.tipo, hace:i-ult.i, vigente:vigente, rsiMa:q.rsiMa[i],
+          fecha:velas[ult.i].date, total:q.etiquetas.length};
+}
+
+/* =====================================================================
+   GRÁFICO DEL OSCILADOR · capa visual, aislada
+   Dibuja la historia reciente de WT1, WT2, los puntos de cruce y el money flow.
+   No calcula nada nuevo: consume los mismos arrays que ya produjo vmcCalcular.
+   No participa de la matriz ni viaja al payload de la IA.
+   ===================================================================== */
+var GRAF_VELAS = {"1D":49, "1S":30};   // menos velas en semanal: cada una pesa más
+var GRAF_W = 620, GRAF_H = 168;
+var GRAF_MF_H = 34, GRAF_MF_ESC = 20;   // franja del money flow, escala FIJA ±20
+
+function grafOscilador(calc, velas, i, marco){
+  var n = GRAF_VELAS[marco] || 49;
+  var ini = Math.max(0, i-n+1), cant = i-ini+1;
+  if(cant < 10) return "";
+  var x0 = 8, x1 = GRAF_W-8;
+  // El oscilador ocupa arriba; el money flow tiene su propia franja abajo.
+  var oscH = GRAF_H - GRAF_MF_H - 6, mitad = oscH/2, alto = mitad-8;
+  var mfTop = GRAF_H - GRAF_MF_H, mfCero = mfTop + GRAF_MF_H/2;
+  function px(k){ return cant===1 ? x0 : (x0 + (x1-x0)*(k-ini)/(cant-1)); }
+  // Escala al recorrido REAL del tramo (mínimo ±70 para que las bandas ±60 siempre entren
+  // con aire). Con ±100 fijo la curva se achataba y no coincidía con la del gráfico.
+  var esc = 70;
+  for(var k=ini;k<=i;k++){
+    if(calc.wt1[k]!==null && Math.abs(calc.wt1[k])>esc) esc = Math.abs(calc.wt1[k]);
+    if(calc.wt2[k]!==null && Math.abs(calc.wt2[k])>esc) esc = Math.abs(calc.wt2[k]);
+  }
+  esc = Math.min(esc*1.05, 110);
+  function py(v){ return mitad - (Math.max(-esc,Math.min(esc,v))/esc)*alto; }
+  // Escala FIJA de ±20: así el alto significa lo mismo en cualquier activo y momento.
+  function pyMF(v){ return mfCero - (Math.max(-GRAF_MF_ESC,Math.min(GRAF_MF_ESC,v))/GRAF_MF_ESC)*(GRAF_MF_H/2-3); }
+
+  function camino(arr, fn){
+    var p = [];
+    for(var k=ini;k<=i;k++){
+      var v = arr[k];
+      if(v===null||v===undefined) continue;
+      p.push((p.length?"L":"M")+" "+px(k).toFixed(1)+" "+fn(v).toFixed(1));
+    }
+    return p.join(" ");
+  }
+  var h = "<svg viewBox='0 0 "+GRAF_W+" "+GRAF_H+"' class='graf' role='img' aria-label='Historia del oscilador WaveTrend y del money flow de las últimas "+cant+" velas'>";
+  // niveles de la matriz
+  h += "<rect x='0' y='"+py(60).toFixed(1)+"' width='"+GRAF_W+"' height='"+(py(53)-py(60)).toFixed(1)+"' fill='var(--down)' opacity='.10'/>"+
+       "<rect x='0' y='"+py(-53).toFixed(1)+"' width='"+GRAF_W+"' height='"+(py(-60)-py(-53)).toFixed(1)+"' fill='var(--up)' opacity='.10'/>"+
+       "<line x1='0' y1='"+py(60).toFixed(1)+"' x2='"+GRAF_W+"' y2='"+py(60).toFixed(1)+"' stroke='var(--down)' stroke-width='.7' stroke-dasharray='3 3' opacity='.55'/>"+
+       "<line x1='0' y1='"+py(53).toFixed(1)+"' x2='"+GRAF_W+"' y2='"+py(53).toFixed(1)+"' stroke='var(--down)' stroke-width='.7' opacity='.35'/>"+
+       "<line x1='0' y1='"+py(0).toFixed(1)+"' x2='"+GRAF_W+"' y2='"+py(0).toFixed(1)+"' stroke='var(--dim)' stroke-width='.7' opacity='.5'/>"+
+       "<line x1='0' y1='"+py(-53).toFixed(1)+"' x2='"+GRAF_W+"' y2='"+py(-53).toFixed(1)+"' stroke='var(--up)' stroke-width='.7' opacity='.35'/>"+
+       "<line x1='0' y1='"+py(-60).toFixed(1)+"' x2='"+GRAF_W+"' y2='"+py(-60).toFixed(1)+"' stroke='var(--up)' stroke-width='.7' stroke-dasharray='3 3' opacity='.55'/>"+
+       "<text x='4' y='"+(py(60)-3).toFixed(1)+"' class='gl' fill='var(--down)'>+60</text>"+
+       "<text x='4' y='"+(py(0)-3).toFixed(1)+"' class='gl' fill='var(--dim)'>0</text>"+
+       "<text x='4' y='"+(py(-60)+9).toFixed(1)+"' class='gl' fill='var(--up)'>−60</text>";
+  h += "<path d='"+camino(calc.wt2, py)+"' fill='none' stroke='var(--muted)' stroke-width='1.4'/>";
+  h += "<path d='"+camino(calc.wt1, py)+"' fill='none' stroke='var(--live)' stroke-width='2'/>";
+  for(var k=ini;k<=i;k++){
+    if(!calc.dots[k]) continue;
+    h += "<circle cx='"+px(k).toFixed(1)+"' cy='"+py(calc.wt1[k]).toFixed(1)+"' r='3.2' fill='"+
+         (calc.dots[k]==="verde"?"var(--up)":"var(--down)")+"'/>";
+  }
+  // Anillo hueco, no un punto lleno: un círculo de color se lee como un cruce.
+  h += "<circle cx='"+px(i).toFixed(1)+"' cy='"+py(calc.wt1[i]).toFixed(1)+"' r='4.5' fill='none' stroke='var(--text)' stroke-width='1.6' opacity='.9'/>";
+
+  // ── franja del money flow ──
+  var mfPath = camino(calc.mf, pyMF);
+  if(mfPath){
+    var kIni = ini; while(kIni<=i && (calc.mf[kIni]===null||calc.mf[kIni]===undefined)) kIni++;
+    var signo = (calc.mf[i]!==null && calc.mf[i]>=0) ? "up" : "down";
+    h += "<line x1='0' y1='"+mfTop.toFixed(1)+"' x2='"+GRAF_W+"' y2='"+mfTop.toFixed(1)+"' stroke='var(--line)' stroke-width='1'/>"+
+         "<line x1='0' y1='"+mfCero.toFixed(1)+"' x2='"+GRAF_W+"' y2='"+mfCero.toFixed(1)+"' stroke='var(--dim)' stroke-width='.7' opacity='.6'/>"+
+         "<text x='4' y='"+(mfCero-3).toFixed(1)+"' class='gl' fill='var(--dim)'>MF 0</text>"+
+         "<path d='M "+px(kIni).toFixed(1)+" "+mfCero.toFixed(1)+" "+mfPath.slice(1)+
+           " L "+px(i).toFixed(1)+" "+mfCero.toFixed(1)+" Z' fill='var(--"+signo+")' opacity='.28'/>"+
+         "<path d='"+mfPath+"' fill='none' stroke='var(--"+signo+")' stroke-width='1.4'/>";
+  }
+  h += "</svg>";
+  return h;
+}
+
+/* =====================================================================
+   RECORRIDO · capa informativa, aislada — SOLO BTC
+   Dos datos: (1) distancia al techo/piso de 30 velas, en % y en ATR, medida hacia
+   donde apunta la dirección actual del WT; (2) cuántas velas tarda históricamente el
+   WT en llegar al extremo desde la zona actual.
+   Las tablas se midieron sobre 14 años de BTC (Bitstamp): por eso NO se muestra en
+   otros activos — extrapolarlas sería inventar precisión.
+   NO participa de la matriz: no toca el checklist, no viaja al payload de la IA
+   y no abre ni cierra ningún camino.
+   Cada celda: [mediana, percentil 25, percentil 75, cantidad de casos].
+   ===================================================================== */
+var RECO_ZONAS = [-53,-40,-20,0,20,40,53];   // cortes; 8 franjas
+var RECO_1D = [
+    {up:[46, 32, 68, 328],dn:[1, 1, 1, 350]},
+    {up:[38, 22, 68, 202],dn:[12, 3, 40, 206]},
+    {up:[29, 14, 50, 254],dn:[22, 6, 62, 296]},
+    {up:[26, 11, 51, 240],dn:[27, 9, 69, 260]},
+    {up:[21, 10, 54, 265],dn:[28, 11, 66, 238]},
+    {up:[11, 4, 41, 308],dn:[43, 22, 82, 234]},
+    {up:[5, 2, 26, 216],dn:[46, 24, 91, 181]},
+    {up:[1, 1, 1, 655],dn:[56, 35, 99, 537]}
+  ];
+var RECO_1S = [
+    {up:[36, 17, 41, 27],dn:[1, 1, 1, 33]},
+    {up:[32, 24, 51, 29],dn:[16, 3, 23, 19]},
+    {up:[25, 12, 37, 37],dn:[25, 7, 35, 39]},
+    {up:[11, 7, 28, 25],dn:[36, 11, 63, 20]},
+    {up:[9, 5, 19, 21],dn:[37, 12, 40, 22]},
+    {up:[8, 3, 17, 38],dn:[32, 13, 42, 21]},
+    {up:[5, 2, 15, 24],dn:[42, 23, 55, 11]},
+    {up:[1, 1, 1, 125],dn:[54, 40, 69, 69]}
+  ];
+var RECO_MIN_CASOS = 25;   // debajo de esto no se da la mediana como si fuera confiable
+
+function recoFranja(wt){
+  for(var k=0;k<RECO_ZONAS.length;k++) if(wt < RECO_ZONAS[k]) return k;
+  return RECO_ZONAS.length;
+}
+function recoATR(velas, i, p){
+  p = p || 14;
+  if(i < p) return null;
+  var tr = [];
+  for(var k=1;k<=i;k++){
+    var pc = velas[k-1].close;
+    tr.push(Math.max(velas[k].high-velas[k].low, Math.abs(velas[k].high-pc), Math.abs(velas[k].low-pc)));
+  }
+  if(tr.length < p) return null;
+  var a = 0;
+  for(var k=0;k<p;k++) a += tr[k];
+  a = a/p;
+  for(var k=p;k<tr.length;k++) a = (a*(p-1)+tr[k])/p;
+  return a;
+}
+/* Devuelve null salvo en BTC. La dirección del WT decide hacia qué lado se mide. */
+function recoEstado(g, velas, calc, i, marco){
+  if(g !== "btc" || i < 40) return null;
+  var atr = recoATR(velas, i);
+  if(!atr || atr <= 0) return null;
+  var wt = calc.wt1[i], wtPrev = calc.wt1[i-1];
+  var sube = wt > wtPrev, plano = Math.abs(wt - wtPrev) < 0.5;
+  var c = velas[i].close, desde = Math.max(0, i-29);
+  var mx = -Infinity, mn = Infinity, fMx = "", fMn = "";
+  for(var k=desde;k<=i;k++){
+    if(velas[k].high > mx){ mx = velas[k].high; fMx = velas[k].date; }
+    if(velas[k].low  < mn){ mn = velas[k].low;  fMn = velas[k].date; }
+  }
+  var haciaArriba = sube;
+  var obj = haciaArriba ? mx : mn, fecha = haciaArriba ? fMx : fMn;
+  var hay = haciaArriba ? (mx > c) : (mn < c);
+  var pct = hay ? (obj/c - 1)*100 : null;
+  var atrs = hay ? Math.abs(obj - c)/atr : null;
+
+  var tabla = (marco==="1S") ? RECO_1S : RECO_1D;
+  var celda = tabla[recoFranja(wt)];
+  var t = plano ? null : (haciaArriba ? celda.up : celda.dn);
+  var otro = plano ? {up:celda.up, dn:celda.dn} : null;
+
+  return {hay:hay, pct:pct, atrs:atrs, atr:atr, obj:obj, fecha:fecha, lado:haciaArriba?"techo":"piso",
+          wt:wt, sube:sube, plano:plano, t:t, otro:otro, marco:marco,
+          pocos: !!(t && t[3] < RECO_MIN_CASOS)};
+}
+
+/* =====================================================================
+   CAPA NUEVA · checklist objetivo del motor (ayuda de lectura, no veredicto)
+   ===================================================================== */
+var MIN_VELAS = { "1D":{completo:260, minimo:70}, "1S":{completo:220, minimo:70} };
+
+function vmcNivelHistorial(n, marco){
+  var u = MIN_VELAS[marco];
+  if(n < u.minimo) return {nivel:"insuficiente", n:n, completo:u.completo};
+  if(n < u.completo) return {nivel:"parcial", n:n, completo:u.completo};
+  return {nivel:"completo", n:n, completo:u.completo};
+}
+// Lado que se evalúa: el del último cruce si es reciente, si no el signo del oscilador
+function vmcLado(calc, i, ud){
+  if(ud && ud.hace<=3) return ud.color==="verde" ? "compra" : "venta";
+  return (calc.wt1[i] < 0) ? "compra" : "venta";
+}
+// Anti-cuchillo / pullback ordenado (ESTIMACIÓN del motor, no regla certificada)
+// "Segundo mínimo" de verdad: hubo un extremo previo del mismo lado Y el oscilador
+// se recuperó hacia el medio entre aquel extremo y ahora. Un descenso continuo que
+// pasa varias veces por −40 sigue siendo un solo cuchillo, no dos mínimos.
+function vmcAntiCuchillo(calc, velas, i, lado, marco){
+  var UMB = (marco==="1S") ? 18 : 10;   // movimiento vertical en las últimas 5 velas
+  var RECUP = 15;                       // el oscilador debe volver al medio entre extremo y extremo
+  var mov = (i>=5) ? (velas[i].close/velas[i-5].close-1)*100 : 0;
+  var desde = Math.max(0, i-25), extremo = -1, segundo = false;
+  for(var k=desde;k<=i-2;k++){
+    if(extremo>=0) break;
+    if(lado==="compra" && calc.wt1[k]<=-40) extremo = k;
+    if(lado==="venta"  && calc.wt1[k]>= 40) extremo = k;
+  }
+  if(extremo>=0){
+    for(var k2=extremo+1;k2<=i;k2++){
+      if(lado==="compra" && calc.wt1[k2] > -RECUP){ segundo = true; break; }
+      if(lado==="venta"  && calc.wt1[k2] <  RECUP){ segundo = true; break; }
+    }
+  }
+  var vertical = (lado==="compra") ? (mov <= -UMB) : (mov >= UMB);
+  return { ok:(segundo || !vertical), segundo:segundo, vertical:vertical, mov:mov };
+}
+function vmcChecklist(calc, velas, i, div, reg, diz, lado, marco){
+  var wt = calc.wt1[i];
+  var mf = calc.mf[i], mfPrev = (i>=5)?calc.mf[i-5]:null;
+  var divOK = !!(div && ((lado==="compra"&&div.tipo==="alcista")||(lado==="venta"&&div.tipo==="bajista")));
+  var hayDot = diz.hay && ((lado==="compra"&&diz.dot==="verde")||(lado==="venta"&&diz.dot==="rojo"));
+  var zonaAlta  = hayDot && ((lado==="compra") ? wt<=-53 : wt>=53);
+  var zonaMedia = hayDot && ((lado==="compra") ? wt<0    : wt>0);
+  var zonaRango = hayDot && ((lado==="compra") ? wt<=-40 : wt>=40);
+  var mfOK = (mf===null||mf===undefined) ? false
+    : ((lado==="compra") ? (mf>=0 || (mfPrev!==null&&mf>mfPrev+1))
+                         : (mf< 0 || (mfPrev!==null&&mf<mfPrev-1)));
+  var ac = vmcAntiCuchillo(calc, velas, i, lado, marco);
+  var tendOK = (lado==="compra") ? (reg.texto==="Alcista") : (reg.texto==="Bajista");
+  return {lado:lado, div:divOK, hayDot:hayDot, zonaAlta:zonaAlta, zonaMedia:zonaMedia,
+          zonaRango:zonaRango, mf:mfOK, cuchillo:ac.ok, ac:ac, tend:tendOK};
+}
+/* La divergencia que el motor usa exige pivote actual reciente (<=6 velas), porque una
+   divergencia vieja no es accionable. Pero el indicador la sigue dibujando en el gráfico,
+   así que decir "sin divergencia" a secas contradice lo que el usuario ve. Esta función
+   busca la última divergencia SIN el filtro de frescura, solo para poder nombrarla. */
+function vmcDivergenciaVieja(calc, velas){
+  var n = velas.length, VENTANA = 75, MIN_DIF_WT = 2, iFin = n-1, mejor = null;
+  ["min","max"].forEach(function(tipo){
+    var pivotes = vmcPivotes(calc, velas, tipo).filter(function(i){ return i>=iFin-VENTANA; });
+    if(pivotes.length<2) return;
+    for(var a=pivotes.length-1; a>=1; a--){
+      var actual = pivotes[a];
+      if(iFin-actual<=6) continue;             // esa la detecta el motor principal
+      var previo = null;
+      for(var j=0;j<a;j++){
+        var p = pivotes[j];
+        if(p < actual-2 && p >= actual-VENTANA){
+          if(previo===null) previo=p;
+          else if(tipo==="min" && calc.wt1[p]<calc.wt1[previo]) previo=p;
+          else if(tipo==="max" && calc.wt1[p]>calc.wt1[previo]) previo=p;
+        }
+      }
+      if(previo===null) continue;
+      var wtA = calc.wt1[actual], wtP = calc.wt1[previo], ok=false, tipoDiv="";
+      if(tipo==="min" && velas[actual].low < velas[previo].low && (wtA-wtP) > MIN_DIF_WT){ ok=true; tipoDiv="alcista"; }
+      if(tipo==="max" && velas[actual].high > velas[previo].high && (wtP-wtA) > MIN_DIF_WT){ ok=true; tipoDiv="bajista"; }
+      if(ok && (mejor===null || actual>mejor.actual))
+        mejor = {tipo:tipoDiv, actual:actual, previo:previo, wtA:wtA, wtP:wtP, hace:iFin-actual};
+      if(ok) break;
+    }
+  });
+  return mejor;
+}
+/* Señal de una vela anterior que TODAVÍA está vigente.
+   Condiciones: hubo cruce en zona extrema dentro de la ventana reciente Y el oscilador
+   sigue en esa misma zona. Si el WT ya se cayó de la zona, la oportunidad pasó y no se
+   anuncia: avisar tarde es peor que no avisar. No cambia ninguna regla del motor,
+   solo hace visible un dato que ya estaba en el minibox de "Último punto". */
+function vmcSenalVigente(calc, i, ud, marco){
+  if(!ud) return null;
+  var VENTANA = (marco==="1S") ? 2 : 3;
+  if(ud.hace < 1 || ud.hace > VENTANA) return null;       // hace 0 lo muestra el banner principal
+  var esCompra = (ud.color==="verde");
+  var eraZona   = esCompra ? (ud.wt <= -53) : (ud.wt >= 53);
+  var sigueZona = esCompra ? (calc.wt1[i] <= -53) : (calc.wt1[i] >= 53);
+  if(!eraZona || !sigueZona) return null;
+  return {lado: esCompra?"compra":"venta", color:ud.color, hace:ud.hace, wt:ud.wt, wtAhora:calc.wt1[i]};
+}
+// Estructura de precio comprimida para el payload de la IA
+function vmcEstructura(velas, i){
+  var n = Math.min(90, i+1), maxN = 0, minN = Infinity;
+  for(var k=i-n+1;k<=i;k++){
+    if(velas[k].high>maxN) maxN = velas[k].high;
+    if(velas[k].low<minN)  minN = velas[k].low;
+  }
+  var c = velas[i].close;
+  return {
+    dd:   maxN>0 ? (c/maxN-1)*100 : null,
+    runup:(minN<Infinity && minN>0) ? (c/minN-1)*100 : null,
+    var5: (i>=5) ? (c/velas[i-5].close-1)*100 : null
+  };
+}
+
+/* =====================================================================
+   CARGA DE VELAS Y ANÁLISIS POR MARCO
+   ===================================================================== */
+/* date = apertura de la vela (lo que muestra TradingView como su fecha).
+   cierre = día en que la vela cerró: en 1D coincide, en 1S es el domingo siguiente.
+   Guardar los dos evita el malentendido de que la card semanal está 11 días atrasada
+   cuando en realidad cerró hace 5. El motor ignora los campos extra. */
+function vmcVelasDesdeKlines(klines, ahoraMs, incluirEnCurso){
+  return klines
+    .filter(function(k){ return incluirEnCurso ? true : (k[6] <= ahoraMs); })
+    .map(function(k){
+      return { date:new Date(k[0]).toISOString().slice(0,10),
+               cierre:new Date(k[6]).toISOString().slice(0,10),
+               enCurso:(k[6] > ahoraMs),
+               open:+k[1], high:+k[2], low:+k[3], close:+k[4] };
+    });
+}
+function analizarMarco(velas, marco){
+  var hist = vmcNivelHistorial(velas.length, marco);
+  if(hist.nivel==="insuficiente") return {hist:hist, ok:false};
+  var calc = vmcCalcular(velas);
+  var i = velas.length-1;
+  var diz = vmcDotInZone(calc, i);
+  var ud  = vmcUltimoDot(calc, i);
+  var div = vmcDivergencia(calc, velas);
+  var reg = vmcRegimen(calc, velas, i);
+  var mfE = vmcEstadoMF(calc, i);
+  var lado = vmcLado(calc, i, ud);
+  var ladoMotivo = (ud && ud.hace<=3)
+    ? {texto:"por el cruce de hace "+ud.hace, neutro:false}
+    : (Math.abs(calc.wt1[i]) < 20
+        ? {texto:"por el signo del WT ("+calc.wt1[i].toFixed(1)+"), sin cruce reciente — zona neutra, la elección del lado es arbitraria", neutro:true}
+        : {texto:"por el signo del WT ("+calc.wt1[i].toFixed(1)+"), sin cruce reciente", neutro:false});
+  var chk = vmcChecklist(calc, velas, i, div, reg, diz, lado, marco);
+  var qqe = qqeEstado(velas, marco);   // informativo: no entra en chk ni en el payload
+  var vig = vmcSenalVigente(calc, i, ud, marco);
+  // Excepción de rango: es determinista, así que la resuelve el motor y se PINTA.
+  // Cuatro intentos de que la IA la nombrara fallaron; con razón, porque un camino
+  // que no puede abrirse no es "lo que abriría el camino". El dato tiene que estar igual.
+  var wtRef = (ud && ud.hace<=3) ? ud.wt : calc.wt1[i];
+  var enBorde = (lado==="compra") ? (wtRef<=-40 && wtRef>-53) : (wtRef>=40 && wtRef<53);
+  // Gestión de posición 📤: condición determinista de la matriz. Se muestra como
+  // condicional porque el motor no sabe si hay posición abierta, pero el nivel sí lo sabe.
+  var gestion = null;
+  var VENT = (marco==="1S") ? 2 : 3;
+  if(ud && ud.hace<=VENT){
+    if(ud.color==="rojo" && ud.wt>=53)
+      gestion = {lado:"toma de ganancia", texto:"si estás comprado, el punto rojo en WT "+ud.wt.toFixed(1)+" (≥ +53) es zona de toma de ganancia, aunque el veredicto sea ESPERAR."};
+    else if(ud.color==="rojo" && ud.wt>=30 && div && div.tipo==="bajista")
+      gestion = {lado:"toma de ganancia", texto:"si estás comprado, techo con divergencia y punto rojo en WT "+ud.wt.toFixed(1)+" (≥ +30) es zona de toma de ganancia."};
+    else if(ud.color==="verde" && ud.wt<=-53)
+      gestion = {lado:"cobertura", texto:"si estás vendido, el punto verde en WT "+ud.wt.toFixed(1)+" (≤ −53) es zona de cobertura del short."};
+  }
+  var rango = null;
+  if(div && enBorde){
+    var mixto = (reg.texto==="Mixto");
+    rango = {aplica:mixto, wt:wtRef,
+      texto: mixto
+        ? "condiciones numéricas dadas (punto en el borde ±40/53 + divergencia). Aplica SOLO si en el gráfico hay rango lateral confirmado con dos toques de piso y techo — el motor no lo verifica."
+        : "NO aplica: exige rango lateral confirmado y la tendencia es "+reg.texto.toLowerCase()+", definida."};
+  }
+  var divVieja = div ? null : vmcDivergenciaVieja(calc, velas);
+  return { ok:true, hist:hist, velas:velas, calc:calc, i:i, marco:marco, enCurso:!!velas[i].enCurso,
+           diz:diz, ud:ud, div:div, reg:reg, mfE:mfE, lado:lado, chk:chk, vig:vig, divVieja:divVieja, rango:rango, gestion:gestion, ladoMotivo:ladoMotivo, qqe:qqe,
+           est:vmcEstructura(velas, i), zona:vmcZona(calc.wt1[i]),
+           techo:(marco==="1S") ? vmcTechoCiclo(calc, velas, i, div) : false };
+}
+
+/* =====================================================================
+   ESTADO
+   ===================================================================== */
+var GRUPOS = {
+  btc: {titulo:"BTC", clase:"BTC",              matriz:"base"},
+  liq: {titulo:"Major líquida", clase:"major líquida", matriz:"base"},
+  ili: {titulo:"Altcoin ilíquida", clase:"altcoin ilíquida", matriz:"asimétrica"}
+};
+var FORZAR_ESTRICTA = false;   // override manual del grupo de líquidas
+/* Clasificación efectiva: el ranking decide, salvo que el usuario fuerce la regla estricta. */
+function clasifDe(g){
+  if(g==="liq" && FORZAR_ESTRICTA)
+    return {clase:"altcoin ilíquida (forzada)", matriz:"asimétrica", estricta:true};
+  return {clase:GRUPOS[g].clase, matriz:GRUPOS[g].matriz, estricta:(g==="ili")};
+}
+var ESTADO = {
+  btc:{sym:"BTCUSDT", nombre:"Bitcoin", ticker:"BTC", rank:1, d:{}},
+  liq:{sym:null, nombre:null, ticker:null, rank:null, d:{}},
+  ili:{sym:null, nombre:null, ticker:null, rank:null, d:{}}
+};
+var UNIVERSO = {liquidas:[], iliquidas:[], sinPar:0};
+
+/* Excluidos: stablecoins y versiones envueltas / en staking (no son el activo, son un derivado) */
+var EXCLUIR = /^(USDT|USDC|USDE|DAI|FDUSD|TUSD|USDD|USDS|USD1|PYUSD|RLUSD|BUIDL|USDF|EURC|USDP|GUSD|LUSD|FRAX|CRVUSD|SUSDE|SUSDS|USDY|USTC|WBTC|CBBTC|LBTC|SOLVBTC|TBTC|WEETH|WSTETH|STETH|RETH|CBETH|WBETH|METH|EZETH|RSETH|WETH|WBNB|BNSOL|JITOSOL|MSOL|JUPSOL|BSC-USD|XAUT|PAXG)$/i;
+
+async function fetchJSONReintento(url, intentos, ms){
+  var n = intentos||3, ultimoError;
+  for(var i=0;i<n;i++){
+    try{ return await fetchJSON(url, ms); }
+    catch(e){ ultimoError=e; if(i<n-1) await esperar(2000*(i+1)); }
+  }
+  throw ultimoError;
+}
+/* La validación de pares es un extra: si Binance no contesta rápido, se sigue sin ella
+   (el par se valida igual al seleccionar, cuando se piden las velas). */
+async function paresUSDT(){
+  var c = await cacheLeer("vmcm:pares");
+  if(c && c.set && Object.keys(c.set).length >= 50 && (Date.now()-c.ts) < 24*3600*1000) return c.set;
+  try{
+    var precios = await fetchBinance("/api/v3/ticker/price", 8000);
+    // Si la respuesta no es la lista esperada, NO se valida nada: un set vacío
+    // filtraría el top 100 entero y dejaría los selectores en blanco.
+    if(!Array.isArray(precios) || precios.length < 100) return null;
+    var set = {}, n = 0;
+    for(var i=0;i<precios.length;i++) if(precios[i] && /USDT$/.test(precios[i].symbol)){ set[precios[i].symbol] = 1; n++; }
+    if(n < 50) return null;
+    await cacheGuardar("vmcm:pares", {ts:Date.now(), set:set});
+    return set;
+  }catch(e){ return null; }
+}
+/* Fallback: armar el universo con la MISMA API de la que dependen las cards.
+   Si Binance responde (y si no, tampoco hay velas), el selector tiene que funcionar.
+   Acá el orden es por volumen negociado, no por capitalización — se declara en pantalla. */
+var APALANCADOS = /(UP|DOWN|BULL|BEAR)USDT$/;
+/* Un universo solo sirve si tiene activos. Nunca se cachea ni se usa uno vacío. */
+function universoUtil(u){
+  return !!(u && u.liquidas && u.iliquidas && (u.liquidas.length + u.iliquidas.length) > 0);
+}
+async function universoDesdeBinance(){
+  var t = await fetchBinance("/api/v3/ticker/24hr", 20000);
+  if(!Array.isArray(t) || !t.length) throw new Error("respuesta inesperada de Binance");
+  var filas = t.filter(function(x){
+    if(!/USDT$/.test(x.symbol)) return false;
+    if(APALANCADOS.test(x.symbol)) return false;
+    var tk = x.symbol.replace(/USDT$/,"");
+    return tk!=="BTC" && !EXCLUIR.test(tk);
+  }).sort(function(a,b){ return (+b.quoteVolume) - (+a.quoteVolume); }).slice(0,100);
+  var liq = [], ili = [];
+  filas.forEach(function(x, idx){
+    var tk = x.symbol.replace(/USDT$/,"");
+    var it = {sym:x.symbol, ticker:tk, nombre:tk, rank:idx+1};
+    if(idx < 30) liq.push(it); else ili.push(it);
+  });
+  var u = {liquidas:liq, iliquidas:ili, sinPar:0, fuente:"binance", armada:fechaISO(new Date())};
+  if(!universoUtil(u)) throw new Error("Binance no devolvió pares USDT utilizables");
+  return u;
+}
+async function cargarUniverso(){
+  var cache = await cacheLeer("vmcm:universo");
+  var vigente = cache && universoUtil(cache.data) && (Date.now()-cache.ts) < 24*3600*1000;
+  // Una lista guardada por una versión anterior no trae la auditoría de descartados:
+  // se descarta para rearmarla, en vez de esperar 24 h a que venza.
+  if(vigente && cache.data.fuente==="coingecko" && !cache.data.descartados) vigente = false;
+  if(vigente){
+    UNIVERSO = cache.data;
+    return;
+  }
+  var monedas = null, errCG = null;
+  try{
+    monedas = await fetchJSONReintento("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false", 2);
+    if(!Array.isArray(monedas) || !monedas.length) throw new Error("lista vacía");
+  }catch(e){ errCG = e; monedas = null; }
+
+  if(!monedas){
+    // CoinGecko no está: probamos con Binance antes de rendirnos
+    try{
+      UNIVERSO = await universoDesdeBinance();
+      await cacheGuardar("vmcm:universo", {ts:Date.now(), data:UNIVERSO});
+      return;   // universoDesdeBinance ya valida que no venga vacío
+    }catch(e2){
+      if(cache && cache.data){ UNIVERSO = cache.data; return; }   // mejor la lista de ayer que ninguna
+      throw new Error("CoinGecko ("+errCG.message+") y Binance ("+e2.message+") fallaron");
+    }
+  }
+  var pares = await paresUSDT();
+
+  function armar(validar){
+    var liq = [], ili = [], desc = [], vistos = {}, btc = 0;
+    monedas.forEach(function(m){
+      var tk = String(m.symbol||"").toUpperCase();
+      var rk = m.market_cap_rank||999;
+      // Nada se descarta en silencio: cada moneda cae en un grupo o en la auditoría,
+      // así activos + descartados + BTC tiene que dar el total exacto.
+      if(!tk){ desc.push({tk:"(sin símbolo)", rank:rk, motivo:"dato incompleto"}); return; }
+      // BTC cuenta una sola vez (va a la sección 1); una repetición es un descarte más
+      if(tk==="BTC"){ if(btc===0) btc = 1; else desc.push({tk:tk, rank:rk, motivo:"duplicado"}); return; }
+      if(vistos[tk]){ desc.push({tk:tk, rank:rk, motivo:"duplicado"}); return; }
+      vistos[tk] = 1;
+      if(EXCLUIR.test(tk)){ desc.push({tk:tk, rank:rk, motivo:"stable/envuelta"}); return; }
+      var sym = tk+"USDT";
+      if(validar && !validar[sym]){ desc.push({tk:tk, rank:rk, motivo:"sin par USDT"}); return; }
+      var it = {sym:sym, ticker:tk, nombre:m.name||tk, rank:rk};
+      if(it.rank<=30) liq.push(it); else ili.push(it);
+    });
+    desc.sort(function(a,b){ return a.rank-b.rank; });
+    return {liquidas:liq, iliquidas:ili, sinPar:desc.filter(function(d){return d.motivo==="sin par USDT";}).length,
+            descartados:desc, btc:btc, total:monedas.length, fuente:"coingecko", armada:fechaISO(new Date())};
+  }
+  var u = armar(pares);
+  // Red de seguridad: si la validación de pares dejó todo (o casi todo) afuera,
+  // el problema es la validación, no el universo. Se descarta y se usa la lista cruda.
+  if(!universoUtil(u)) u = armar(null);
+  if(!universoUtil(u)) throw new Error("el top 100 llegó pero quedó sin activos utilizables");
+  UNIVERSO = u;
+  await cacheGuardar("vmcm:universo", {ts:Date.now(), data:UNIVERSO});
+}
+
+function pintarSelector(g){
+  var lista = (g==="liq") ? UNIVERSO.liquidas : UNIVERSO.iliquidas;
+  var sel = document.getElementById("sel-"+g);
+  var info = document.getElementById("info-"+g);
+  if(!lista || !lista.length){
+    sel.innerHTML = "<option value=''>Sin activos disponibles</option>";
+    info.textContent = "La lista quedó vacía — tocá Recargar lista";
+    info.className = "edad vencido";
+    document.getElementById("btn-desc-"+g).style.display = "none";
+    return;
+  }
+  sel.innerHTML = "<option value=''>— elegí un activo —</option>" + lista.map(function(it){
+    return "<option value='"+escaparHTML(it.sym)+"'>#"+it.rank+" · "+escaparHTML(it.ticker)+" — "+escaparHTML(it.nombre)+"</option>";
+  }).join("");
+  var nd = (UNIVERSO.descartados||[]).length;
+  info.textContent = lista.length+" activos" +
+    (UNIVERSO.fuente==="binance" ? " · orden por volumen de Binance (CoinGecko no accesible)"
+                                 : (nd ? " · "+nd+" del top "+(UNIVERSO.total||100)+" descartados" : "")) +
+    (UNIVERSO.armada ? " · lista del "+fechaCorta(UNIVERSO.armada) : "");
+  info.className = "edad "+(UNIVERSO.fuente==="binance" ? "viejo" : "vacio");
+  document.getElementById("btn-desc-"+g).style.display = nd ? "" : "none";
+}
+/* Auditoría del universo: qué se descartó y por qué. Sin esto, un filtro que se
+   pasa de listo se ve como "la lista es corta" y no hay forma de saber por qué. */
+function alternarDescartados(g){
+  var caja = document.getElementById("desc-"+g);
+  var btn = document.getElementById("btn-desc-"+g);
+  if(caja.style.display===""){ caja.style.display="none"; btn.textContent="🔍 Ver descartados"; return; }
+  var d = UNIVERSO.descartados||[];
+  var lista = (g==="liq") ? UNIVERSO.liquidas : UNIVERSO.iliquidas;
+  var porMotivo = {};
+  d.forEach(function(x){ (porMotivo[x.motivo] = porMotivo[x.motivo]||[]).push(x); });
+  var h = "<div class='crudo'><h4>Auditoría del universo · top "+(UNIVERSO.total||100)+" de CoinGecko</h4>";
+  var suma = UNIVERSO.liquidas.length + UNIVERSO.iliquidas.length + d.length + (UNIVERSO.btc||0);
+  var cierra = (suma === UNIVERSO.total);
+  h += "<div class='piv'>en este selector: "+lista.length+" · líquidas "+UNIVERSO.liquidas.length+
+       " · ilíquidas "+UNIVERSO.iliquidas.length+" · descartadas "+d.length+" · BTC "+(UNIVERSO.btc||0)+" (sección 1)</div>";
+  h += "<div class='piv' style='color:"+(cierra?"var(--up)":"var(--down)")+"'>"+
+       (cierra ? "✅ las cuentas cierran: "+suma+" = "+UNIVERSO.total
+               : "❌ las cuentas NO cierran: "+suma+" contabilizadas contra "+UNIVERSO.total+
+                 " del listado — faltan "+(UNIVERSO.total-suma)+", avisame que es un bug")+"</div>";
+  Object.keys(porMotivo).forEach(function(mot){
+    var arr = porMotivo[mot];
+    h += "<div class='piv'><b>"+escaparHTML(mot)+"</b> ("+arr.length+"): "+
+      arr.map(function(x){ return "#"+x.rank+" "+escaparHTML(x.tk); }).join(" · ")+"</div>";
+  });
+  h += "<div class='como'><b>Cómo leerlo:</b> «stable/envuelta» son stablecoins y versiones envueltas o en staking, que no tienen gráfico propio para leer con el VMC. "+
+    "«sin par USDT» son monedas que CoinGecko lista pero que no cotizan contra USDT en el spot de Binance — sin ese par no hay velas, así que no hay indicador. "+
+    "Suelen ser tokens de exchange y proyectos listados en otros mercados. Si ves acá una moneda que vos SÍ operás en Binance, avisame: sería un error de mapeo de símbolo.</div></div>";
+  caja.innerHTML = h;
+  caja.style.display = "";
+  btn.textContent = "🔍 Ocultar descartados";
+}
+/* Regla anti-silencio: si el universo no carga, se dice qué falló y dónde se ve */
+function errorUniverso(msg){
+  ["liq","ili"].forEach(function(g){
+    var sel = document.getElementById("sel-"+g);
+    sel.innerHTML = "<option value=''>No se pudo cargar la lista</option>";
+    var info = document.getElementById("info-"+g);
+    info.textContent = msg;
+    info.className = "edad vencido";
+    document.getElementById("btn-desc-"+g).style.display = "none";
+    ["1D","1S"].forEach(function(m){
+      document.getElementById("c-"+g+"-"+m).innerHTML =
+        "<div class='error-msg'>Sin lista de activos: "+escaparHTML(msg)+"<br><br>"+
+        "Las cards de BTC no dependen de esto y siguen funcionando. Probá <b>Reintentar</b>: la causa más común es el límite de consultas gratuitas de CoinGecko, que se libera en un rato.</div>";
+    });
+  });
+}
+async function iniciarUniverso(){
+  try{
+    await cargarUniverso();
+    pintarSelector("liq");
+    pintarSelector("ili");
+    for(var idx=0; idx<2; idx++){
+      var g = idx===0 ? "liq" : "ili";
+      var prev = await cacheLeer("vmcm:sel:"+g);
+      if(prev && prev.sym) await cambiarActivo(g, prev.sym);
+    }
+  }catch(e){
+    errorUniverso(e.message||"error desconocido");
+    try{ await diagnosticar(); }catch(x){}
+  }
+}
+async function reintentarUniverso(){
+  ["liq","ili"].forEach(function(g){
+    document.getElementById("sel-"+g).innerHTML = "<option value=''>Cargando top 100…</option>";
+    document.getElementById("info-"+g).textContent = "Reintentando…";
+    document.getElementById("info-"+g).className = "edad vacio";
+  });
+  await cacheGuardar("vmcm:universo", {ts:0, data:null});
+  await cacheGuardar("vmcm:pares", {ts:0, set:null});
+  await iniciarUniverso();
+}
+
+async function cambiarActivo(g, sym){
+  if(!sym){ return; }
+  var lista = (g==="liq") ? UNIVERSO.liquidas : UNIVERSO.iliquidas;
+  var it = null;
+  for(var k=0;k<lista.length;k++) if(lista[k].sym===sym) it = lista[k];
+  if(!it) return;
+  ESTADO[g].sym = it.sym; ESTADO[g].nombre = it.nombre;
+  ESTADO[g].ticker = it.ticker; ESTADO[g].rank = it.rank;
+  document.getElementById("sel-"+g).value = sym;
+  await cacheGuardar("vmcm:sel:"+g, {sym:sym});
+  await cargarGrupo(g);
+}
+
+async function cargarGrupo(g){
+  var e = ESTADO[g];
+  if(!e.sym) return;
+  var nombreCorto = (g==="btc") ? "BTC" : e.ticker;
+  ["1D","1S"].forEach(function(m){
+    var t = document.getElementById("tit-"+g+"-"+m);
+    if(t) t.textContent = nombreCorto+" · "+m;
+    document.getElementById("c-"+g+"-"+m).innerHTML = "<div class='cargando'>Calculando WaveTrend "+(m==="1D"?"diario":"semanal")+" de "+escaparHTML(nombreCorto)+"…</div>";
+    document.getElementById("precio-"+g+"-"+m).innerHTML = "";
+  });
+  var ahora = Date.now();
+  for(var idx=0; idx<2; idx++){
+    var marco = idx===0 ? "1D" : "1S";
+    var intervalo = idx===0 ? "1d" : "1w";
+    try{
+      var kl = await fetchBinance("/api/v3/klines?symbol="+e.sym+"&interval="+intervalo+"&limit=500");
+      var velas = vmcVelasDesdeKlines(kl, ahora, INCLUIR_EN_CURSO);
+      e.d[marco] = analizarMarco(velas, marco);
+      renderCard(g, marco);
+    }catch(err){
+      e.d[marco] = null;
+      document.getElementById("c-"+g+"-"+marco).innerHTML =
+        "<div class='error-msg'>No se pudieron traer las velas "+marco+" de "+escaparHTML(e.sym)+" ("+escaparHTML(err.message)+"). Binance puede estar bloqueado por tu red o el par puede no existir.</div>";
+    }
+  }
+  await restaurarVeredictos(g);
+}
+
+/* =====================================================================
+   RENDER DE LAS CARDS
+   ===================================================================== */
+function vmcPos(wt){ return Math.max(2, Math.min(98, (wt+100)/200*100)); } // escala real del indicador: −100..+100
+
+function renderChecklist(a, g){
+  var c = a.chk, lado = c.lado==="compra" ? "COMPRA" : "VENTA";
+  var si = "<span class='pos'>✅</span>", no = "<span class='neg'>❌</span>", nr = "<span class='nr'>no requerida</span>";
+  var esIli = clasifDe(g).estricta;
+  var mixto = (a.reg.texto==="Mixto");
+  var zonaTxt = c.zonaAlta ? "✅<span class='nota'>zona extrema (±53) — habilita Alta</span>"
+              : (c.zonaRango ? "✅<span class='nota'>borde (±40/53) — solo con rango confirmado</span>"
+              : (c.zonaMedia ? "✅<span class='nota'>a favor pero en zona media — exige tendencia clara</span>" : "❌"));
+  var zonaCls = (c.zonaAlta||c.zonaMedia||c.zonaRango) ? "pos" : "neg";
+  var lm = a.ladoMotivo || {texto:"", neutro:false};
+  var h = "<div class='chk'><div class='chk-head'>Checklist del motor · lado evaluado: <span class='lado'>"+lado+"</span>"+
+    (lm.texto ? "<span class='motivo' style='color:"+(lm.neutro?"var(--warn)":"var(--dim)")+"'>"+
+      escaparHTML(lm.texto)+"</span>" : "")+
+    "</div><table>";
+  h += "<tr><td>Divergencia verificada</td><td>"+(c.div?si:no)+(esIli&&c.lado==="compra"?"<span class='nota'>obligatoria en ilíquidas</span>":"")+"</td></tr>";
+  var notaVig = (!c.hayDot && a.vig)
+    ? "<span class='nota'>el cruce fue hace "+a.vig.hace+", pero sigue en zona</span>" : "";
+  h += "<tr><td>Punto + zona</td><td class='"+zonaCls+"'>"+zonaTxt+notaVig+"</td></tr>";
+  var mfV = a.mfE, contra = (c.lado==="compra") ? (mfV.giro==="girando a la baja") : (mfV.giro==="girando al alza");
+  var mfNota = (c.mf && contra && mfV.valor!==null)
+    ? "<span class='nota'>"+(mfV.valor>=0?"+":"")+mfV.valor.toFixed(1)+", pero "+mfV.giro+"</span>" : "";
+  h += "<tr><td>Money flow a favor</td><td>"+(c.mf?si:no)+mfNota+"</td></tr>";
+  h += "<tr><td>Anti-cuchillo</td><td>"+(c.cuchillo?si:no)+"</td></tr>";
+  var motivoTend;
+  if(c.div && c.zonaAlta)              motivoTend = "<span class='nota'>no la exige el camino Alta por divergencia</span>";
+  else if(c.div && c.zonaRango && mixto) motivoTend = "<span class='nota'>no la exige la excepción de rango, si el rango está confirmado</span>";
+  else if(c.div && c.zonaRango)        motivoTend = "<span class='nota mal'>con tendencia "+escaparHTML(a.reg.texto.toLowerCase())+" el borde con divergencia no habilita</span>";
+  else if(!c.div)                      motivoTend = "<span class='nota mal'>sin divergencia, este camino la exige</span>";
+  else if(!c.hayDot)                   motivoTend = "<span class='nota mal'>hay divergencia, pero sin punto en la última vela este camino la exige</span>";
+  else                                 motivoTend = "<span class='nota mal'>el punto no está en zona extrema, este camino la exige</span>";
+  h += "<tr><td>Tendencia a favor</td><td>"+(c.tend ? si : ("<span class='neg'>❌</span> "+motivoTend))+"</td></tr>";
+  h += "</table>";
+  if(a.gestion){
+    h += "<div class='chk-pie' style='color:var(--eth);border-top:1px solid var(--line)'>"+
+      "📤 <b>Gestión de posición</b>: "+escaparHTML(a.gestion.texto)+"</div>";
+  }
+  if(a.rango){
+    h += "<div class='chk-pie' style='color:"+(a.rango.aplica?"var(--warn)":"var(--dim)")+"'>"+
+      "<b>Excepción de rango</b> (WT "+a.rango.wt.toFixed(1)+" en el borde con divergencia): "+
+      escaparHTML(a.rango.texto)+"</div>";
+  }
+  h += "<div class='chk-pie'>Lo calcula el motor con los números de la última vela cerrada. El anti-cuchillo y la lectura de tendencia son estimaciones — el veredicto lo dan la IA y tu lectura del gráfico.</div></div>";
+  return h;
+}
+
+function renderCard(g, marco){
+  var e = ESTADO[g], a = e.d[marco], cont = document.getElementById("c-"+g+"-"+marco);
+  var esSemanal = (marco==="1S");
+  var nombre = (g==="btc") ? "BTC" : e.ticker;
+  if(!a){ return; }
+  if(!a.ok){
+    cont.innerHTML = "<div class='error-msg'>Historial insuficiente: solo "+a.hist.n+" velas "+marco+" en Binance. El indicador necesita al menos "+a.hist.completo+" para leerse completo y 70 para calcularse siquiera.</div>";
+    document.getElementById("vela-"+g+"-"+marco).textContent = "";
+    document.getElementById("precio-"+g+"-"+marco).innerHTML = "";
+    return;
+  }
+  var calc = a.calc, i = a.i, velas = a.velas;
+  var vAct = velas[i];
+  var badge = document.getElementById("vela-"+g+"-"+marco);
+  if(vAct.enCurso){
+    badge.textContent = (esSemanal?"semana EN CURSO: ":"vela EN CURSO: ")+fechaCorta(vAct.date)+" → hoy";
+    badge.style.color = "var(--warn)"; badge.style.background = "rgba(249,199,116,.1)";
+  } else {
+    badge.textContent = esSemanal
+      ? "semana "+fechaCorta(vAct.date)+"→"+fechaCorta(vAct.cierre)+" · cerró "+fechaCorta(vAct.cierre)+" UTC"
+      : "vela cerrada: "+fechaCorta(vAct.date)+" · UTC";
+    badge.style.color = ""; badge.style.background = "";
+  }
+  // Precio de cierre de la vela que usa el indicador (no el spot del momento:
+  // el motor solo mira velas cerradas, así que este es el número coherente con el WT)
+  var vp = (i>=1) ? (velas[i].close/velas[i-1].close-1)*100 : null;
+  var elP = document.getElementById("precio-"+g+"-"+marco);
+  elP.innerHTML = formatoPrecio(velas[i].close) +
+    (vp===null ? "" : "<span class='var "+(vp>=0?"pos":"neg")+"'>"+(vp>=0?"+":"")+vp.toFixed(1)+"%</span>");
+  elP.title = vAct.enCurso
+    ? "Último precio de la "+(esSemanal?"semana":"vela")+" en curso (abrió el "+vAct.date+"). Repinta: puede cambiar hasta el cierre."
+    : ("Cierre de la "+(esSemanal?"semana":"vela")+" que cerró el "+vAct.cierre+
+       " y variación contra la anterior. Es el precio sobre el que está calculado el indicador, no el spot del momento."+
+       (esSemanal?" Por eso difiere del de la card diaria: son cierres de días distintos.":""));
+  var diz = a.diz, ud = a.ud, div = a.div, reg = a.reg, mfE = a.mfE, zonaAhora = a.zona;
+  var unidad = esSemanal ? "semanas" : "velas";
+  var uni = function(n){ return n===1 ? (esSemanal?"semana":"vela") : unidad; };
+  var h = "";
+
+  if(a.enCurso){
+    h += "<div class='aviso-hist'>⚠️ Incluyendo la "+(esSemanal?"semana":"vela")+" <b>en curso</b> (abrió el "+escaparHTML(vAct.date)+"). "+
+      "El Cipher B <b>repinta</b>: el punto que ves puede desaparecer antes del cierre. Sirve para anticiparse, no para decidir — "+
+      "el veredicto de la IA nace con la confianza degradada y no se cachea.</div>";
+  }
+  if(a.hist.nivel==="parcial"){
+    h += "<div class='aviso-hist'>⚠️ Historial parcial: "+a.hist.n+" velas de las "+a.hist.completo+" necesarias. El WaveTrend y el money flow son válidos, pero la <b>tendencia de fondo (EMA200) todavía no maduró</b> — leela con reservas. Si hay señal, la IA lo cuenta como degradación.</div>";
+  }
+
+  if(esSemanal && a.techo){
+    h += "<div class='aviso-techo'>⚠️ Posible TECHO DE CICLO: divergencia bajista semanal en zona de máximos"+
+      (g==="btc" ? "" : " del historial disponible en Binance")+" — verificar las líneas en el gráfico y corroborar con /vmc.</div>";
+  }
+
+  if(diz.hay && diz.enZona){
+    var esVerde = diz.dot==="verde";
+    h += "<div class='dot-banner "+(esVerde?"verde":"rojo")+"'>"+
+      (esVerde?"🟢 Punto VERDE en "+diz.zona.texto:"🔴 Punto ROJO en "+diz.zona.texto)+
+      " (WT "+diz.wt.toFixed(1)+")<span class='accion'>→ analizar con IA y corroborar con /vmc</span></div>";
+  } else if(diz.hay && diz.borde && div){
+    var esVerde2 = diz.dot==="verde";
+    // El motor NO verifica rangos laterales (dos toques de piso y techo): solo avisa que
+    // se dan las condiciones numéricas del borde. Afirmar "excepción de rango" sería
+    // atribuirle a la matriz un camino que nadie confirmó.
+    h += "<div class='dot-banner "+(esVerde2?"verde":"rojo")+"' style='opacity:.9'>"+
+      (esVerde2?"🟢 Punto VERDE en "+diz.zona.texto:"🔴 Punto ROJO en "+diz.zona.texto)+
+      " + divergencia (WT "+diz.wt.toFixed(1)+")<span class='accion'>solo vale si hay rango lateral confirmado — "+
+      (reg.texto==="Mixto" ? "verificalo en el gráfico" : "con tendencia "+reg.texto.toLowerCase()+" no aplica")+"</span></div>";
+  } else if(diz.hay){
+    var col = diz.dot==="verde"?"verde":"rojo";
+    h += "<div class='dot-banner "+col+"' style='opacity:.72'>"+(diz.dot==="verde"?"🟢":"🔴")+" Punto "+diz.dot+" en "+diz.zona.texto+" (WT "+diz.wt.toFixed(1)+")<span class='accion'>cruce informativo · fuera de zona de la matriz</span></div>";
+  } else if(a.vig){
+    var esVerdeV = (a.vig.color==="verde");
+    h += "<div class='dot-banner "+(esVerdeV?"verde":"rojo")+" vigente'>"+
+      (esVerdeV?"🟢":"🔴")+" Señal de "+a.vig.lado+" hace "+a.vig.hace+" "+uni(a.vig.hace)+
+      " (WT "+a.vig.wt.toFixed(1)+") · el WT sigue en "+zonaAhora.texto+
+      "<span class='accion'>no perseguir tarde — corroborar con /vmc</span></div>";
+  } else {
+    h += "<div class='dot-banner nada'>⚪ Sin cruce en la última "+(esSemanal?"semana":"vela")+
+      "<span class='accion'>WT en "+zonaAhora.texto+"</span></div>";
+  }
+
+  var claseZona = (zonaAhora.clave==="compra"||zonaAhora.clave==="borde-compra")?"pos":
+                  (zonaAhora.clave==="venta"||zonaAhora.clave==="borde-venta")?"neg":"neu";
+  var nGraf = GRAF_VELAS[marco] || 49;
+  h += "<div class='osc-titulo'>WaveTrend · últimas "+Math.min(nGraf, i+1)+" "+unidad+
+    " <span style='color:var(--dim);font-weight:400;text-transform:none;letter-spacing:0'>(umbral matriz ±53 · banda ±60)</span></div>"+
+    grafOscilador(calc, velas, i, marco)+
+    "<div class='graf-leg'>"+
+      "<span><i style='background:var(--live)'></i>WT1 "+calc.wt1[i].toFixed(1)+"</span>"+
+      "<span><i style='background:var(--muted)'></i>WT2 "+calc.wt2[i].toFixed(1)+"</span>"+
+      "<span><i style='background:var(--"+((mfE.valor!==null&&mfE.valor>=0)?"up":"down")+")'></i>money flow "+
+        (mfE.valor===null?"–":mfE.valor.toFixed(1))+" <span style='color:var(--dim)'>(franja propia, escala ±20)</span></span>"+
+      "<span style='color:var(--dim)'>🟢🔴 cruces · ⭘ vela actual</span>"+
+      "<span class='"+claseZona+"' style='margin-left:auto'>"+zonaAhora.texto+"</span></div>";
+
+  h += "<div class='grid2'>";
+  h += "<div class='minibox'><div class='t'>Money Flow <span class='ayuda' title=\"Mide la presión compradora vs vendedora dentro de cada vela (fórmula RSIMFI de VuManChu). Verde/positivo = entra dinero. Rojo/negativo = sale dinero. 'Girando al alza' avisa que la presión está cambiando a favor de la compra.\">ⓘ</span></div>"+
+    "<div class='v "+mfE.clase+"'>"+(mfE.valor===null?"–":mfE.texto)+"</div>"+
+    "<div class='sub "+(mfE.giro==="girando al alza"?"pos":(mfE.giro==="girando a la baja"?"neg":""))+"'>"+mfE.giro+"</div></div>";
+  h += "<div class='minibox'><div class='t'>Tendencia de fondo (EMA) <span class='ayuda' title=\""+escaparHTML(reg.ayuda.replace("de BTC","del activo"))+"\">ⓘ</span></div>"+
+    "<div class='v "+reg.clase+"'>"+reg.texto+"</div>"+
+    "<div class='sub "+(reg.sesgoClase||"")+"'>"+reg.explica+"</div>"+
+    "<div class='sub-tec'>"+reg.detalle+"</div></div>";
+  h += "<div class='minibox'><div class='t'>Último punto <span class='ayuda' title=\"Cuándo fue el último cruce de las líneas WaveTrend y en qué valor ocurrió. Si fue hace varias velas, la señal ya se ejecutó: no conviene perseguirla tarde.\">ⓘ</span></div>"+
+    (ud ? "<div class='v'>"+(ud.color==="verde"?"🟢":"🔴")+" hace "+ud.hace+" "+uni(ud.hace)+"</div><div class='sub'>en WT "+ud.wt.toFixed(1)+(ud.hace<=1?"":" · señal ya ejecutada: no perseguir")+"</div>"
+        : "<div class='v'>–</div><div class='sub'>sin cruces en el historial</div>")+"</div>";
+  h += "<div class='minibox'><div class='t'>Divergencia <span class='ayuda' title=\"El precio y el oscilador van en direcciones opuestas: nuevo mínimo de precio sin nuevo mínimo del oscilador (alcista, posible piso) o nuevo máximo sin acompañamiento (bajista, posible techo). Marcada BETA: es una estimación numérica, verificá las líneas en el gráfico.\">ⓘ</span> <span style='color:var(--dim);font-size:9px'>beta</span></div>"+
+    (div ? "<div class='v wrn'>"+(div.tipo==="alcista"?"Alcista":"Bajista")+" posible</div>"+
+           "<div class='sub'>pivote WT "+div.wtP.toFixed(1)+" ("+fechaCorta(velas[div.previo].date)+") → "+div.wtA.toFixed(1)+" ("+fechaCorta(velas[div.actual].date)+")</div>"
+         : (a.divVieja
+             ? "<div class='v neu'>Sin divergencia vigente</div><div class='sub'>la última fue "+a.divVieja.tipo+
+               " hace "+a.divVieja.hace+" "+uni(a.divVieja.hace)+" ("+fechaCorta(velas[a.divVieja.previo].date)+" → "+
+               fechaCorta(velas[a.divVieja.actual].date)+") — el indicador la sigue dibujando, pero ya no es accionable</div>"
+             : "<div class='v neu'>Sin divergencia</div><div class='sub'>pivotes 75 "+unidad+" sin patrón</div>"))+"</div>";
+  h += "</div>";
+
+  if(a.qqe){
+    var q = a.qqe, qCol = q.tipo==="Long" ? "pos" : (q.tipo==="Short" ? "neg" : "neu");
+    h += "<div class='minibox info' style='margin-top:10px'>"+
+      "<div class='t'>QQE signals <span class='ayuda' title=\"Indicador independiente del WaveTrend: RSI de 14 suavizado con una banda de seguimiento (parámetros 14/5/4.238/10, script QQE signals de colinmck). Sus etiquetas Long y Short son solo confluencia: no habilitan ni bloquean ningún camino de la matriz.\">ⓘ</span> "+
+      "<span style='color:var(--dim);font-size:9px'>beta</span>"+
+      "<span class='aclara'>informativo · no interviene en el checklist</span></div>";
+    if(!q.tipo){
+      h += "<div class='v neu'>Sin etiquetas</div><div class='sub'>ninguna en el historial cargado</div>";
+    } else {
+      h += "<div class='v "+qCol+"'>"+(q.tipo==="Long"?"🟢":"🔴")+" "+q.tipo+" hace "+q.hace+" "+uni(q.hace)+"</div>"+
+        "<div class='sub'>"+fechaCorta(q.fecha)+" · RSI suavizado "+q.rsiMa.toFixed(1)+" · "+
+        (q.vigente ? "la condición sigue en pie" : "ya se dio vuelta")+"</div>";
+    }
+    h += "</div>";
+  }
+
+  var reco = recoEstado(g, velas, calc, i, marco);
+  if(reco){
+    var un = esSemanal ? "semanas" : "velas";
+    h += "<div class='minibox info' style='margin-top:10px'>"+
+      "<div class='t'>Recorrido <span class='ayuda' title=\"Distancia hasta el máximo o mínimo de las últimas 30 velas, medida hacia donde apunta la dirección actual del WaveTrend, expresada en porcentaje y en cuántas velas promedio equivale esa distancia (es distancia, no tiempo: el precio puede recorrerla en una vela o no llegar nunca). Debajo, cuánto tarda históricamente el oscilador en llegar al extremo desde esta zona. Las tablas se midieron sobre 14 años de BTC y por eso solo se muestran acá.\">ⓘ</span> "+
+      "<span style='color:var(--dim);font-size:9px'>beta · solo BTC</span>"+
+      "<span class='aclara'>informativo · no interviene en el checklist</span></div>";
+    if(reco.hay){
+      var sinEspacio = reco.atrs < 1;
+      var unaVela = esSemanal ? "semana" : "vela";
+      h += "<div class='v "+(sinEspacio?"neg":"")+"'>"+(reco.pct>=0?"+":"")+reco.pct.toFixed(1)+"% hasta el "+reco.lado+
+        " · a "+reco.atrs.toFixed(1)+" "+(reco.atrs<1.05?unaVela:un)+" promedio de distancia</div>"+
+        "<div class='sub'>"+(sinEspacio ? "<span class='wrn'>menos de una "+unaVela+" de distancia — sin espacio</span><br>" : "")+
+        (reco.lado==="techo"?"máximo":"mínimo")+" de 30 "+un+": "+formatoPrecio(reco.obj)+" del "+fechaCorta(reco.fecha)+
+        " · una "+unaVela+" promedio recorre "+formatoPrecio(reco.atr)+" ("+(reco.atr/velas[i].close*100).toFixed(1)+"%)</div>";
+    } else {
+      h += "<div class='v neu'>Sin "+reco.lado+" en 30 "+un+"</div>"+
+        "<div class='sub'>el precio está en el "+(reco.lado==="techo"?"máximo":"mínimo")+" del período — sin obstáculo por delante</div>";
+    }
+    // nota de tiempo
+    var nota = "";
+    if(reco.plano && reco.otro && reco.otro.up && reco.otro.dn){
+      nota = "Con el WT en "+reco.wt.toFixed(0)+" y plano: si sigue subiendo, unas "+reco.otro.up[0]+" "+un+
+        " hasta +60; si se da vuelta, unas "+reco.otro.dn[0]+" hasta −60.";
+    } else if(reco.t){
+      var dest = reco.sube ? "+60" : "−60";
+      nota = reco.pocos
+        ? "Pocos casos históricos en esta zona del "+(esSemanal?"semanal":"diario")+" ("+reco.t[3]+" en 14 años): el rango típico hasta "+
+          dest+" es de "+reco.t[1]+" a "+reco.t[2]+" "+un+", tomalo como orden de magnitud."
+        : "Con el WT en "+reco.wt.toFixed(0)+" y "+(reco.sube?"subiendo":"bajando")+", históricamente tarda <b>"+reco.t[0]+" "+un+
+          "</b> en llegar a "+dest+" (esto sí es tiempo, y del oscilador, no del precio; la mitad de los casos, entre "+reco.t[1]+" y "+reco.t[2]+
+          (esSemanal?", sobre "+reco.t[3]+" casos en 14 años":"")+"). Es la duración típica del ciclo del oscilador, no una previsión de precio.";
+    }
+    if(nota) h += "<div class='sub-tec' style='margin-top:7px;padding-top:7px;border-top:1px solid var(--line);font-family:inherit;line-height:1.5'>"+nota+"</div>";
+    h += "</div>";
+  }
+
+  if(div){
+    h += "<div class='aviso-div'>⚠️ Divergencia detectada por pivotes (gap 2, ventana 75, dif &gt;2 pts). Es <b>informativa</b>: verificá las líneas en el gráfico — los valores numéricos mandan sobre la estimación visual.</div>";
+  }
+
+  h += renderChecklist(a, g);
+  h += "<div id='ver-"+g+"-"+marco+"'></div>";
+  h += "<div id='crudo-"+g+"-"+marco+"' style='display:none'></div>";
+
+  h += "<div class='pie-vmc'>📋 Lectura del <b>indicador</b> sobre "+escaparHTML(nombre)+" · clasificación <b>"+clasifDe(g).clase+"</b> (matriz "+clasifDe(g).matriz+"). "+(a.enCurso ? "Incluye la "+(esSemanal?"semana":"vela")+" en curso — <b>repinta</b>." : "Solo vela "+(esSemanal?"semanal":"diaria")+" cerrada — sin repintado.")+"</div>";
+  h += "<div class='fuente'>Fuente: Binance klines "+(esSemanal?"1S (semanas de lunes)":"1D")+" UTC · WT "+WT_CANAL+"/12/3 hlc3 + RSIMFI 60/150</div>";
+  cont.innerHTML = h;
+}
+
+/* ---------- Valores crudos (etapa 1 de certificación, 0 tokens) ---------- */
+function alternarCrudos(g, marco){
+  var cont = document.getElementById("crudo-"+g+"-"+marco);
+  var btn = document.getElementById("btn-crudo-"+g+"-"+marco);
+  if(!cont) return;
+  if(cont.style.display===""){ cont.style.display="none"; btn.textContent="🔬 Valores crudos"; return; }
+  var a = ESTADO[g].d[marco];
+  if(!a || !a.ok) return;
+  var calc = a.calc, velas = a.velas, i = a.i;
+  var desde = Math.max(0, i-9);
+  var v0 = velas[i];
+  f = "<div class='crudo'><h4>Vela de referencia · "+v0.date+(marco==="1S"?" → "+v0.cierre:"")+" (UTC)</h4>"+
+    "<div class='piv'>O "+formatoPrecio(v0.open)+" · H "+formatoPrecio(v0.high)+" · L "+formatoPrecio(v0.low)+" · C "+formatoPrecio(v0.close)+
+    "<br>hlc3 (fuente del WaveTrend) "+formatoPrecio((v0.high+v0.low+v0.close)/3)+
+    " · WT1 "+num(calc.wt1[i],2)+" · WT2 "+num(calc.wt2[i],2)+" · MF "+(calc.mf[i]===null?"–":num(calc.mf[i],2))+
+    "<br>parámetros: canal "+WT_CANAL+" · promedio 12 · MA 3 · fuente hlc3 — <b>tienen que coincidir con la configuración del indicador</b></div>";
+  f += "<h4 style='margin-top:11px'>Últimas "+(i-desde+1)+" velas cerradas</h4>"+
+    "<div style='overflow-x:auto'><table><tr><th>Fecha (UTC)</th><th>Open</th><th>High</th><th>Low</th><th>Close</th><th>WT1</th><th>WT2</th><th>MF</th><th>Punto</th></tr>";
+  for(var k=i;k>=desde;k--){
+    var v = velas[k];
+    f += "<tr><td>"+v.date+"</td><td>"+formatoPrecio(v.open)+"</td><td>"+formatoPrecio(v.high)+"</td><td>"+
+         formatoPrecio(v.low)+"</td><td>"+formatoPrecio(v.close)+"</td><td>"+num(calc.wt1[k],2)+"</td><td>"+num(calc.wt2[k],2)+"</td><td>"+
+         (calc.mf[k]===null?"–":num(calc.mf[k],2))+"</td><td>"+(calc.dots[k]==="verde"?"🟢":(calc.dots[k]==="rojo"?"🔴":"–"))+"</td></tr>";
+  }
+  f += "</table></div>";
+  if(a.div){
+    f += "<div class='piv'>Pivotes de la divergencia "+a.div.tipo+":<br>"+
+      "previo · "+velas[a.div.previo].date+" · WT "+num(a.div.wtP)+" · "+(a.div.tipo==="alcista"?"mínimo":"máximo")+" de precio "+(a.div.tipo==="alcista"?velas[a.div.previo].low:velas[a.div.previo].high)+"<br>"+
+      "actual · "+velas[a.div.actual].date+" · WT "+num(a.div.wtA)+" · "+(a.div.tipo==="alcista"?"mínimo":"máximo")+" de precio "+(a.div.tipo==="alcista"?velas[a.div.actual].low:velas[a.div.actual].high)+"</div>";
+  } else {
+    var dv = vmcDivergenciaVieja(calc, velas);
+    f += "<div class='piv'>" + (dv
+      ? "Sin divergencia vigente. La última detectada fue "+dv.tipo+", hace "+dv.hace+" velas:<br>"+
+        "previo · "+velas[dv.previo].date+" · WT "+num(dv.wtP,2)+"<br>actual · "+velas[dv.actual].date+" · WT "+num(dv.wtA,2)+"<br>"+
+        "El motor solo usa divergencias con el pivote actual a 6 velas o menos: más viejas no son accionables, "+
+        "aunque el indicador siga mostrando la línea en el gráfico."
+      : "Sin divergencia detectada en la ventana de 75 velas.") + "</div>";
+  }
+  f += "<div class='como'><b>Cómo certificar este activo, en dos pasos:</b><br>"+
+    "<b>1) ¿Son las mismas velas?</b> Hacé hover sobre la fecha de referencia en TradingView y compará <b>OHLC</b> contra la primera línea de acá. "+
+    "Si el OHLC coincide, las velas son idénticas y cualquier diferencia posterior es de cálculo, no de datos. Si no coincide, el gráfico está en otro exchange, "+
+    "otra zona horaria u otro corte de sesión, y hay que igualar eso primero.<br>"+
+    "<b>2) ¿Da lo mismo el indicador?</b> Recién ahí compará WT1, WT2 y money flow contra el data window, en 3 o 4 fechas distintas. "+
+    "Dentro de ±1-2 puntos el motor queda validado para este activo y marco. Si el desvío es mayor y el OHLC coincidía, es un problema del motor: pasame las 3 filas.</div></div>";
+  cont.innerHTML = f;
+  cont.style.display = "";
+  btn.textContent = "🔬 Ocultar crudos";
+}
+
+/* =====================================================================
+   PROVEEDORES DE IA · reutilizado del panel, sin herramientas de búsqueda
+   ===================================================================== */
+var PROVEEDORES = {
+  "claude-proxy": { nombre:"IA: Claude (incluido)",       requiereClave:false },
+  "claude-key":   { nombre:"IA: Claude (API key)",        requiereClave:true, claveDe:"claude",
+                    ayuda:"Pegá tu API key de Anthropic (console.anthropic.com → API Keys)." },
+  "gemini":       { nombre:"IA: Gemini (API key gratis)", requiereClave:true, claveDe:"gemini",
+                    ayuda:"Pegá tu API key de Google Gemini. Se crea GRATIS en aistudio.google.com/apikey (botón Create API key)." }
+};
+var MODELOS_GEMINI = ["gemini-2.5-flash","gemini-flash-lite-latest"];
+var estadoIA = { proveedor:null, claves:{ claude:null, gemini:null } };
+
+var colaIA = Promise.resolve();
+var pendientesIA = 0;
+function encolarIA(fn){
+  var p = colaIA.then(fn, fn);
+  colaIA = p.catch(function(){});
+  return p;
+}
+var ESPACIADO_GEMINI_MS = 13000;
+var ultimoLlamadoGeminiMs = 0;
+async function respetarEspaciadoGemini(avisar){
+  var falta = ultimoLlamadoGeminiMs + ESPACIADO_GEMINI_MS - Date.now();
+  if(falta > 0){
+    if(avisar) avisar("Espaciando llamadas a Gemini ("+Math.ceil(falta/1000)+" s) para respetar su límite por minuto…");
+    await esperar(falta);
+  }
+}
+function modoEjecucion(tieneWindowStorage, protocolo){
+  if(tieneWindowStorage) return "artifact";
+  if(protocolo==="file:") return "local";
+  return "web";
+}
+function modoActual(){ return modoEjecucion(storageDisponible(), (typeof location!=="undefined"?location.protocol:"")); }
+function opcionesProveedor(modo){
+  return modo==="artifact" ? ["claude-proxy","gemini"] : ["gemini","claude-key"];
+}
+function headersIA(apiKey){
+  var h = {"Content-Type":"application/json"};
+  if(apiKey){
+    h["x-api-key"] = apiKey;
+    h["anthropic-version"] = "2023-06-01"; // identificador de versión del API, no es una fecha de contenido
+    h["anthropic-dangerous-direct-browser-access"] = "true";
+  }
+  return h;
+}
+function extraerJSONDeTexto(texto){
+  texto = String(texto||"").replace(/```json/gi,"").replace(/```/g,"").trim();
+  var a = texto.indexOf("{"), z = texto.lastIndexOf("}");
+  if(a===-1||z===-1||z<=a) throw new Error("No se encontró JSON en la respuesta");
+  var crudo = texto.slice(a, z+1);
+  var variantes = [crudo];
+  var v = crudo.replace(/[\u0000-\u001F]/g," "); variantes.push(v);
+  // Comillas tipográficas: las dobles pasan a " (delimitan strings JSON), las simples a '
+  v = v.replace(/[\u201C\u201D\u201E\u00AB\u00BB]/g,'"').replace(/[\u2018\u2019]/g,"'"); variantes.push(v);
+  v = v.replace(/,\s*([}\]])/g,"$1"); variantes.push(v);
+  var ultimoError;
+  for(var i=0;i<variantes.length;i++){
+    try{ return JSON.parse(variantes[i]); }catch(e){ ultimoError=e; }
+  }
+  throw ultimoError;
+}
+function extraerJSONClaude(data){
+  if(!data || !Array.isArray(data.content)) throw new Error("Respuesta sin contenido");
+  var texto = data.content.filter(function(b){ return b.type==="text"; }).map(function(b){ return b.text||""; }).join("\n");
+  return extraerJSONDeTexto(texto);
+}
+function extraerJSONGemini(data){
+  if(!data || !Array.isArray(data.candidates) || !data.candidates.length) throw new Error("Respuesta de Gemini sin contenido");
+  var partes = (data.candidates[0].content && data.candidates[0].content.parts) || [];
+  return extraerJSONDeTexto(partes.map(function(p){ return p.text||""; }).join("\n"));
+}
+function extraerEsperaRetry(msg){
+  var m = /retry in ([\d.]+)\s*s/i.exec(msg||"");
+  if(m) return Math.max(1, Math.ceil(parseFloat(m[1])));
+  m = /retryDelay[^\d]*([\d.]+)\s*s/i.exec(msg||"");
+  if(m) return Math.max(1, Math.ceil(parseFloat(m[1])));
+  return null;
+}
+function esCuotaDiaria(msg){
+  return /PerDay|per day|daily|input_token_count.*limit:\s*0|free_tier_requests.*limit:\s*0/i.test(msg||"");
+}
+
+async function guardarConfigIA(){ await cacheGuardar("vmcm:cfg:ia", estadoIA); }
+async function cargarConfigIA(){
+  var cfg = await cacheLeer("vmcm:cfg:ia");
+  var validos = opcionesProveedor(modoActual());
+  if(cfg){
+    estadoIA.claves = cfg.claves || estadoIA.claves;
+    if(cfg.proveedor && validos.indexOf(cfg.proveedor)>=0) estadoIA.proveedor = cfg.proveedor;
+  }
+  if(!estadoIA.proveedor) estadoIA.proveedor = validos[0];
+}
+function cambiarProveedor(valor){ estadoIA.proveedor = valor; guardarConfigIA(); actualizarUIProveedor(); }
+function configurarClave(){
+  var p = PROVEEDORES[estadoIA.proveedor];
+  if(!p.requiereClave) return;
+  var actual = estadoIA.claves[p.claveDe]||"";
+  var k = prompt(p.ayuda+"\nSe guarda únicamente en este navegador, nunca se envía a otro lado.\nDejá vacío y aceptá para borrarla.", actual);
+  if(k===null) return;
+  estadoIA.claves[p.claveDe] = k.trim()||null;
+  guardarConfigIA();
+  actualizarUIProveedor();
+}
+function actualizarUIProveedor(){
+  var sel = document.getElementById("sel-proveedor");
+  var btn = document.getElementById("btn-key");
+  if(!sel||!btn) return;
+  var validos = opcionesProveedor(modoActual());
+  sel.innerHTML = validos.map(function(id){
+    return "<option value='"+id+"'"+(id===estadoIA.proveedor?" selected":"")+">"+PROVEEDORES[id].nombre+"</option>";
+  }).join("");
+  var p = PROVEEDORES[estadoIA.proveedor];
+  if(!p.requiereClave){ btn.style.display="none"; return; }
+  btn.style.display="";
+  var tiene = !!estadoIA.claves[p.claveDe];
+  btn.textContent = tiene ? "🔑 API key ✓" : "🔑 Configurar API key";
+  btn.style.borderColor = tiene ? "rgba(61,220,151,.4)" : "rgba(244,162,89,.5)";
+}
+
+/* ---------- Contador de uso + tope diario autoimpuesto ---------- */
+function claveUso(){ return "vmcm:uso:"+(estadoIA.proveedor==="gemini"?"gemini":"claude"); }
+async function leerUso(){
+  var hoy = fechaISO(new Date());
+  var reg = await cacheLeer(claveUso());
+  if(!reg || reg.fecha!==hoy) return {fecha:hoy, llamadas:0, tokens:0};
+  return reg;
+}
+async function sumarUso(tokens){
+  var reg = await leerUso();
+  reg.llamadas += 1;
+  reg.tokens += (tokens||0);
+  await cacheGuardar(claveUso(), reg);
+  pintarUso(reg);
+  return reg;
+}
+function pintarUso(reg){
+  if(typeof document==="undefined") return;
+  var el = document.getElementById("uso-ia");
+  if(!el) return;
+  if(!reg || !reg.llamadas){ el.textContent = "0/"+TOPE_DIARIO+" análisis hoy"; el.className="edad vacio"; return; }
+  var tk = reg.tokens ? " · "+(reg.tokens>=1000?(reg.tokens/1000).toFixed(1)+"K":reg.tokens)+" tokens" : "";
+  el.textContent = reg.llamadas+"/"+TOPE_DIARIO+" análisis hoy"+tk;
+  el.className = "edad "+(reg.llamadas<TOPE_DIARIO*0.6?"ok":(reg.llamadas<TOPE_DIARIO?"viejo":"vencido"));
+}
+
+/* ---------- Llamadas ---------- */
+async function llamarClaude(prompt, apiKey){
+  var resp = await fetch("https://api.anthropic.com/v1/messages",{
+    method:"POST",
+    headers: headersIA(apiKey),
+    body:JSON.stringify({
+      model:"claude-sonnet-4-6",
+      max_tokens:MAX_SALIDA,
+      messages:[{role:"user",content:prompt}]
+    })
+  });
+  var data = await resp.json();
+  if(data.error) throw new Error(data.error.message||"error del API de Claude");
+  var tk = data.usage ? ((data.usage.input_tokens||0)+(data.usage.output_tokens||0)) : 0;
+  return {json: extraerJSONClaude(data), tokens: tk};
+}
+
+var geminiEnfriamientoHastaMs = 0;
+async function llamarGemini(prompt, apiKey, onEstado){
+  var avisar = onEstado || function(){};
+  if(Date.now() < geminiEnfriamientoHastaMs){
+    var min = Math.ceil((geminiEnfriamientoHastaMs-Date.now())/60000);
+    throw new Error("Gemini en pausa preventiva: rechazó todos los modelos con 429, así que se bloquean reintentos por "+min+" min para no seguir quemando cuota. Cambiá de proveedor o esperá.");
+  }
+  // Sin búsqueda web: 2 intentos, JSON nativo y thinking apagado
+  var intentos = [{modelo:MODELOS_GEMINI[0]},{modelo:MODELOS_GEMINI[1]}];
+  var usarThinkingConfig = true;
+  var RE_SALTAR = /not found|no longer available|deprecated|discontinued|404|not supported|unsupported|invalid/i;
+  var RE_SOBRECARGA = /503|overloaded|unavailable|internal/i;
+  var presupuestoEsperaMs = 45000;
+  var inicioMs = Date.now(), TIEMPO_MAX_MS = 90000;
+  var reintentos = {};
+  var ultimoError = null, huboCuotaDiaria = false, hubo429 = false, agotadoUnModelo = false;
+  for(var i=0;i<intentos.length;i++){
+    var it = intentos[i];
+    if(Date.now()-inicioMs > TIEMPO_MAX_MS) break;
+    try{
+      await respetarEspaciadoGemini(avisar);
+      ultimoLlamadoGeminiMs = Date.now();
+      var body = {
+        contents:[{parts:[{text:prompt}]}],
+        generationConfig:{ maxOutputTokens:MAX_SALIDA, responseMimeType:"application/json", temperature:0.1 }
+      };
+      if(usarThinkingConfig) body.generationConfig.thinkingConfig = { thinkingBudget:0 };
+      var resp = await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+it.modelo+":generateContent",{
+        method:"POST",
+        headers:{ "Content-Type":"application/json", "x-goog-api-key":apiKey },
+        body:JSON.stringify(body)
+      });
+      var data = await resp.json();
+      if(data.error || !resp.ok){
+        var msg = (data.error && data.error.message) || ("HTTP "+resp.status+" del API de Gemini");
+        ultimoError = new Error(msg);
+        if(resp.status===403 || /denied access|PERMISSION_DENIED|API key not valid|API_KEY_INVALID|suspended|has been disabled/i.test(msg)){
+          var eTerm = new Error("Google bloqueó el acceso de tu proyecto/API key (403: "+msg+"). En aistudio.google.com creá una API key NUEVA eligiendo «Create API key in NEW project», pegala con 🔑, o cambiá a Claude.");
+          eTerm.terminal = true;
+          throw eTerm;
+        }
+        var es429 = resp.status===429 || /quota|exceeded|rate limit/i.test(msg);
+        if(usarThinkingConfig && /thinking/i.test(msg)){ usarThinkingConfig = false; i--; continue; }
+        if(es429){
+          hubo429 = true;
+          var espSug = extraerEsperaRetry(msg);
+          if(esCuotaDiaria(msg) || (espSug!==null && espSug>120)){ huboCuotaDiaria = true; continue; }
+          if(agotadoUnModelo) continue;
+          var esp = Math.min(60, espSug||20)*1000;
+          reintentos[it.modelo] = (reintentos[it.modelo]||0)+1;
+          if(presupuestoEsperaMs>=esp && reintentos[it.modelo]<=1){
+            presupuestoEsperaMs -= esp;
+            avisar("Límite por minuto de Gemini: esperando "+Math.round(esp/1000)+" s y reintento automáticamente…");
+            await esperar(esp);
+            i--; continue;
+          }
+          agotadoUnModelo = true;
+          continue;
+        }
+        if(RE_SALTAR.test(msg)) continue;
+        if(RE_SOBRECARGA.test(msg)){ await esperar(2000); continue; }
+        throw ultimoError;
+      }
+      geminiEnfriamientoHastaMs = 0;
+      var tk = data.usageMetadata ? (data.usageMetadata.totalTokenCount||0) : 0;
+      return {json: extraerJSONGemini(data), tokens: tk};
+    }catch(e){
+      ultimoError = e;
+      if(e && e.terminal) throw e;
+      if(e && e.message==="Failed to fetch") throw e;
+      continue;
+    }
+  }
+  if(hubo429){
+    geminiEnfriamientoHastaMs = Date.now() + 10*60000;
+    if(huboCuotaDiaria || agotadoUnModelo)
+      throw new Error("Gemini devolvió 429 en todos los modelos: lo más probable es que la cuota DIARIA gratuita esté agotada (se renueva a la medianoche del Pacífico, ~04:00-05:00 de Argentina). Reintentos pausados 10 min; mientras tanto cambiá a Claude.");
+    throw new Error("Límite por minuto de Gemini persistente. Reintentos pausados 10 min para no quemar cuota.");
+  }
+  throw ultimoError || new Error("Gemini no disponible");
+}
+async function llamarIA(prompt, onEstado){
+  if(estadoIA.proveedor==="gemini") return llamarGemini(prompt, estadoIA.claves.gemini, onEstado);
+  if(estadoIA.proveedor==="claude-key") return llamarClaude(prompt, estadoIA.claves.claude);
+  return llamarClaude(prompt, null);
+}
+
+/* =====================================================================
+   PROMPT · matriz del skill /vmc comprimida (sin búsqueda web)
+   ===================================================================== */
+var MATRIZ_VMC =
+"Sos el juez de señales del VMC Cipher B (WaveTrend + money flow). Filosofia: reversa confirmada con recorrido por delante, nunca el extremo mas estirado. Preferis perder una señal antes que validar una falsa. Por defecto ESPERAR, que no es un fracaso.\n"+
+"MATRIZ (en orden; si nada matchea, ESPERAR):\n"+
+"COMPRAR Alta: divergencia alcista + punto verde WT<=-53 + MF confirmando o girando + pasa anti-cuchillo (no es el primer minimo tras caida vertical). La tendencia NO interviene en este camino: no lo habilita ni lo vuelve mas riesgoso.\n"+
+"COMPRAR Media: tendencia alcista clara + punto verde WT<0 + MF verde o neutro + pullback ordenado (si la caida fue vertical, ESPERAR). Sin tendencia alcista este camino no existe: no es una degradacion, esta cerrado.\n"+
+"VENDER Alta: divergencia bajista + punto rojo WT>=+53 + MF deteriorandose + no es el primer maximo de una parabolica.\n"+
+"VENDER Media: tendencia bajista clara + punto rojo WT>0 + MF rojo o debilitandose.\n"+
+"VENDER Media por TECHO CON DIVERGENCIA: divergencia bajista inobjetable + segundo maximo o posterior + punto rojo WT>=+30 + MF deteriorandose. Nunca Alta. Sin divergencia este camino no existe: rojo en +30 solo es ruido.\n"+
+"RANGO lateral confirmado (dos toques de piso y techo): umbral relajado a +-40 pero divergencia OBLIGATORIA; nunca Alta; medio del rango = ESPERAR. Sin rango confirmado no se usa.\n"+
+"ESPERAR tipico: punto en zona media sin divergencia ni tendencia; señal contra tendencia sin divergencia en zona extrema; primer verde tras caida violenta o primer rojo en parabolica; divergencia sin cruce; señal ya ejecutada velas atras (no perseguir); capas contradictorias.\n"+
+"CONFIANZA: Alta y Media salen de la matriz; Baja solo por degradacion (MF en contra, historial parcial, marco menor, vela en curso). Dos degradaciones -> ESPERAR.\n"+
+"CLASIFICACION: BTC y majors liquidas usan la matriz base. En altcoin iliquida es ASIMETRICA: COMPRAS exigen divergencia SIEMPRE, aun a favor de tendencia, y el MF es el candado final (sin giro del MF ninguna divergencia habilita compra); VENTAS de continuacion se permiten sin divergencia solo con bajista inobjetable + rojo sobre 0 + MF rojo persistente (bloqueadas si el MF gira, para no shortear antes de un fake pump), siempre Baja.\n"+
+"MARCO: 1D es base. En 1S las señales pesan mas: divergencia semanal verificada vale Alta aunque el MF no haya girado del todo. Si el marco mayor contradice, degrada.\n"+
+"GESTION DE POSICION (nota aparte, convive con ESPERAR): si ya esta comprado, rojo con WT>=+53 es toma de ganancia aunque no haya divergencia, y un techo con divergencia dispara desde +30. Espejo en shorts: verde con WT<=-53 es cobertura.\n"+
+"DATOS AUSENTES: el payload no trae QQE, magentas ni Long/Short. No los invoques ni supongas que confirman algo; si el caso los necesitaria, decilo y baja la confianza.\n"+
+"VELA EN CURSO: si el campo vela dice EN CURSO la señal puede desaparecer porque el indicador repinta: es degradacion, nunca Alta, y hay que decirlo.\n"+
+"SALIDA: con COMPRAR o VENDER, c es Alta/Media/Baja, deg son las degradaciones e inv que invalidaria la señal. Con ESPERAR NO hay confianza que calificar: c es el guion, deg es QUE FALTA, e inv enumera TODAS las condiciones que juntas abririan el camino mas cercano, nombrandolo. Nunca una sola si faltan varias: decir que basta con que gire el money flow cuando tambien falta la zona empuja a operar de mas.\n"+
+"DIVERGENCIA VIEJA: si el payload trae divergencia_vieja, no digas que no hay divergencia: decis que no hay divergencia VIGENTE y cuantas velas atras quedo. El indicador la sigue dibujando.\n"+
+"CAMINOS CERRADOS: no propongas como salida ningun camino que el payload declare CERRADO.\n"+
+"HONESTIDAD: usa unicamente los numeros del payload. No inventes precios, niveles ni divergencias que no esten ahi. No tenes internet. El checklist del motor viene calculado; si tu lectura difiere, decilo en las razones.";
+
+function payloadVMC(g, marco){
+  var e = ESTADO[g], a = e.d[marco];
+  var calc = a.calc, i = a.i;
+  var p = {
+    activo: (g==="btc" ? "BTC" : e.ticker),
+    clasificacion: clasifDe(g).clase,
+    marco: marco,
+    precio: a.velas[i].close,
+    vela: a.enCurso ? (a.velas[i].date+" EN CURSO (repinta, todavia no cerro)")
+                    : (a.velas[i].date+" cerrada el "+a.velas[i].cierre),
+    wt1: +calc.wt1[i].toFixed(1),
+    wt2: +calc.wt2[i].toFixed(1),
+    zona: a.zona.texto,
+    punto_ultima_vela: a.diz.hay ? a.diz.dot : "ninguno",
+    ultimo_punto: a.ud ? (a.ud.color+" hace "+a.ud.hace+" velas en WT "+a.ud.wt.toFixed(1)) : "sin cruces",
+    money_flow: (a.mfE.valor===null? "sin dato" : a.mfE.valor.toFixed(1)+" ("+a.mfE.giro+")"),
+    tendencia: a.reg.texto+" — "+a.reg.detalle,
+    divergencia_vieja: a.divVieja ? (a.divVieja.tipo+" hace "+a.divVieja.hace+" velas, ya no accionable") : undefined,
+    divergencia: a.div
+      ? (a.div.tipo+" VIGENTE (el pivote actual es de hace "+(a.i-a.div.actual)+" velas, dentro de la ventana de 6; NO la llames antigua): "+
+         "WT "+a.div.wtP.toFixed(1)+" ("+a.velas[a.div.previo].date+") -> "+a.div.wtA.toFixed(1)+" ("+a.velas[a.div.actual].date+")")
+      : "no detectada",
+    senal_vigente: a.vig ? ("cruce de "+a.vig.lado+" hace "+a.vig.hace+" velas en WT "+a.vig.wt.toFixed(1)+
+                            ", el WT sigue en zona: no perseguir tarde") : undefined,
+    estructura: "var 5 velas "+num(a.est.var5)+"% · desde el maximo de 90 velas "+num(a.est.dd)+"% · desde el minimo "+num(a.est.runup)+"%",
+    historial: a.hist.nivel==="completo" ? "completo" : ("parcial: "+a.hist.n+" velas de "+a.hist.completo+" (EMA200 inmadura)"),
+    checklist_motor: {
+      lado_evaluado: a.chk.lado,
+      divergencia: a.chk.div,
+      punto_en_zona: a.chk.zonaAlta ? "extrema" : (a.chk.zonaMedia ? "a favor" : (a.chk.zonaRango ? "borde" : "no")),
+      money_flow_confirma: a.chk.mf,
+      anti_cuchillo: a.chk.cuchillo,
+      tendencia_a_favor: a.chk.tend
+    }
+  };
+  // La excepción de rango la resuelve el motor: con tendencia definida no existe, y así
+  // la IA no tiene que deducirlo ni puede presentarla como una condición pendiente.
+  if(a.rango) p.excepcion_rango = a.rango.aplica
+    ? "condiciones numericas dadas (borde + divergencia), condicionada a rango lateral confirmado en el grafico"
+    : "CERRADA: exige rango lateral y la tendencia es "+a.reg.texto.toLowerCase()+", definida";
+  // Confluencia sin costo: el otro marco ya está calculado en pantalla
+  var otro = (marco==="1D") ? "1S" : "1D";
+  var b = e.d[otro];
+  if(b && b.ok){
+    p.otro_marco = otro+": WT "+b.calc.wt1[b.i].toFixed(1)+" · "+b.zona.texto+" · tendencia "+b.reg.texto+
+      " · divergencia "+(b.div?b.div.tipo:"no")+" · ultimo punto "+(b.ud?(b.ud.color+" hace "+b.ud.hace):"sin cruces");
+  }
+  return p;
+}
+
+function construirPrompt(g, marco){
+  var p = payloadVMC(g, marco);
+  return MATRIZ_VMC+"\n\n"+
+    "DATOS (unica fuente de verdad):\n"+JSON.stringify(p)+"\n\n"+
+    "Respondé UNICAMENTE con un JSON valido, sin markdown ni backticks ni texto extra, con este esquema:\n"+
+    '{"v":"COMPRAR|VENDER|ESPERAR","c":"Alta|Media|Baja|-","r":["razon corta","razon corta","razon corta"],"inv":"con señal: que la invalidaria. Con ESPERAR: TODAS las condiciones que abririan el camino mas cercano, nombrandolo","tp":"nota de toma de ganancia o cobertura si corresponde, si no cadena vacia","deg":"con señal: degradaciones. Con ESPERAR: que falta. Vacio si no aplica"}\n'+
+    "Cada razon: frase corta en español apoyada en los numeros del payload. Maximo 3.";
+}
+
+/* =====================================================================
+   ANÁLISIS CON IA
+   ===================================================================== */
+function claveVeredicto(g, marco){
+  var e = ESTADO[g], a = e.d[marco];
+  // Una vela en curso todavía puede cambiar: cachear su veredicto sería servir una
+  // lectura vieja como si fuera la de ahora.
+  if(a.enCurso) return null;
+  // La matriz aplicada forma parte de la pregunta: si cambia, el veredicto cacheado ya no sirve.
+  return "vmcm:ia:"+e.sym+":"+marco+":"+a.velas[a.i].date+":c"+WT_CANAL+":p"+PROMPT_VER+(clasifDe(g).estricta?":estricta":"");
+}
+async function restaurarVeredictos(g){
+  for(var idx=0; idx<2; idx++){
+    var marco = idx===0?"1D":"1S";
+    var a = ESTADO[g].d[marco];
+    if(!a || !a.ok) continue;
+    var cv = claveVeredicto(g, marco);
+    if(!cv) continue;
+    var reg = await cacheLeer(cv);
+    if(reg) pintarVeredicto(g, marco, reg, true);
+  }
+}
+function pintarVeredicto(g, marco, reg, deCache){
+  var cont = document.getElementById("ver-"+g+"-"+marco);
+  if(!cont) return;
+  var d = reg.data || {};
+  var v = String(d.v||"ESPERAR").toUpperCase();
+  var cls = v==="COMPRAR"?"comprar":(v==="VENDER"?"vender":"esperar");
+  var icono = v==="COMPRAR"?"🟢":(v==="VENDER"?"🔴":"🟡");
+  var esEspera = (v==="ESPERAR");
+  var conf = String(d.c||"").trim();
+  var confReal = /^(Alta|Media|Baja)$/i.test(conf);
+  var h = "<div class='ver'><div class='ver-head "+cls+"'>"+icono+" "+escaparHTML(v)+
+    (confReal ? "<span class='conf'>confianza "+escaparHTML(conf)+"</span>" : "")+
+    "</div><div class='ver-body'>";
+  var razones = Array.isArray(d.r) ? d.r : [];
+  if(razones.length){
+    h += "<ul>"+razones.slice(0,3).map(function(x){ return "<li>"+escaparHTML(x)+"</li>"; }).join("")+"</ul>";
+  }
+  if(d.deg) h += "<div class='ver-linea'><b>"+(esEspera?"Qué falta":"Degradaciones")+":</b> "+escaparHTML(d.deg)+"</div>";
+  if(d.inv) h += "<div class='ver-linea'><b>"+(esEspera?"Qué abriría el camino":"Qué lo invalidaría")+":</b> "+escaparHTML(d.inv)+"</div>";
+  if(d.tp)  h += "<div class='tp'>📤 "+escaparHTML(d.tp)+"</div>";
+  h += "</div><div class='ver-meta'><span>"+escaparHTML(reg.motor||"")+"</span>"+
+       "<span>vela "+escaparHTML(reg.vela||"")+"</span>"+
+       (deCache
+         ? "<span>ya analizado con esta vela · servido de caché, 0 tokens</span>"+
+           "<span><a href='javascript:void(0)' onclick=\"analizarConIA('"+g+"','"+marco+"',true)\" "+
+           "style='color:var(--ai);text-decoration:underline'>volver a preguntar</a> (gasta tokens)</span>"
+         : "<span>"+(reg.tokens?reg.tokens+" tokens":"")+"</span>")+
+       "<span>no es asesoramiento financiero</span></div></div>";
+  cont.innerHTML = h;
+}
+
+async function analizarConIA(g, marco, forzar){
+  var e = ESTADO[g], a = e.d[marco];
+  var cont = document.getElementById("ver-"+g+"-"+marco);
+  var btn = document.getElementById("btn-ia-"+g+"-"+marco);
+  if(!a || !a.ok){
+    if(cont) cont.innerHTML = "<div class='error-msg'>No hay datos calculados para analizar. Elegí un activo y esperá a que carguen las velas.</div>";
+    return;
+  }
+  var p = PROVEEDORES[estadoIA.proveedor];
+  if(p.requiereClave && !estadoIA.claves[p.claveDe]){
+    cont.innerHTML = "<div class='error-msg'>Falta la API key de "+(estadoIA.proveedor==="gemini"?"Gemini":"Claude")+
+      ". Tocá 🔑 arriba a la derecha"+(estadoIA.proveedor==="gemini"?" — se crea gratis en aistudio.google.com/apikey":"")+". Se guarda solo en tu navegador.</div>";
+    return;
+  }
+  // Caché por vela cerrada: si la vela no cambió, el veredicto tampoco puede cambiar
+  var clave = claveVeredicto(g, marco);
+  if(clave && !forzar){
+    var previo = await cacheLeer(clave);
+    if(previo){ pintarVeredicto(g, marco, previo, true); return; }
+  }
+  // Tope diario autoimpuesto
+  var uso = await leerUso();
+  if(uso.llamadas >= TOPE_DIARIO){
+    cont.innerHTML = "<div class='error-msg'>Tope diario alcanzado ("+TOPE_DIARIO+" análisis). Es un freno de este panel, no del proveedor: evita quemar la cuota sin darte cuenta. Se reinicia mañana.</div>";
+    return;
+  }
+
+  btn.disabled = true;
+  var motor = (estadoIA.proveedor==="gemini"?"Gemini":"Claude");
+  var enCola = pendientesIA;
+  pendientesIA++;
+  cont.innerHTML = enCola>0
+    ? "<div class='cargando'>⏳ En cola ("+enCola+" análisis delante): corren de a uno para no chocar con el límite por minuto…</div>"
+    : "<div class='cargando'>Aplicando la matriz /vmc con "+motor+"…</div>";
+  try{
+    var res = await encolarIA(function(){
+      cont.innerHTML = "<div class='cargando'>Aplicando la matriz /vmc con "+motor+"…</div>";
+      return llamarIA(construirPrompt(g, marco), function(txt){
+        cont.innerHTML = "<div class='cargando'>⏳ "+escaparHTML(txt)+"</div>";
+      });
+    });
+    var reg = { ts:Date.now(), data:res.json, motor:motor, tokens:res.tokens,
+                vela:a.velas[a.i].date, activo:e.sym, marco:marco };
+    if(clave) await cacheGuardar(clave, reg);
+    await sumarUso(res.tokens);
+    pintarVeredicto(g, marco, reg, false);
+  }catch(err){
+    var ayuda = "";
+    if(err.message==="Failed to fetch") ayuda = " Verificá la API key (🔑) y tu conexión.";
+    else if(/quota|rate|exceeded|429/i.test(err.message||"")) ayuda = " Esperá unos minutos o cambiá de proveedor.";
+    cont.innerHTML = "<div class='error-msg'>No se pudo analizar: "+escaparHTML(err.message)+"."+ayuda+"</div>";
+  }
+  pendientesIA--;
+  btn.disabled = false;
+}
+
+/* =====================================================================
+   DIAGNÓSTICO DE CONEXIÓN
+   Prueba una por una las APIs de las que depende el panel y dice cuál falla.
+   ===================================================================== */
+async function probar(nombre, fn){
+  var t0 = Date.now();
+  try{ var r = await fn(); return {nombre:nombre, ok:true, ms:Date.now()-t0, detalle:r}; }
+  catch(e){ return {nombre:nombre, ok:false, ms:Date.now()-t0, detalle:e.message||String(e)}; }
+}
+async function diagnosticar(){
+  var caja = document.getElementById("diag");
+  var btn = document.getElementById("btn-diag");
+  btn.disabled = true;
+  caja.style.display = "";
+  caja.innerHTML = "<b>Diagnóstico de conexión</b><br>Probando cada API…";
+  var pruebas = await Promise.all([
+    probar("Binance · velas de BTC (lo que usan las cards)", async function(){
+      var k = await fetchBinance("/api/v3/klines?symbol=BTCUSDT&interval=1d&limit=5", 12000);
+      return k.length+" velas · host "+(hostBinanceOK||"?");
+    }),
+    probar("Binance · lista de pares (respaldo del selector)", async function(){
+      var t = await fetchBinance("/api/v3/ticker/price?symbol=ETHUSDT", 12000);
+      return "responde ("+t.symbol+")";
+    }),
+    probar("CoinGecko · top 100 (fuente del selector)", async function(){
+      var m = await fetchJSON("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=1&page=1", 12000);
+      return m.length+" fila de prueba";
+    })
+  ]);
+  var h = "<b>Diagnóstico de conexión</b><br>";
+  h += "Origen de la página: <b>"+escaparHTML(location.protocol)+"</b>"+
+       (location.protocol==="file:" ? " — archivo local (Chrome lo trata como origen único)" : "")+"<br><br>";
+  pruebas.forEach(function(p){
+    h += (p.ok?"✅ ":"❌ ")+escaparHTML(p.nombre)+" · "+p.ms+" ms<br>"+
+         "<span style=\'color:var(--dim)\'>&nbsp;&nbsp;&nbsp;"+escaparHTML(p.detalle)+"</span><br>";
+  });
+  var binOK = pruebas[0].ok || pruebas[1].ok, cgOK = pruebas[2].ok;
+  h += "<br>";
+  if(binOK && cgOK) h += "Todo responde. Si el selector sigue vacío, tocá <b>🔄 Reintentar</b> al lado del selector.";
+  else if(binOK && !cgOK) h += "Binance responde y CoinGecko no: el selector se arma igual con la lista de Binance, ordenada por volumen. Tocá <b>🔄 Reintentar</b>.";
+  else if(!binOK && cgOK) h += "CoinGecko responde y Binance no: sin velas no hay indicador. Suele ser bloqueo de región o de red — probá con otra conexión o VPN.";
+  else h += "<b>No responde ninguna API.</b> Abierto como archivo local, Chrome puede bloquear todo pedido externo. Dos salidas: abrí este mismo archivo desde claude.ai como artefacto, o serví la carpeta con un servidor local (<span style=\'font-family:var(--mono)\'>python -m http.server 8000</span> y entrá a localhost:8000).";
+  caja.innerHTML = h;
+  btn.disabled = false;
+}
+
+/* =====================================================================
+   ARRANQUE
+   ===================================================================== */
+async function cambiarEstricta(v){
+  FORZAR_ESTRICTA = !!v;
+  await cacheGuardar("vmcm:cfg:estricta", {v:FORZAR_ESTRICTA});
+  if(ESTADO.liq.d["1D"]) renderCard("liq","1D");
+  if(ESTADO.liq.d["1S"]) renderCard("liq","1S");
+  await restaurarVeredictos("liq");
+}
+async function cambiarCanal(v){
+  WT_CANAL = parseInt(v,10) || 10;
+  await cacheGuardar("vmcm:cfg:canal", {v:WT_CANAL});
+  await recargarTodo();
+}
+async function cambiarEnCurso(v){
+  INCLUIR_EN_CURSO = !!v;
+  await cacheGuardar("vmcm:cfg:curso", {v:INCLUIR_EN_CURSO});
+  await recargarTodo();
+}
+async function recargarTodo(){
+  var btn = document.getElementById("btn-refrescar");
+  btn.disabled = true;
+  await cargarGrupo("btc");
+  if(ESTADO.liq.sym) await cargarGrupo("liq");
+  if(ESTADO.ili.sym) await cargarGrupo("ili");
+  btn.disabled = false;
+}
+
+async function iniciar(){
+  document.getElementById("ver-app").textContent = APP_VERSION;
+  document.getElementById("fecha-hoy").textContent = fechaLarga(new Date());
+  await cargarConfigIA();
+  var cfgW = await cacheLeer("vmcm:cfg:canal");
+  if(cfgW && cfgW.v) WT_CANAL = cfgW.v;
+  var selC = document.getElementById("sel-canal");
+  if(selC) selC.value = String(WT_CANAL);
+  var cfgC = await cacheLeer("vmcm:cfg:curso");
+  INCLUIR_EN_CURSO = !!(cfgC && cfgC.v);
+  var chk = document.getElementById("chk-curso");
+  if(chk) chk.checked = INCLUIR_EN_CURSO;
+  var cfgE = await cacheLeer("vmcm:cfg:estricta");
+  FORZAR_ESTRICTA = !!(cfgE && cfgE.v);
+  var chkE = document.getElementById("chk-estricta");
+  if(chkE) chkE.checked = FORZAR_ESTRICTA;
+  actualizarUIProveedor();
+  // Si el navegador no deja guardar nada (típico al abrir un archivo local en Android),
+  // la API key y las preferencias se pierden al cerrar: mejor decirlo que sorprenderlo.
+  if(!storageDisponible() && !localStorageDisponible()){
+    var av = document.getElementById("aviso-storage");
+    av.style.display = "";
+    av.innerHTML = "⚠️ Este navegador no guarda datos para archivos locales. La API key, el activo elegido y "+
+      "los veredictos ya analizados <b>se pierden al cerrar la pestaña</b>, y vas a tener que cargar la key cada vez. "+
+      "Se soluciona sirviéndolo por http o https: ahí el navegador le da un origen propio, guarda todo y además lo podés instalar en la pantalla de inicio.";
+  }
+  pintarUso(await leerUso());
+  // En paralelo: si Binance tarda con BTC, el selector no queda esperándolo
+  await Promise.all([ cargarGrupo("btc"), iniciarUniverso() ]);
+}
+if(typeof document!=="undefined") iniciar();
+</script>
+</body>
+</html>
