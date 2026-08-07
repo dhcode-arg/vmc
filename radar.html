@@ -1,0 +1,1863 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VMC Radar</title>
+<style>
+:root{
+  --bg:#0A0E13; --panel:#121A23; --panel-2:#0E141B; --line:#1E2935; --line-2:#28374a;
+  --text:#EAF0F6; --muted:#8A98A6; --dim:#5C6B7A;
+  --live:#4CC9F0; --ai:#F4A259;
+  --up:#3DDC97; --down:#FF5D73; --warn:#F9C74F; --eth:#7AA2FF;
+  --radius:16px;
+  --mono:ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);padding:18px 16px 60px;
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:15px;line-height:1.5}
+.wrap{max-width:1200px;margin:0 auto}
+header{display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px}
+header h1{font-size:20px;margin:0}
+header .sub{font-size:12.5px;color:var(--muted);margin-top:3px}
+#ver{font-family:var(--mono);font-size:11px;color:var(--dim);border:1px solid var(--line);
+  padding:2px 7px;border-radius:20px;margin-left:8px;vertical-align:3px}
+#hoy{font-size:12px;color:var(--dim);font-family:var(--mono)}
+.header-actions{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-left:auto}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel-2)}
+.seg em{font-style:normal;padding:7px 8px 7px 11px;font-size:10px;color:var(--dim);font-family:var(--mono);
+  text-transform:uppercase;letter-spacing:.7px;align-self:center}
+.seg button{background:transparent;border:0;color:var(--muted);padding:8px 13px;font-size:13px;
+  cursor:pointer;font-family:var(--mono);min-height:38px}
+.seg button.on{background:#182634;color:var(--live)}
+.btn{background:var(--panel-2);border:1px solid var(--line);color:var(--text);padding:8px 14px;
+  border-radius:10px;font-size:13px;cursor:pointer;min-height:38px}
+.btn.primary{background:rgba(76,201,240,.12);border-color:rgba(76,201,240,.4);color:var(--live)}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+.chk{display:inline-flex;gap:7px;align-items:center;font-size:12.5px;color:var(--muted);
+  border:1px solid var(--line);border-radius:10px;padding:7px 11px;background:var(--panel-2);min-height:38px}
+#banda{margin:14px 0 0;padding:11px 13px;border-radius:12px;background:var(--panel-2);
+  border:1px solid var(--line);border-left:2px solid var(--live);font-size:12px;color:var(--muted);
+  line-height:1.8;font-family:var(--mono)}
+#banda b{color:var(--text)} #banda .up{color:var(--up)} #banda .live{color:var(--live)}
+#banda .warn{color:var(--warn)} #banda .down{color:var(--down)}
+.bar{height:4px;background:#16202b;border-radius:4px;overflow:hidden;margin-top:8px}
+.bar > i{display:block;height:100%;background:linear-gradient(90deg,#1d5c63,var(--live));transition:width .2s}
+.aviso{margin:14px 0 0;padding:11px 13px;border-radius:12px;font-size:12.5px;line-height:1.7;
+  background:rgba(249,199,116,.09);border:1px solid rgba(249,199,116,.3);color:var(--warn)}
+.aviso b{color:var(--warn)}
+h2{font-size:16px;margin:28px 0 6px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+h2 small{font-weight:400;color:var(--dim);font-size:12px;font-family:var(--mono)}
+.rule{height:1px;background:var(--line);margin:8px 0 14px}
+.grid{display:grid;gap:13px;grid-template-columns:repeat(auto-fill,minmax(350px,1fr))}
+.vacio{border:1px dashed var(--line);border-radius:12px;padding:16px;color:var(--dim);font-size:13px;line-height:1.7}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.card-head{padding:12px 14px;border-bottom:1px solid var(--line)}
+.card-body{padding:13px 14px}
+.card.pl{border-left:3px solid var(--warn);box-shadow:inset 3px 0 22px -14px var(--warn)}
+.card.g1{border-left:3px solid var(--up)}
+.card.g2{border-left:3px solid var(--live)}
+.card.g3{border-left:3px solid var(--warn)}
+.card.g4,.card.neutral{border-left:3px solid var(--dim)}
+.card.sell{border-left:3px solid var(--down)}
+.top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.tick{font-weight:700;font-size:17px}
+.tick span{font-weight:400;color:var(--dim);font-size:12px;margin-left:6px}
+.precio{font-family:var(--mono);font-size:13px;text-align:right;white-space:nowrap;line-height:1.4}
+.precio b{font-size:14.5px}
+.precio i{font-style:normal;display:block;font-size:10px;color:var(--dim)}
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
+.tag{font-size:10.5px;font-family:var(--mono);padding:3px 8px;border-radius:20px;
+  border:1px solid var(--line);color:var(--muted);background:var(--panel-2)}
+.tag.y{color:var(--warn);border-color:rgba(249,199,116,.35)}
+.primera{font-family:var(--mono);font-size:10.5px;padding:3px 8px;border-radius:6px;
+  background:rgba(249,199,116,.14);color:var(--warn);border:1px solid rgba(249,199,116,.4);font-weight:600}
+.linea.star{color:var(--warn)}
+.linea.dim{color:var(--dim)}
+.grupo{font-family:var(--mono);font-size:10.5px;padding:3px 8px;border-radius:6px;
+  background:#182634;color:var(--live);border:1px solid rgba(76,201,240,.3)}
+.verd{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:10px;
+  background:var(--panel-2);border:1px solid var(--line);flex-wrap:wrap}
+.verd b{font-family:var(--mono);font-size:14px;letter-spacing:.6px}
+.verd .buyv{color:var(--up)} .verd .sellv{color:var(--down)} .verd .waitv{color:var(--muted)}
+.verd .conf{font-size:12px;color:var(--muted)}
+.verd small{color:var(--dim);font-size:11.5px;margin-left:auto;font-family:var(--mono)}
+.graf{margin-top:10px;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:4px}
+.graf svg{width:100%;height:auto;display:block}
+.nums{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:10px 0 4px}
+.nums div{background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:7px 9px}
+.nums em{font-style:normal;display:block;font-size:9.5px;color:var(--dim);text-transform:uppercase;letter-spacing:.7px}
+.nums b{font-family:var(--mono);font-size:14.5px}
+.linea{font-size:12.5px;color:var(--muted);margin:7px 0;display:flex;gap:8px;align-items:flex-start}
+.linea .ic{flex:0 0 16px;text-align:center}
+.linea.hi{color:var(--warn)}
+.linea.eth{color:var(--eth)}
+.cond{border:1px solid var(--line-2);border-radius:12px;padding:10px 11px;margin:11px 0 4px;
+  background:var(--panel-2)}
+.cond.cond-pl{border-color:rgba(249,199,116,.45);background:rgba(249,199,116,.05)}
+.cond-h{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;
+  color:var(--muted);font-family:var(--mono);padding-bottom:7px;border-bottom:1px solid var(--line)}
+.cond-h b{color:var(--text);font-size:12px;font-family:system-ui,sans-serif}
+.cond-h span{color:var(--dim)}
+.cond-f{display:flex;gap:8px;align-items:flex-start;padding:7px 0;border-bottom:1px solid rgba(30,41,53,.6)}
+.cond-f:last-of-type{border-bottom:0}
+.cond-f .tk{flex:0 0 18px;font-size:12px;line-height:1.4}
+.cond-f .tx{font-size:12px;color:var(--muted);line-height:1.55}
+.cond-f .tx b{color:var(--text);font-size:12.5px}
+.cond-f .tx i{font-style:normal;font-family:var(--mono);font-size:10px;color:var(--dim);
+  border:1px solid var(--line);border-radius:4px;padding:1px 5px;margin-left:5px}
+.cond-f .tx u{text-decoration:none;display:block;color:var(--dim);font-size:11px;margin-top:2px}
+.cond-f.no .tx b{color:var(--muted)}
+.cond-f.ref{opacity:.94}
+.cond-sep{font-size:10px;font-family:var(--mono);color:var(--dim);text-transform:uppercase;
+  letter-spacing:.7px;padding:8px 0 2px;border-top:1px dashed var(--line);margin-top:4px}
+.cond-pie{font-size:11.5px;color:var(--dim);line-height:1.6;padding-top:9px;margin-top:5px;
+  border-top:1px solid var(--line)}
+.cond-pie b{color:var(--muted)}
+.score{margin-top:11px}
+.score .sh{display:flex;justify-content:space-between;font-size:11px;color:var(--dim);font-family:var(--mono)}
+.sbar{display:flex;height:7px;border-radius:4px;overflow:hidden;background:#16202b;margin-top:5px}
+.leg{display:flex;flex-wrap:wrap;gap:9px;margin-top:6px;font-size:10.5px;color:var(--dim);font-family:var(--mono)}
+.leg s{text-decoration:none;display:inline-flex;align-items:center;gap:4px}
+.dot{width:8px;height:8px;border-radius:2px;display:inline-block}
+.acts{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.acts .btn{font-size:12px;padding:7px 11px;min-height:36px}
+.pie{font-size:12px;color:var(--dim);background:var(--panel-2);border:1px dashed var(--line);
+  border-radius:12px;padding:11px 13px;margin-top:13px;line-height:1.8}
+.pie b{color:var(--muted)} .pie .rojo{color:var(--down)} .pie .dim{color:var(--dim)}
+select{background:var(--panel-2);border:1px solid var(--line);color:var(--text);padding:8px 10px;
+  border-radius:10px;font-size:13px;min-width:210px;min-height:38px}
+.slot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:13px}
+.chip{display:inline-flex;align-items:center;gap:7px;background:var(--panel-2);border:1px solid var(--line);
+  border-radius:20px;padding:5px 8px 5px 13px;font-size:12.5px;font-family:var(--mono)}
+.chip button{background:transparent;border:0;color:var(--dim);cursor:pointer;font-size:15px;line-height:1}
+.cont{color:var(--dim);font-size:12px;font-family:var(--mono)}
+.foot{margin-top:30px;color:var(--dim);font-size:11px;text-align:center;line-height:1.9;font-family:var(--mono)}
+.foot b{color:var(--muted)}
+#aviso-storage{display:none}
+#descartes{display:none;margin-top:8px;padding:12px 14px;border-radius:12px;background:var(--panel-2);
+  border:1px solid var(--line);border-left:2px solid var(--warn);font-size:11.5px;color:var(--muted);
+  font-family:var(--mono);line-height:1.85;word-break:break-word}
+#descartes b{color:var(--text)}
+#modal{display:none;position:fixed;inset:0;background:rgba(5,8,12,.82);z-index:60;
+  align-items:flex-start;justify-content:center;padding:24px 14px;overflow-y:auto}
+.modal-caja{background:var(--panel);border:1px solid var(--line-2);border-radius:var(--radius);
+  max-width:820px;width:100%;padding:20px 22px 26px;position:relative}
+.modal-caja h3{margin:0 0 4px;font-size:18px}
+.modal-caja h4{margin:22px 0 8px;font-size:14px;color:var(--live);font-family:var(--mono);
+  text-transform:uppercase;letter-spacing:.8px}
+.modal-caja p,.modal-caja li{font-size:13.5px;color:var(--muted);line-height:1.7}
+.modal-caja b{color:var(--text)}
+.modal-caja ul{margin:6px 0;padding-left:20px}
+.modal-caja table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px}
+.modal-caja th,.modal-caja td{border:1px solid var(--line);padding:6px 8px;text-align:left;color:var(--muted)}
+.modal-caja th{background:var(--panel-2);color:var(--text);font-weight:600;font-size:11.5px}
+.modal-caja td.hi{color:var(--warn)}
+.modal-caja .nunca{background:rgba(255,93,115,.08);border:1px solid rgba(255,93,115,.3);
+  border-radius:10px;padding:11px 13px;color:var(--down);font-size:13px;margin:12px 0}
+.modal-caja .firme{background:rgba(61,220,151,.07);border:1px solid rgba(61,220,151,.25);
+  border-radius:10px;padding:11px 13px;font-size:13px;margin:12px 0}
+.modal-caja .firme b{color:var(--up)}
+#modal-cerrar{position:absolute;top:12px;right:14px;background:var(--panel-2);border:1px solid var(--line);
+  color:var(--muted);border-radius:8px;padding:5px 11px;cursor:pointer;font-size:13px;min-height:34px}
+@media(max-width:600px){.modal-caja{padding:18px 14px 22px}#modal{padding:12px 8px}}
+@media(max-width:600px){
+  body{padding:14px 10px 44px;font-size:14px}
+  header{gap:8px}
+  header h1{font-size:19px;width:100%}
+  .header-actions{margin-left:0;width:100%;gap:6px}
+  .seg{flex:1 1 auto}
+  .seg button{flex:1 1 auto;min-height:40px}
+  .btn.primary{flex:1 1 100%;min-height:44px}
+  .chk{flex:1 1 100%}
+  .grid{grid-template-columns:1fr}
+  .nums b{font-size:14px}
+  h2{font-size:15px}
+  .slot select{flex:1 1 100%}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <h1>VMC Radar<span id="ver">v1.9</span></h1>
+      <div class="sub">Cruces del WaveTrend en zona extrema sobre el top del mercado ·
+        <span id="hoy"></span></div>
+    </div>
+    <div class="header-actions">
+      <div class="seg" id="seg-top"><em>top</em>
+        <button data-v="50">50</button><button data-v="100">100</button><button data-v="200">200</button></div>
+      <div class="seg" id="seg-marco"><em>marco</em>
+        <button data-v="4H">4H</button><button data-v="1D">1D</button><button data-v="1S">1S</button></div>
+      <div class="seg" id="seg-umbral"><em>umbral</em>
+        <button data-v="60">±60</button><button data-v="53">±53</button></div>
+      <div class="seg" id="seg-canal"><em>canal</em>
+        <button data-v="10">10</button><button data-v="9">9</button></div>
+      <label class="chk"><input type="checkbox" id="chk-curso"> vela en curso</label>
+      <button class="btn" id="btn-estrategia">📋 Estrategia de entrada</button>
+      <button class="btn primary" id="btn-escanear">↻ Escanear</button>
+    </div>
+  </header>
+
+  <div class="aviso" id="aviso-storage">⚠ Este navegador no deja guardar datos: el seguimiento y el
+    último escaneo se van a perder al cerrar la pestaña.</div>
+
+  <div id="banda">Iniciando…</div>
+  <div id="descartes"></div>
+
+  <div class="aviso" id="aviso-4h" style="display:none">⚠ <b>Marco 4H sin respaldo del backtest.</b>
+    Sobre 311 activos y 51.022 cruces, en 4H los grupos casi no separan (piso + divergencia 53%,
+    tardía sin divergencia 49%) y todo el filtro rinde 52% contra 46% de una vela cualquiera, con un
+    movimiento mediano de +0,5% en tres días. El orden por grupos que ves acá está calibrado en diario.</div>
+
+  <h2>🟢 Sobrevendidas <small id="over-sub">—</small></h2>
+  <div class="rule"></div>
+  <div class="grid" id="over-grid"></div>
+  <div class="pie" id="over-pie"></div>
+
+  <h2>🔴 Sobrecompradas <small id="under-sub">—</small></h2>
+  <div class="rule"></div>
+  <div class="aviso">⚠ <b>El lado corto en diario no tiene ventaja medida.</b> En el backtest de 189
+    activos el cruce rojo ≥ +60 acertó 46% contra 44% de una vela cualquiera. En semanal sí separa
+    (mediana −26,6% a 20 semanas). Tratá esta sección como aviso de techo, no como señal de short.</div>
+  <div class="grid" id="under-grid" style="margin-top:13px"></div>
+  <div class="pie" id="under-pie"></div>
+
+  <h2>⭐ Seguimiento
+    <div class="seg" id="seg-wmarco"><em>marco</em>
+      <button data-v="4H">4H</button><button data-v="1D">1D</button><button data-v="1S">1S</button></div>
+    <small>hasta 5 activos, guardados en este navegador</small></h2>
+  <div class="rule"></div>
+  <div class="slot">
+    <select id="sel-seguir"><option value="">Agregar activo…</option></select>
+    <span id="chips"></span>
+    <button class="btn" id="btn-watch">↻ Actualizar</button>
+  </div>
+  <div class="grid" id="watch-grid"></div>
+
+  <div id="modal"><div class="modal-caja">
+    <button id="modal-cerrar">Cerrar</button>
+    <h3>Estrategia medida sobre el histórico</h3>
+    <p>Todo lo de abajo salió de 1.864 operaciones simuladas sobre velas diarias reales, 2020-2026.
+      Es lo que <b>pasó</b>, no lo que va a pasar.</p>
+
+    <h4>Entrada · igual para BTC y alts</h4>
+    <p>Cruce verde con el WT1 en <b>−60 o menos</b>, dentro de las últimas 3 velas cerradas. Después se
+      clasifica por dos preguntas: ¿el mínimo del tramo está en la vela del cruce o en las 2 anteriores
+      (<b>piso</b>) o ya quedó atrás (<b>tardía</b>)?, y ¿hay <b>divergencia</b> con el pivote a 3 velas o menos?</p>
+    <p>Se opera <b>piso + divergencia</b>, <b>piso</b> y <b>tardía + divergencia</b>.
+      <b>Nunca tardía sin divergencia</b>: ese grupo quedó en verde el 30% de las veces, peor que una
+      vela cualquiera (40%). El radar ya las descarta solo.</p>
+
+    <h4>Salida</h4>
+    <table>
+      <tr><th></th><th>BTC</th><th>Alt top 20</th><th>Alt 21-100</th><th>Alt 101-200</th></tr>
+      <tr><td><b>Con divergencia</b></td><td>rojo posterior al 0</td><td class="hi">cruce del 0</td>
+          <td>rojo posterior al 0</td><td>rojo posterior al 0</td></tr>
+      <tr><td><b>Sin divergencia</b></td><td>rojo posterior al 0</td><td>rojo posterior al 0</td>
+          <td>rojo posterior al 0</td><td class="hi">cruce del 0</td></tr>
+    </table>
+    <div class="nunca"><b>En los cuatro tramos, sin excepción:</b> si aparece un punto rojo con el WT
+      todavía por debajo del 0, <b>no se sale</b>. Fue la peor opción en las ocho celdas medidas — ese
+      rojo temprano es ruido el 85% de las veces. Salir ahí deja 15% de aciertos; aguantar hasta que el
+      WT cruza el 0 los sube al 50%, y si el rojo llega después del 0, al 91%.</div>
+
+    <h4>Qué esperar</h4>
+    <table>
+      <tr><th>Tramo</th><th>Esperanza por operación</th><th>Aciertos</th><th>Peor caso</th></tr>
+      <tr><td>BTC</td><td>+8,6%</td><td>84%</td><td><b>−7%</b></td></tr>
+      <tr><td>Alt top 20</td><td>+4,7%</td><td>67-79%</td><td>−61%</td></tr>
+      <tr><td>Alt 21-100</td><td>+2,9 a +6,8%</td><td>58-75%</td><td>−70%</td></tr>
+      <tr><td>Alt 101-200</td><td>+3,2 a +9,4%</td><td>62-71%</td><td>−76%</td></tr>
+    </table>
+    <p>La columna que gobierna todo es la última: en BTC el peor caso en cinco años fue −7%; en alts
+      chicas, −76%. Misma estrategia, perfil de ruina completamente distinto.</p>
+    <p>Paciencia necesaria: mediana de <b>12 velas</b> hasta el cruce del 0, tercer cuartil en 21. Un
+      cuarto de las veces vas a estar 10% o más abajo antes de que funcione.</p>
+
+    <h4>Riesgo</h4>
+    <p>Ningún stop mejoró la esperanza: todos la bajaron entre 0,6 y 1,9 puntos. Lo que compran es cola —
+      pasar del 13% al 4% de operaciones con pérdida mayor al 20%.</p>
+    <ul>
+      <li><b>BTC:</b> sin stop. No hay cola de la cual protegerse.</li>
+      <li><b>Alts:</b> el nivel de invalidación que muestra cada card (mínimo del tramo −2%). Distancia
+        mediana 11,5% desde la entrada — ese número es el input para el tamaño de la posición,
+        decidido <b>antes</b> de entrar.</li>
+    </ul>
+
+    <h4>Qué tan firme es cada pieza</h4>
+    <div class="firme"><b>Sólido</b> — se repite en los cuatro tramos y en las tres épocas: la divergencia
+      mejora el resultado siempre · nunca salir en el primer rojo bajo el 0 · descartar tardía sin
+      divergencia · el cruce del 0 separa dos poblaciones opuestas (91% de aciertos si el rojo llega
+      después, 15% si llega antes).</div>
+    <p><b>Hipótesis</b> — salió de celdas de 38 a 180 casos y puede ser ruido: las dos inversiones de la
+      tabla de salida (por qué el top 20 con divergencia prefiere el 0, y BTC sin divergencia prefiere
+      estirar). Miralas en vivo antes de confiar.</p>
+    <p><b>Débil</b> — 19 operaciones: todo lo específico de BTC. Los órdenes de magnitud sirven, los
+      decimales no.</p>
+
+    <h4>Lo que estas cifras no incluyen</h4>
+    <p>Comisiones, funding y slippage. Un solo período, cargado hacia un bajista de alts. Y sesgo de
+      supervivencia: las monedas que murieron y las deslistaron no están en el dataset, así que los
+      tramos de abajo están mejor pintados de lo que fueron. <b>El lado corto quedó fuera de todo esto:
+      en diario no mostró ventaja medida.</b></p>
+
+    <h4 style="color:var(--warn)">⚠ Si ya estás comprado desde otro lado</h4>
+    <div class="nunca" style="background:rgba(249,199,116,.08);border-color:rgba(249,199,116,.3);color:var(--warn)">
+      <b>Nada de lo de arriba aplica.</b> Todas las salidas de este panel se midieron sobre operaciones
+      que arrancaron en un cruce verde ≤ −60. Si entraste en otro punto, el WT está en otro lugar de su
+      recorrido y esas estadísticas no describen tu situación.</div>
+    <p>Lo que sí se midió sin depender de la entrada: <b>estoy comprado y aparece un punto rojo arriba,
+      ¿suelto?</b></p>
+    <table>
+      <tr><th>Rojo con WT ≥ +53</th><th>Baja a 20 velas</th><th>Un día cualquiera</th><th>Ventaja</th></tr>
+      <tr><td>BTC</td><td>43%</td><td>50%</td><td class="hi"><b>−7 pp</b></td></tr>
+      <tr><td>Alt top 20</td><td>51%</td><td>56%</td><td>−5 pp</td></tr>
+      <tr><td>Alt 21-100</td><td>56%</td><td>59%</td><td>−2 pp</td></tr>
+      <tr><td>Alt 101-200</td><td>66%</td><td>63%</td><td>+3 pp</td></tr>
+    </table>
+    <p><b>El punto rojo alto no anticipa la caída.</b> Sobre 2.667 casos el precio bajó el 59% de las
+      veces — y en un día cualquiera baja el 60%. Con divergencia bajista sube a 62%: dos puntos, casi
+      nada. Y en el <b>76% de los casos el precio hizo al menos +5% más después de ese rojo</b>, con un
+      máximo mediano de +14,6%. En BTC vender ahí fue contraproducente: subió más seguido después del
+      rojo que en un día normal.</p>
+    <p><b>Para este caso usá la nota 📤 de la card, no este panel.</b> Esa regla viene del vmc-validator,
+      salió de 19 prints revisados a mano y es cualitativa: dice «considerá tomar ganancia», no una
+      probabilidad. Estos números le agregan un matiz: en <b>BTC ignorala salvo que haya divergencia</b>;
+      en <b>alts chicas tomala más en serio</b>.</p>
+
+    <h4>★ Primera línea <span style="font-family:inherit;text-transform:none;letter-spacing:0;color:var(--muted)">— agregado en v1.4</span></h4>
+    <p>Sobre 2.864 eventos se probaron 24 variables calculables en el momento del cruce. La combinación
+      que separó mejor, y la única que aguantó en los seis subperíodos:</p>
+    <p><b>El cruce está en el piso · money flow ≤ −5 · a 30% o menos del techo de 30 velas</b>
+      (las tres medidas en la vela del cruce, y solo del lado comprador).</p>
+    <table>
+      <tr><th></th><th>n</th><th>Verde a 20v</th><th>Media</th><th>Peor excursión</th><th>Pierde &gt;20%</th></tr>
+      <tr><td><b>Primera línea</b></td><td>201</td><td><b>68%</b></td><td><b>+8,8%</b></td><td><b>−6,9%</b></td><td><b>6%</b></td></tr>
+      <tr><td>Grupos 1-3</td><td>2.189</td><td>46%</td><td>+1,4%</td><td>−12,7%</td><td>16%</td></tr>
+    </table>
+    <p>Por año: 75% · 67% · 58% · 91% · 73% · 51% (2022 a 2026). En 2026, donde los grupos cayeron a 33%
+      y −4,8%, la primera línea sigue en 51% y +0,8%. Por tramo funciona en todos: top 20 70%,
+      alts 21-100 73%, alts 101-200 60%.</p>
+    <div class="firme"><b>El recorrido estaba al revés.</b> Asumíamos que más distancia al techo de 30
+      velas era más para ganar. Los datos dicen lo contrario, y de forma monótona: sin filtro 43% en
+      verde, ≤50% de recorrido 49%, ≤30% 53%, ≤20% <b>63%</b>. Un activo a 60% de su techo no tiene más
+      recorrido: está roto. En v1.4 se invirtió ese componente del score.</div>
+    <p><b>Money flow bajo, no alto.</b> Con recorrido ≤20%, un money flow ≤0 da 74% y ≤−5 da <b>84%</b>.
+      No contradice la matriz: la matriz pide que el money flow <b>gire</b>, esto mide su <b>nivel</b> en
+      el cruce. La capitulación rebota mejor que el goteo lento.</p>
+    <p><b>Dos cosas que dejaron de importar:</b> dentro de la primera línea la divergencia no agrega nada
+      (68% con y 68% sin) — el recorrido y el money flow ya capturaban lo que ella aproximaba. Y el orden
+      dentro de la lista es indiferente: probé cinco órdenes distintos y dan lo mismo (±1 pp). La ganancia
+      está en filtrar, no en ordenar.</p>
+    <h4>Las cuatro condiciones de señal limpia</h4>
+    <p>Objetivo medido: que el WT llegue al 0 <b>sin que aparezca un rojo antes</b>. Pasa el 27% de las
+      veces, y decide todo — las limpias salen ganadoras el 90% con mediana +11,7%; las sucias, 44% y −2,6%.
+      «Ganadora» significa siempre lo mismo acá: <b>entrás en el cruce verde y la salida en el primer punto
+      rojo por arriba del 0 termina en positivo</b>.</p>
+
+    <p><b>Tabla A · sumando condiciones.</b> Cada fila incluye las de arriba. Universo completo,
+      2.178 señales, 4,8 años.</p>
+    <table>
+      <tr><th>Se suma</th><th>n</th><th>Ganadora</th><th>Mediana</th><th>Veces/año</th><th>Train / Test</th></tr>
+      <tr><td><i>nada — todas las señales ≤ −60</i></td><td>2.178</td><td>56%</td><td>+3,1%</td><td>454</td><td>64% / 50%</td></tr>
+      <tr><td>+ recorrido ≤ 30% al techo de 30 velas</td><td>342</td><td><b>70%</b></td><td>+5,8%</td><td>71</td><td>68% / 75%</td></tr>
+      <tr><td>+ el cruce está en el mínimo</td><td>242</td><td><b>74%</b></td><td>+6,2%</td><td>50</td><td>70% / 80%</td></tr>
+      <tr><td>+ money flow ≤ −5 → <b>primera línea</b></td><td>144</td><td><b>81%</b></td><td>+9,2%</td><td>30</td><td>77% / 88%</td></tr>
+      <tr><td>+ divergencia cercana → <b>las 4</b></td><td>38</td><td><b>92%</b></td><td>+12,0%</td><td>8</td><td>93% / 91%</td></tr>
+    </table>
+    <p>El salto grande es el primero: de 56% a 70% solo con el recorrido. Después cada condición suma
+      entre 4 y 11 puntos, y lo que se paga es frecuencia: de 454 señales al año a 8.</p>
+
+    <p><b>Tabla B · cada condición sola</b>, sin las demás.</p>
+    <table>
+      <tr><th>Condición</th><th>n</th><th>Ganadora</th><th>Mediana</th></tr>
+      <tr><td>Recorrido ≤ 30%</td><td>342</td><td><b>70%</b></td><td>+5,8%</td></tr>
+      <tr><td>Divergencia cercana</td><td>458</td><td><b>67%</b></td><td>+6,8%</td></tr>
+      <tr><td>Cruce en el mínimo</td><td>1.535</td><td>61%</td><td>+4,5%</td></tr>
+      <tr><td>Money flow ≤ −5</td><td>1.529</td><td>60%</td><td>+4,5%</td></tr>
+    </table>
+    <p>Sueltas, las que valen son <b>recorrido</b> y <b>divergencia</b>. Las otras dos aportan sobre todo
+      en combinación.</p>
+
+    <p><b>Tabla C · solo BTC.</b> Muestra chica, leer con cuidado.</p>
+    <table>
+      <tr><th>Se suma</th><th>n</th><th>Ganadora</th><th>Mediana</th><th>Veces/año</th></tr>
+      <tr><td><i>nada</i></td><td>23</td><td><b>74%</b></td><td>+2,3%</td><td>4,8</td></tr>
+      <tr><td>+ recorrido ≤ 30%</td><td>16</td><td>81%</td><td>+7,1%</td><td>3,3</td></tr>
+      <tr><td>+ cruce en el mínimo</td><td>11</td><td>91%</td><td>+8,2%</td><td>2,3</td></tr>
+      <tr><td>+ money flow ≤ −5</td><td>7</td><td>100%</td><td>+8,4%</td><td>1,5</td></tr>
+      <tr><td>+ divergencia</td><td>4</td><td>100%</td><td>+1,7%</td><td>0,8</td></tr>
+    </table>
+    <p><b>BTC arranca en 74% sin ningún filtro</b>, donde el universo está en 56%. Ese es el mensaje real
+      de esta tabla: en BTC el filtro importa mucho menos porque la base ya es buena. Los 100% son de 7 y
+      4 casos — leelos como «no falló ninguna, y son poquísimas», no como una probabilidad. Fijate que al
+      sumar la divergencia la mediana <i>cae</i> de +8,4% a +1,7%: con 4 casos eso es ruido, no una señal
+      de que la divergencia empeore.</p>
+
+    <div class="firme"><b>Limpio no es lo mismo que rentable.</b> El giro vertical del WT predice limpieza
+      (36%) pero la salida gana solo 53% con mediana +0,8%. Lo mismo el precio sobre la MA200: 32% de
+      limpias, 54% de aciertos. Las únicas dos condiciones que predicen las dos cosas son el
+      <b>recorrido corto</b> y la <b>divergencia</b>.</div>
+    <p><b>Una quinta condición que se probó y se descartó:</b> «la MA50 no está subiendo». Con la media
+      simple de 50 discriminaba (−8 pp), pero el motor usa una <b>EMA</b> de 50 — y con la EMA solo 2 de
+      2.178 señales tienen la media subiendo. Sería un tilde verde permanente que no informa nada. Aun
+      cambiándola a media simple no aportaba: primera línea + esa condición da 82% contra 81% sin ella, y
+      en las cuatro no cambia ni un caso. Fuera.</p>
+    <p><b>Ni con las mejores condiciones robustas se pasa del 40% de señales limpias.</b> Seis de cada
+      diez van a tener un rojo antes del 0 igual. Lo que cambia no es que la limpieza sea la norma: es
+      que con el filtro puesto la salida final gana 81% en vez de 56%.</p>
+
+    <p><b>El costo:</b> la primera línea aparece en el <b>22% de los días</b> y es el 7% de los eventos.
+      Por eso no reemplaza la lista: es un nivel destacado arriba, no un filtro.</p>
+    <p><b>Lo que hay que descontar:</b> las variables se buscaron mirando la muestra completa antes de
+      partirla, así que hay filtración en el descubrimiento. Lo que la compensa: cada componente se
+      sostuvo en train (2021-2024) y test (2025-2026) por separado, la regla aguanta en los seis
+      subperíodos, y la sensibilidad a los umbrales es un gradiente suave y no un pico. Aun así son
+      <b>201 eventos</b>, con sesgo de supervivencia y un solo ciclo. Tratalo como «mirar con más
+      atención», no como una promesa del 68%.</p>
+  </div></div>
+
+  <div class="foot">
+    <b>VMC Radar</b> · motor VMC copiado sin cambios del artefacto v1.35 (canal 10, EMA 12, SMA 3 sobre hlc3;
+    money flow 60/150 −2,5) · velas de Binance · sin llamadas a IA<br>
+    El radar genera candidatas y el veredicto que muestra es determinista. La matriz se certificó a ojo
+    sobre BTC, SOL y GALA, no sobre 200 alts: tratalo como alarma, no como juez.<br>
+    La agrupación exige la divergencia a 3 velas o menos, que es lo que midió el backtest; el veredicto de la
+    matriz la acepta hasta 6, igual que en el v1.35. Por eso un activo puede quedar en el grupo &laquo;piso&raquo;
+    y aun así tener veredicto por divergencia — no es un error, son dos umbrales distintos y la card lo dice.
+  </div>
+</div>
+
+<script>
+/* ===== BLOQUE COPIADO SIN CAMBIOS DEL ARTEFACTO v1.35 (motor certificado) ===== */
+var APP_VERSION = "v1.35 (motor)";
+var WT_CANAL = 10;
+var INCLUIR_EN_CURSO = false;
+function escaparHTML(s){
+  return String(s===undefined||s===null?"":s)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+function esperar(ms){ return new Promise(function(res){ setTimeout(res, ms); }); }
+function fechaISO(d){ return d.toISOString().slice(0,10); }
+function fechaLarga(d){
+  return d.toLocaleDateString("es-AR",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+}
+function fechaCorta(iso){
+  var d = new Date(iso+"T00:00:00Z");
+  return d.getUTCDate()+"-"+["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"][d.getUTCMonth()];
+}
+/* El mismo formateador tiene que servir para BTC a 100.000 y para una alt a 0,0031 */
+function formatoPrecio(v){
+  if(v===null||v===undefined||isNaN(v)) return "–";
+  var a = Math.abs(v);
+  if(a>=1000)  return "$"+v.toLocaleString("es-AR",{maximumFractionDigits:0});
+  if(a>=1)     return "$"+v.toLocaleString("es-AR",{minimumFractionDigits:2,maximumFractionDigits:2});
+  if(a>=0.01)  return "$"+v.toFixed(4);
+  if(a>=0.0001)return "$"+v.toFixed(6);
+  return "$"+v.toFixed(8);
+}
+function num(v,d){ return (v===null||v===undefined||isNaN(v)) ? "–" : v.toFixed(d===undefined?1:d); }
+
+/* Storage: window.storage (claude.ai) → localStorage (archivo local) → memoria */
+var memCache = {};
+function storageDisponible(){ return typeof window!=="undefined" && window.storage && typeof window.storage.get==="function"; }
+function localStorageDisponible(){
+  try{
+    if(typeof localStorage==="undefined") return false;
+    localStorage.setItem("__vmcm_test","1"); localStorage.removeItem("__vmcm_test");
+    return true;
+  }catch(e){ return false; }
+}
+async function cacheLeer(clave){
+  if(storageDisponible()){
+    try{ var r = await window.storage.get(clave); return r&&r.value ? JSON.parse(r.value) : null; }catch(e){ return null; }
+  }
+  if(localStorageDisponible()){
+    try{ var v = localStorage.getItem(clave); return v ? JSON.parse(v) : null; }catch(e){ return null; }
+  }
+  return memCache[clave] ? JSON.parse(JSON.stringify(memCache[clave])) : null;
+}
+async function cacheGuardar(clave, obj){
+  if(storageDisponible()){
+    try{ await window.storage.set(clave, JSON.stringify(obj)); return; }catch(e){}
+  }
+  if(localStorageDisponible()){
+    try{ localStorage.setItem(clave, JSON.stringify(obj)); return; }catch(e){}
+  }
+  memCache[clave] = JSON.parse(JSON.stringify(obj));
+}
+/* Toda llamada lleva timeout: sin esto, un host bloqueado por la red deja la carga
+   colgada para siempre y el selector nunca se llena. */
+async function fetchJSON(url, ms){
+  var lim = ms || 15000;
+  var ctrl = (typeof AbortController!=="undefined") ? new AbortController() : null;
+  var to = ctrl ? setTimeout(function(){ ctrl.abort(); }, lim) : null;
+  try{
+    var r = await fetch(url, ctrl ? {signal:ctrl.signal} : undefined);
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    return await r.json();
+  }catch(e){
+    if(e && e.name==="AbortError") throw new Error("no respondió en "+Math.round(lim/1000)+" s");
+    throw e;
+  }finally{ if(to) clearTimeout(to); }
+}
+/* Binance con hosts alternativos (algunas redes/regiones bloquean el principal) */
+var HOSTS_BINANCE = ["https://api.binance.com","https://data-api.binance.vision","https://api-gcp.binance.com"];
+var hostBinanceOK = null;
+async function fetchBinance(path, ms){
+  var orden = hostBinanceOK ? [hostBinanceOK].concat(HOSTS_BINANCE.filter(function(h){return h!==hostBinanceOK;})) : HOSTS_BINANCE;
+  var ultimo;
+  for(var i=0;i<orden.length;i++){
+    try{ var j = await fetchJSON(orden[i]+path, ms); hostBinanceOK = orden[i]; return j; }
+    catch(e){ ultimo = e; }
+  }
+  throw ultimo || new Error("Binance no disponible");
+}
+/* =====================================================================
+   MOTOR VMC · capa indicador
+   CÓDIGO CERTIFICADO 20/20 contra el dataset Bitstamp del vigía y los
+   anclajes del expediente. Copiado sin cambios desde el panel v24.
+   ===================================================================== */
+// === VMC ===
+function vmcEMA(valores, periodo){
+  var k = 2/(periodo+1), out = [], prev = null;
+  for(var i=0;i<valores.length;i++){
+    var v = valores[i];
+    prev = (prev===null) ? v : v*k + prev*(1-k);
+    out.push(prev);
+  }
+  return out;
+}
+function vmcSMA(valores, periodo){
+  var out = [], suma = 0;
+  for(var i=0;i<valores.length;i++){
+    suma += valores[i];
+    if(i>=periodo) suma -= valores[i-periodo];
+    out.push(i>=periodo-1 ? suma/periodo : null);
+  }
+  return out;
+}
+// velas: [{date, open, high, low, close}] SOLO CERRADAS
+// ÚNICA diferencia con el motor del panel v24: el largo del canal es parámetro (WT_CANAL)
+// en vez de estar fijo en 9, para poder igualar la configuración real del gráfico.
+function vmcCalcular(velas, canal){
+  var n = velas.length;
+  var ch = canal || WT_CANAL;
+  var hlc3 = velas.map(function(v){ return (v.high+v.low+v.close)/3; });
+  var esa = vmcEMA(hlc3, ch);
+  var absDif = hlc3.map(function(v,i){ return Math.abs(v-esa[i]); });
+  var de = vmcEMA(absDif, ch);
+  var ci = hlc3.map(function(v,i){ return de[i]>0 ? (v-esa[i])/(0.015*de[i]) : 0; });
+  var wt1 = vmcEMA(ci, 12);
+  var wt2 = vmcSMA(wt1, 3);
+  // Money Flow (RSIMFI): sma(((close-open)/(high-low))*150, 60) - 2.5
+  var mfRaw = velas.map(function(v){
+    var rango = v.high - v.low;
+    return rango>0 ? ((v.close-v.open)/rango)*150 : 0;
+  });
+  var mfSma = vmcSMA(mfRaw, 60);
+  var mf = mfSma.map(function(v){ return v===null ? null : v-2.5; });
+  // Puntos: cruce de WT1/WT2 en la vela i (comparando con i-1)
+  var dots = new Array(n).fill(null);
+  for(var i=1;i<n;i++){
+    if(wt2[i]===null||wt2[i-1]===null) continue;
+    if(wt1[i]>wt2[i] && wt1[i-1]<=wt2[i-1]) dots[i]="verde";
+    else if(wt1[i]<wt2[i] && wt1[i-1]>=wt2[i-1]) dots[i]="rojo";
+  }
+  var sma50 = vmcEMA(velas.map(function(v){return v.close;}), 50);   // EMA: coincide con las medias del chart
+  var sma200 = vmcEMA(velas.map(function(v){return v.close;}), 200);
+  return { wt1:wt1, wt2:wt2, mf:mf, dots:dots, sma50:sma50, sma200:sma200 };
+}
+function vmcZona(wt){
+  if(wt===null||wt===undefined) return {clave:"na", texto:"–"};
+  if(wt<=-53) return {clave:"compra", texto:"zona de compra (≤−53"+(wt<=-60?", ideal":"")+")"};
+  if(wt<=-40) return {clave:"borde-compra", texto:"borde/rango (−40/−53)"};
+  if(wt<0)    return {clave:"neutral-baja", texto:"zona media (negativa)"};
+  if(wt<40)   return {clave:"neutral-alta", texto:"zona media (positiva)"};
+  if(wt<53)   return {clave:"borde-venta", texto:"borde/rango (+40/+53)"};
+  return {clave:"venta", texto:"zona de venta (≥+53"+(wt>=60?", ideal":"")+")"};
+}
+function vmcDotInZone(calc, i){
+  var dot = calc.dots[i];
+  if(!dot) return {hay:false};
+  var wt = calc.wt1[i];
+  var z = vmcZona(wt);
+  var operable = (dot==="verde" && z.clave==="compra") ||
+                 (dot==="rojo"  && z.clave==="venta");
+  var borde = (dot==="verde" && z.clave==="borde-compra") ||
+              (dot==="rojo"  && z.clave==="borde-venta");
+  return {hay:true, dot:dot, wt:wt, zona:z, enZona:operable, borde:borde};
+}
+function vmcUltimoDot(calc, i){
+  for(var k=i;k>=0;k--){
+    if(calc.dots[k]) return {color:calc.dots[k], hace:i-k, wt:calc.wt1[k]};
+  }
+  return null;
+}
+function vmcPivotes(calc, velas, tipo){
+  var out = [];
+  var n = velas.length;
+  for(var i=2;i<n-2;i++){
+    var esP = true;
+    for(var g=1;g<=2;g++){
+      if(tipo==="min" && (calc.wt1[i]>calc.wt1[i-g] || calc.wt1[i]>calc.wt1[i+g])) { esP=false; break; }
+      if(tipo==="max" && (calc.wt1[i]<calc.wt1[i-g] || calc.wt1[i]<calc.wt1[i+g])) { esP=false; break; }
+    }
+    if(esP) out.push(i);
+  }
+  return out;
+}
+function vmcDivergencia(calc, velas){
+  var n = velas.length, VENTANA = 75, MIN_DIF_WT = 2;
+  var iFin = n-1;
+  function detectar(tipo){
+    var pivotes = vmcPivotes(calc, velas, tipo).filter(function(i){ return i>=iFin-VENTANA; });
+    if(pivotes.length<2) return null;
+    var actual = pivotes[pivotes.length-1];
+    if(iFin-actual>6) return null; // el pivote actual debe ser reciente para ser accionable
+    var previo = null;
+    for(var j=0;j<pivotes.length-1;j++){
+      var p = pivotes[j];
+      if(p < actual-2 && p >= actual-VENTANA){
+        if(previo===null) previo=p;
+        else if(tipo==="min" && calc.wt1[p]<calc.wt1[previo]) previo=p;
+        else if(tipo==="max" && calc.wt1[p]>calc.wt1[previo]) previo=p;
+      }
+    }
+    if(previo===null) return null;
+    var wtA = calc.wt1[actual], wtP = calc.wt1[previo];
+    if(tipo==="min"){
+      var precioBaja = velas[actual].low < velas[previo].low;
+      if(precioBaja && (wtA - wtP) > MIN_DIF_WT)
+        return {tipo:"alcista", actual:actual, previo:previo, wtA:wtA, wtP:wtP};
+    } else {
+      var precioSube = velas[actual].high > velas[previo].high;
+      if(precioSube && (wtP - wtA) > MIN_DIF_WT)
+        return {tipo:"bajista", actual:actual, previo:previo, wtA:wtA, wtP:wtP};
+    }
+    return null;
+  }
+  return detectar("min") || detectar("max");
+}
+function vmcRegimen(calc, velas, i){
+  var c = velas[i].close, e50 = calc.sma50[i], e200 = calc.sma200[i];
+  if(e50===null||e50===undefined||e200===null||e200===undefined) return {texto:"Sin datos", clase:"neu", detalle:"", explica:"", ayuda:""};
+  var subiendo = (i>=5) ? (e50>calc.sma50[i-5]) : true;
+  var pend = subiendo ? "↗" : "↘";
+  var TOL = 0.01;
+  function rel(precio, media){
+    if(Math.abs(precio-media)/media < TOL) return {sig:"≈", encima:null};
+    return precio>media ? {sig:">", encima:true} : {sig:"<", encima:false};
+  }
+  var r50 = rel(c, e50), r200 = rel(c, e200);
+  function relTxt(r, nombre){
+    if(r.sig==="≈") return "pegado a "+nombre;
+    return (r.encima ? "sobre " : "bajo ")+nombre;
+  }
+  var posPrecio;
+  if(r50.encima===false && r200.encima===false) posPrecio = "precio bajo ambas EMAs";
+  else if(r50.encima===true && r200.encima===true) posPrecio = "precio sobre ambas EMAs";
+  else posPrecio = "precio "+relTxt(r50,"EMA50")+", "+relTxt(r200,"EMA200");
+  var ordenMedias = e50>e200 ? "EMA50 sobre EMA200" : "EMA50 bajo EMA200";
+  var det = posPrecio+" · "+ordenMedias+" · EMA50 "+pend;
+  var ayuda = "Tendencia de fondo de BTC según dos medias exponenciales del precio: EMA de 50 velas y EMA de 200, las mismas que ves en tu gráfico. Bajista = precio claramente bajo ambas. Alcista = precio claramente sobre ambas. Mixto = precio entre las EMAs o pegado a alguna (transición). Si el precio está a menos de 1% de una media se marca ≈ (pegado), porque ahí la tendencia no está definida. En tu VMC filtra los pullbacks.";
+  if(r50.encima===true && r200.encima===true) return {texto:"Alcista", clase:"pos", detalle:det, explica:"precio sobre ambas EMAs", ayuda:ayuda};
+  if(r50.encima===false && r200.encima===false) return {texto:"Bajista", clase:"neg", detalle:det, explica:"precio bajo ambas EMAs", ayuda:ayuda};
+  var sesgo, claseMix;
+  if(r200.encima===true){ sesgo="sesgo alcista"; claseMix="pos"; }
+  else if(r200.encima===false){ sesgo="sesgo bajista"; claseMix="neg"; }
+  else { sesgo="neutral"; claseMix="wrn"; }
+  var baseMix = (r50.sig==="≈") ? "precio pegado a la EMA50" : "precio entre las EMAs";
+  return {texto:"Mixto", clase:"wrn", detalle:det, explica:baseMix+" · "+sesgo, ayuda:ayuda, sesgoClase:claseMix};
+}
+function vmcEstadoMF(calc, i){
+  var m = calc.mf[i];
+  if(m===null||m===undefined) return {valor:null, texto:"–", clase:"neu", giro:""};
+  var prev = (i>=5) ? calc.mf[i-5] : null;
+  var giro = "";
+  if(prev!==null){
+    if(m>prev+1) giro = "girando al alza";
+    else if(m<prev-1) giro = "girando a la baja";
+    else giro = "estable";
+  }
+  return {valor:m, texto:(m>=0?"+":"")+m.toFixed(1)+" "+(m>=0?"🟢":"🔴"), clase:(m>=0?"pos":"neg"), giro:giro};
+}
+function vmcTechoCiclo(calc, velas, i, div){
+  if(!(div && div.tipo==="bajista" && div.wtA>=30)) return false;
+  if(i - div.actual > 5) return false;               // divergencia del techo actual, no vieja
+  var ud = vmcUltimoDot(calc, i);
+  if(!(ud && ud.color==="rojo" && ud.hace<=2)) return false;
+  var maxHist = 0;
+  for(var k=0;k<=i;k++) if(velas[k].high>maxHist) maxHist=velas[k].high;
+  return velas[div.actual].high >= maxHist*0.90;
+}
+function vmcAgregarSemanal(velasDiarias){
+  var semanas = {}, orden = [];
+  for(var i=0;i<velasDiarias.length;i++){
+    var v = velasDiarias[i];
+    var d = new Date(v.date+"T00:00:00Z");
+    var dow = d.getUTCDay();                       // 0=domingo
+    var lunes = new Date(d.getTime() - ((dow+6)%7)*86400000);
+    var clave = lunes.toISOString().slice(0,10);
+    if(!semanas[clave]){ semanas[clave]={date:clave,open:v.open,high:v.high,low:v.low,close:v.close}; orden.push(clave); }
+    else{
+      var s = semanas[clave];
+      if(v.high>s.high) s.high=v.high;
+      if(v.low<s.low) s.low=v.low;
+      s.close = v.close;
+    }
+  }
+  return orden.map(function(k){ return semanas[k]; });
+}
+// === END VMC ===
+
+/* =====================================================================
+   QQE SIGNALS · capa informativa, aislada
+   Réplica de "QQE signals" (colinmck) con los parámetros del gráfico del usuario:
+   RSI 14 · suavizado 5 · factor QQE 4.238 · umbral 10.
+   NO participa de la matriz: no toca el checklist, no viaja en el payload de la IA
+   y no abre ni cierra ningún camino. Es un dato para leer, nada más.
+   MARCADO BETA hasta certificar las fechas de sus etiquetas contra TradingView.
+   ===================================================================== */
+var QQE_PAR = {rsi:14, suav:5, factor:4.238, umbral:10};
+
+// Pine usa RMA (suavizado de Wilder) para el RSI y EMA común para el resto
+function qqeRMA(v, p){
+  var out=[], prev=null, suma=0;
+  for(var i=0;i<v.length;i++){
+    if(i<p){ suma+=v[i]; out.push(null); if(i===p-1){ prev=suma/p; out[i]=prev; } continue; }
+    prev = (v[i] + prev*(p-1))/p; out.push(prev);
+  }
+  return out;
+}
+function qqeRSI(cierres, p){
+  var gan=[0], per=[0];
+  for(var i=1;i<cierres.length;i++){
+    var d = cierres[i]-cierres[i-1];
+    gan.push(d>0?d:0); per.push(d<0?-d:0);
+  }
+  var mg=qqeRMA(gan,p), mp=qqeRMA(per,p), out=[];
+  for(var i=0;i<cierres.length;i++){
+    if(mg[i]===null||mp[i]===null){ out.push(null); continue; }
+    out.push(mp[i]===0 ? 100 : 100 - 100/(1 + mg[i]/mp[i]));
+  }
+  return out;
+}
+function qqeCalcular(velas){
+  var n=velas.length, P=QQE_PAR;
+  var W = P.rsi*2-1;
+  var rsi = qqeRSI(velas.map(function(v){return v.close;}), P.rsi);
+  var base = rsi.map(function(x,i){ return x===null ? (rsi.find(function(y){return y!==null;})||50) : x; });
+  var rsiMa = vmcEMA(base, P.suav);
+  var atrRsi = rsiMa.map(function(x,i){ return i===0 ? 0 : Math.abs(rsiMa[i-1]-x); });
+  var maAtr = vmcEMA(atrRsi, W);
+  var dar = vmcEMA(maAtr, W).map(function(x){ return x*P.factor; });
+
+  var longband=new Array(n).fill(0), shortband=new Array(n).fill(0), trend=new Array(n).fill(1);
+  for(var i=1;i<n;i++){
+    var idx=rsiMa[i], idxP=rsiMa[i-1];
+    var nl=idx-dar[i], ns=idx+dar[i];
+    longband[i]  = (idxP>longband[i-1]  && idx>longband[i-1])  ? Math.max(longband[i-1], nl)  : nl;
+    shortband[i] = (idxP<shortband[i-1] && idx<shortband[i-1]) ? Math.min(shortband[i-1], ns) : ns;
+    var cruzaArriba = (idxP<=shortband[i-1] && idx>shortband[i-1]);
+    var cruzaAbajo  = (longband[i-1]>=idxP && longband[i-1]<idx) ? false
+                      : (idxP>=longband[i-1] && idx<longband[i-1]);
+    trend[i] = cruzaArriba ? 1 : (cruzaAbajo ? -1 : trend[i-1]);
+  }
+  var linea = trend.map(function(t,i){ return t===1 ? longband[i] : shortband[i]; });
+  var etiquetas=[];
+  for(var i=1;i<n;i++){
+    if(trend[i]===1 && trend[i-1]!==1) etiquetas.push({i:i, tipo:"Long"});
+    else if(trend[i]===-1 && trend[i-1]!==-1) etiquetas.push({i:i, tipo:"Short"});
+  }
+  return {rsiMa:rsiMa, linea:linea, trend:trend, etiquetas:etiquetas};
+}
+/* Estado a mostrar: última etiqueta, antigüedad y si la condición sigue en pie */
+function qqeEstado(velas, marco){
+  if(velas.length < 80) return null;
+  var q = qqeCalcular(velas), i = velas.length-1;
+  if(!q.etiquetas.length) return {tipo:null, hace:null, vigente:false, rsiMa:q.rsiMa[i]};
+  var ult = q.etiquetas[q.etiquetas.length-1];
+  var vigente = (ult.tipo==="Long") ? (q.trend[i]===1) : (q.trend[i]===-1);
+  return {tipo:ult.tipo, hace:i-ult.i, vigente:vigente, rsiMa:q.rsiMa[i],
+          fecha:velas[ult.i].date, total:q.etiquetas.length};
+}
+
+/* =====================================================================
+   GRÁFICO DEL OSCILADOR · capa visual, aislada
+   Dibuja la historia reciente de WT1, WT2, los puntos de cruce y el money flow.
+   No calcula nada nuevo: consume los mismos arrays que ya produjo vmcCalcular.
+   No participa de la matriz ni viaja al payload de la IA.
+   ===================================================================== */
+var GRAF_VELAS = {"1D":49, "1S":30};   // menos velas en semanal: cada una pesa más
+var GRAF_W = 620, GRAF_H = 168;
+var GRAF_MF_H = 34, GRAF_MF_ESC = 20;   // franja del money flow, escala FIJA ±20
+
+function grafOscilador(calc, velas, i, marco){
+  var n = GRAF_VELAS[marco] || 49;
+  var ini = Math.max(0, i-n+1), cant = i-ini+1;
+  if(cant < 10) return "";
+  var x0 = 8, x1 = GRAF_W-8;
+  // El oscilador ocupa arriba; el money flow tiene su propia franja abajo.
+  var oscH = GRAF_H - GRAF_MF_H - 6, mitad = oscH/2, alto = mitad-8;
+  var mfTop = GRAF_H - GRAF_MF_H, mfCero = mfTop + GRAF_MF_H/2;
+  function px(k){ return cant===1 ? x0 : (x0 + (x1-x0)*(k-ini)/(cant-1)); }
+  // Escala al recorrido REAL del tramo (mínimo ±70 para que las bandas ±60 siempre entren
+  // con aire). Con ±100 fijo la curva se achataba y no coincidía con la del gráfico.
+  var esc = 70;
+  for(var k=ini;k<=i;k++){
+    if(calc.wt1[k]!==null && Math.abs(calc.wt1[k])>esc) esc = Math.abs(calc.wt1[k]);
+    if(calc.wt2[k]!==null && Math.abs(calc.wt2[k])>esc) esc = Math.abs(calc.wt2[k]);
+  }
+  esc = Math.min(esc*1.05, 110);
+  function py(v){ return mitad - (Math.max(-esc,Math.min(esc,v))/esc)*alto; }
+  // Escala FIJA de ±20: así el alto significa lo mismo en cualquier activo y momento.
+  function pyMF(v){ return mfCero - (Math.max(-GRAF_MF_ESC,Math.min(GRAF_MF_ESC,v))/GRAF_MF_ESC)*(GRAF_MF_H/2-3); }
+
+  function camino(arr, fn){
+    var p = [];
+    for(var k=ini;k<=i;k++){
+      var v = arr[k];
+      if(v===null||v===undefined) continue;
+      p.push((p.length?"L":"M")+" "+px(k).toFixed(1)+" "+fn(v).toFixed(1));
+    }
+    return p.join(" ");
+  }
+  var h = "<svg viewBox='0 0 "+GRAF_W+" "+GRAF_H+"' class='graf' role='img' aria-label='Historia del oscilador WaveTrend y del money flow de las últimas "+cant+" velas'>";
+  // niveles de la matriz
+  h += "<rect x='0' y='"+py(60).toFixed(1)+"' width='"+GRAF_W+"' height='"+(py(53)-py(60)).toFixed(1)+"' fill='var(--down)' opacity='.10'/>"+
+       "<rect x='0' y='"+py(-53).toFixed(1)+"' width='"+GRAF_W+"' height='"+(py(-60)-py(-53)).toFixed(1)+"' fill='var(--up)' opacity='.10'/>"+
+       "<line x1='0' y1='"+py(60).toFixed(1)+"' x2='"+GRAF_W+"' y2='"+py(60).toFixed(1)+"' stroke='var(--down)' stroke-width='.7' stroke-dasharray='3 3' opacity='.55'/>"+
+       "<line x1='0' y1='"+py(53).toFixed(1)+"' x2='"+GRAF_W+"' y2='"+py(53).toFixed(1)+"' stroke='var(--down)' stroke-width='.7' opacity='.35'/>"+
+       "<line x1='0' y1='"+py(0).toFixed(1)+"' x2='"+GRAF_W+"' y2='"+py(0).toFixed(1)+"' stroke='var(--dim)' stroke-width='.7' opacity='.5'/>"+
+       "<line x1='0' y1='"+py(-53).toFixed(1)+"' x2='"+GRAF_W+"' y2='"+py(-53).toFixed(1)+"' stroke='var(--up)' stroke-width='.7' opacity='.35'/>"+
+       "<line x1='0' y1='"+py(-60).toFixed(1)+"' x2='"+GRAF_W+"' y2='"+py(-60).toFixed(1)+"' stroke='var(--up)' stroke-width='.7' stroke-dasharray='3 3' opacity='.55'/>"+
+       "<text x='4' y='"+(py(60)-3).toFixed(1)+"' class='gl' fill='var(--down)'>+60</text>"+
+       "<text x='4' y='"+(py(0)-3).toFixed(1)+"' class='gl' fill='var(--dim)'>0</text>"+
+       "<text x='4' y='"+(py(-60)+9).toFixed(1)+"' class='gl' fill='var(--up)'>−60</text>";
+  h += "<path d='"+camino(calc.wt2, py)+"' fill='none' stroke='var(--muted)' stroke-width='1.4'/>";
+  h += "<path d='"+camino(calc.wt1, py)+"' fill='none' stroke='var(--live)' stroke-width='2'/>";
+  for(var k=ini;k<=i;k++){
+    if(!calc.dots[k]) continue;
+    h += "<circle cx='"+px(k).toFixed(1)+"' cy='"+py(calc.wt1[k]).toFixed(1)+"' r='3.2' fill='"+
+         (calc.dots[k]==="verde"?"var(--up)":"var(--down)")+"'/>";
+  }
+  // Anillo hueco, no un punto lleno: un círculo de color se lee como un cruce.
+  h += "<circle cx='"+px(i).toFixed(1)+"' cy='"+py(calc.wt1[i]).toFixed(1)+"' r='4.5' fill='none' stroke='var(--text)' stroke-width='1.6' opacity='.9'/>";
+
+  // ── franja del money flow ──
+  var mfPath = camino(calc.mf, pyMF);
+  if(mfPath){
+    var kIni = ini; while(kIni<=i && (calc.mf[kIni]===null||calc.mf[kIni]===undefined)) kIni++;
+    var signo = (calc.mf[i]!==null && calc.mf[i]>=0) ? "up" : "down";
+    h += "<line x1='0' y1='"+mfTop.toFixed(1)+"' x2='"+GRAF_W+"' y2='"+mfTop.toFixed(1)+"' stroke='var(--line)' stroke-width='1'/>"+
+         "<line x1='0' y1='"+mfCero.toFixed(1)+"' x2='"+GRAF_W+"' y2='"+mfCero.toFixed(1)+"' stroke='var(--dim)' stroke-width='.7' opacity='.6'/>"+
+         "<text x='4' y='"+(mfCero-3).toFixed(1)+"' class='gl' fill='var(--dim)'>MF 0</text>"+
+         "<path d='M "+px(kIni).toFixed(1)+" "+mfCero.toFixed(1)+" "+mfPath.slice(1)+
+           " L "+px(i).toFixed(1)+" "+mfCero.toFixed(1)+" Z' fill='var(--"+signo+")' opacity='.28'/>"+
+         "<path d='"+mfPath+"' fill='none' stroke='var(--"+signo+")' stroke-width='1.4'/>";
+  }
+  h += "</svg>";
+  return h;
+}
+
+/* =====================================================================
+   RECORRIDO · capa informativa, aislada — SOLO BTC
+   Dos datos: (1) distancia al techo/piso de 30 velas, en % y en ATR, medida hacia
+   donde apunta la dirección actual del WT; (2) cuántas velas tarda históricamente el
+   WT en llegar al extremo desde la zona actual.
+   Las tablas se midieron sobre 14 años de BTC (Bitstamp): por eso NO se muestra en
+   otros activos — extrapolarlas sería inventar precisión.
+   NO participa de la matriz: no toca el checklist, no viaja al payload de la IA
+   y no abre ni cierra ningún camino.
+   Cada celda: [mediana, percentil 25, percentil 75, cantidad de casos].
+   ===================================================================== */
+var RECO_ZONAS = [-53,-40,-20,0,20,40,53];   // cortes; 8 franjas
+var RECO_1D = [
+    {up:[46, 32, 68, 328],dn:[1, 1, 1, 350]},
+    {up:[38, 22, 68, 202],dn:[12, 3, 40, 206]},
+    {up:[29, 14, 50, 254],dn:[22, 6, 62, 296]},
+    {up:[26, 11, 51, 240],dn:[27, 9, 69, 260]},
+    {up:[21, 10, 54, 265],dn:[28, 11, 66, 238]},
+    {up:[11, 4, 41, 308],dn:[43, 22, 82, 234]},
+    {up:[5, 2, 26, 216],dn:[46, 24, 91, 181]},
+    {up:[1, 1, 1, 655],dn:[56, 35, 99, 537]}
+  ];
+var RECO_1S = [
+    {up:[36, 17, 41, 27],dn:[1, 1, 1, 33]},
+    {up:[32, 24, 51, 29],dn:[16, 3, 23, 19]},
+    {up:[25, 12, 37, 37],dn:[25, 7, 35, 39]},
+    {up:[11, 7, 28, 25],dn:[36, 11, 63, 20]},
+    {up:[9, 5, 19, 21],dn:[37, 12, 40, 22]},
+    {up:[8, 3, 17, 38],dn:[32, 13, 42, 21]},
+    {up:[5, 2, 15, 24],dn:[42, 23, 55, 11]},
+    {up:[1, 1, 1, 125],dn:[54, 40, 69, 69]}
+  ];
+var RECO_MIN_CASOS = 25;   // debajo de esto no se da la mediana como si fuera confiable
+
+function recoFranja(wt){
+  for(var k=0;k<RECO_ZONAS.length;k++) if(wt < RECO_ZONAS[k]) return k;
+  return RECO_ZONAS.length;
+}
+function recoATR(velas, i, p){
+  p = p || 14;
+  if(i < p) return null;
+  var tr = [];
+  for(var k=1;k<=i;k++){
+    var pc = velas[k-1].close;
+    tr.push(Math.max(velas[k].high-velas[k].low, Math.abs(velas[k].high-pc), Math.abs(velas[k].low-pc)));
+  }
+  if(tr.length < p) return null;
+  var a = 0;
+  for(var k=0;k<p;k++) a += tr[k];
+  a = a/p;
+  for(var k=p;k<tr.length;k++) a = (a*(p-1)+tr[k])/p;
+  return a;
+}
+/* Devuelve null salvo en BTC. La dirección del WT decide hacia qué lado se mide. */
+function recoEstado(g, velas, calc, i, marco){
+  if(g !== "btc" || i < 40) return null;
+  var atr = recoATR(velas, i);
+  if(!atr || atr <= 0) return null;
+  var wt = calc.wt1[i], wtPrev = calc.wt1[i-1];
+  var sube = wt > wtPrev, plano = Math.abs(wt - wtPrev) < 0.5;
+  var c = velas[i].close, desde = Math.max(0, i-29);
+  var mx = -Infinity, mn = Infinity, fMx = "", fMn = "";
+  for(var k=desde;k<=i;k++){
+    if(velas[k].high > mx){ mx = velas[k].high; fMx = velas[k].date; }
+    if(velas[k].low  < mn){ mn = velas[k].low;  fMn = velas[k].date; }
+  }
+  var haciaArriba = sube;
+  var obj = haciaArriba ? mx : mn, fecha = haciaArriba ? fMx : fMn;
+  var hay = haciaArriba ? (mx > c) : (mn < c);
+  var pct = hay ? (obj/c - 1)*100 : null;
+  var atrs = hay ? Math.abs(obj - c)/atr : null;
+
+  var tabla = (marco==="1S") ? RECO_1S : RECO_1D;
+  var celda = tabla[recoFranja(wt)];
+  var t = plano ? null : (haciaArriba ? celda.up : celda.dn);
+  var otro = plano ? {up:celda.up, dn:celda.dn} : null;
+
+  return {hay:hay, pct:pct, atrs:atrs, atr:atr, obj:obj, fecha:fecha, lado:haciaArriba?"techo":"piso",
+          wt:wt, sube:sube, plano:plano, t:t, otro:otro, marco:marco,
+          pocos: !!(t && t[3] < RECO_MIN_CASOS)};
+}
+
+/* =====================================================================
+   CAPA NUEVA · checklist objetivo del motor (ayuda de lectura, no veredicto)
+   ===================================================================== */
+var MIN_VELAS = { "1D":{completo:260, minimo:70}, "1S":{completo:220, minimo:70} };
+
+function vmcNivelHistorial(n, marco){
+  var u = MIN_VELAS[marco];
+  if(n < u.minimo) return {nivel:"insuficiente", n:n, completo:u.completo};
+  if(n < u.completo) return {nivel:"parcial", n:n, completo:u.completo};
+  return {nivel:"completo", n:n, completo:u.completo};
+}
+// Lado que se evalúa: el del último cruce si es reciente, si no el signo del oscilador
+function vmcLado(calc, i, ud){
+  if(ud && ud.hace<=3) return ud.color==="verde" ? "compra" : "venta";
+  return (calc.wt1[i] < 0) ? "compra" : "venta";
+}
+// Anti-cuchillo / pullback ordenado (ESTIMACIÓN del motor, no regla certificada)
+// "Segundo mínimo" de verdad: hubo un extremo previo del mismo lado Y el oscilador
+// se recuperó hacia el medio entre aquel extremo y ahora. Un descenso continuo que
+// pasa varias veces por −40 sigue siendo un solo cuchillo, no dos mínimos.
+function vmcAntiCuchillo(calc, velas, i, lado, marco){
+  var UMB = (marco==="1S") ? 18 : 10;   // movimiento vertical en las últimas 5 velas
+  var RECUP = 15;                       // el oscilador debe volver al medio entre extremo y extremo
+  var mov = (i>=5) ? (velas[i].close/velas[i-5].close-1)*100 : 0;
+  var desde = Math.max(0, i-25), extremo = -1, segundo = false;
+  for(var k=desde;k<=i-2;k++){
+    if(extremo>=0) break;
+    if(lado==="compra" && calc.wt1[k]<=-40) extremo = k;
+    if(lado==="venta"  && calc.wt1[k]>= 40) extremo = k;
+  }
+  if(extremo>=0){
+    for(var k2=extremo+1;k2<=i;k2++){
+      if(lado==="compra" && calc.wt1[k2] > -RECUP){ segundo = true; break; }
+      if(lado==="venta"  && calc.wt1[k2] <  RECUP){ segundo = true; break; }
+    }
+  }
+  var vertical = (lado==="compra") ? (mov <= -UMB) : (mov >= UMB);
+  return { ok:(segundo || !vertical), segundo:segundo, vertical:vertical, mov:mov };
+}
+function vmcChecklist(calc, velas, i, div, reg, diz, lado, marco){
+  var wt = calc.wt1[i];
+  var mf = calc.mf[i], mfPrev = (i>=5)?calc.mf[i-5]:null;
+  var divOK = !!(div && ((lado==="compra"&&div.tipo==="alcista")||(lado==="venta"&&div.tipo==="bajista")));
+  var hayDot = diz.hay && ((lado==="compra"&&diz.dot==="verde")||(lado==="venta"&&diz.dot==="rojo"));
+  var zonaAlta  = hayDot && ((lado==="compra") ? wt<=-53 : wt>=53);
+  var zonaMedia = hayDot && ((lado==="compra") ? wt<0    : wt>0);
+  var zonaRango = hayDot && ((lado==="compra") ? wt<=-40 : wt>=40);
+  var mfOK = (mf===null||mf===undefined) ? false
+    : ((lado==="compra") ? (mf>=0 || (mfPrev!==null&&mf>mfPrev+1))
+                         : (mf< 0 || (mfPrev!==null&&mf<mfPrev-1)));
+  var ac = vmcAntiCuchillo(calc, velas, i, lado, marco);
+  var tendOK = (lado==="compra") ? (reg.texto==="Alcista") : (reg.texto==="Bajista");
+  return {lado:lado, div:divOK, hayDot:hayDot, zonaAlta:zonaAlta, zonaMedia:zonaMedia,
+          zonaRango:zonaRango, mf:mfOK, cuchillo:ac.ok, ac:ac, tend:tendOK};
+}
+/* La divergencia que el motor usa exige pivote actual reciente (<=6 velas), porque una
+   divergencia vieja no es accionable. Pero el indicador la sigue dibujando en el gráfico,
+   así que decir "sin divergencia" a secas contradice lo que el usuario ve. Esta función
+   busca la última divergencia SIN el filtro de frescura, solo para poder nombrarla. */
+function vmcDivergenciaVieja(calc, velas){
+  var n = velas.length, VENTANA = 75, MIN_DIF_WT = 2, iFin = n-1, mejor = null;
+  ["min","max"].forEach(function(tipo){
+    var pivotes = vmcPivotes(calc, velas, tipo).filter(function(i){ return i>=iFin-VENTANA; });
+    if(pivotes.length<2) return;
+    for(var a=pivotes.length-1; a>=1; a--){
+      var actual = pivotes[a];
+      if(iFin-actual<=6) continue;             // esa la detecta el motor principal
+      var previo = null;
+      for(var j=0;j<a;j++){
+        var p = pivotes[j];
+        if(p < actual-2 && p >= actual-VENTANA){
+          if(previo===null) previo=p;
+          else if(tipo==="min" && calc.wt1[p]<calc.wt1[previo]) previo=p;
+          else if(tipo==="max" && calc.wt1[p]>calc.wt1[previo]) previo=p;
+        }
+      }
+      if(previo===null) continue;
+      var wtA = calc.wt1[actual], wtP = calc.wt1[previo], ok=false, tipoDiv="";
+      if(tipo==="min" && velas[actual].low < velas[previo].low && (wtA-wtP) > MIN_DIF_WT){ ok=true; tipoDiv="alcista"; }
+      if(tipo==="max" && velas[actual].high > velas[previo].high && (wtP-wtA) > MIN_DIF_WT){ ok=true; tipoDiv="bajista"; }
+      if(ok && (mejor===null || actual>mejor.actual))
+        mejor = {tipo:tipoDiv, actual:actual, previo:previo, wtA:wtA, wtP:wtP, hace:iFin-actual};
+      if(ok) break;
+    }
+  });
+  return mejor;
+}
+/* Señal de una vela anterior que TODAVÍA está vigente.
+   Condiciones: hubo cruce en zona extrema dentro de la ventana reciente Y el oscilador
+   sigue en esa misma zona. Si el WT ya se cayó de la zona, la oportunidad pasó y no se
+   anuncia: avisar tarde es peor que no avisar. No cambia ninguna regla del motor,
+   solo hace visible un dato que ya estaba en el minibox de "Último punto". */
+function vmcSenalVigente(calc, i, ud, marco){
+  if(!ud) return null;
+  var VENTANA = (marco==="1S") ? 2 : 3;
+  if(ud.hace < 1 || ud.hace > VENTANA) return null;       // hace 0 lo muestra el banner principal
+  var esCompra = (ud.color==="verde");
+  var eraZona   = esCompra ? (ud.wt <= -53) : (ud.wt >= 53);
+  var sigueZona = esCompra ? (calc.wt1[i] <= -53) : (calc.wt1[i] >= 53);
+  if(!eraZona || !sigueZona) return null;
+  return {lado: esCompra?"compra":"venta", color:ud.color, hace:ud.hace, wt:ud.wt, wtAhora:calc.wt1[i]};
+}
+// Estructura de precio comprimida para el payload de la IA
+function vmcEstructura(velas, i){
+  var n = Math.min(90, i+1), maxN = 0, minN = Infinity;
+  for(var k=i-n+1;k<=i;k++){
+    if(velas[k].high>maxN) maxN = velas[k].high;
+    if(velas[k].low<minN)  minN = velas[k].low;
+  }
+  var c = velas[i].close;
+  return {
+    dd:   maxN>0 ? (c/maxN-1)*100 : null,
+    runup:(minN<Infinity && minN>0) ? (c/minN-1)*100 : null,
+    var5: (i>=5) ? (c/velas[i-5].close-1)*100 : null
+  };
+}
+
+/* =====================================================================
+   CARGA DE VELAS Y ANÁLISIS POR MARCO
+   ===================================================================== */
+/* date = apertura de la vela (lo que muestra TradingView como su fecha).
+   cierre = día en que la vela cerró: en 1D coincide, en 1S es el domingo siguiente.
+   Guardar los dos evita el malentendido de que la card semanal está 11 días atrasada
+   cuando en realidad cerró hace 5. El motor ignora los campos extra. */
+function vmcVelasDesdeKlines(klines, ahoraMs, incluirEnCurso){
+  return klines
+    .filter(function(k){ return incluirEnCurso ? true : (k[6] <= ahoraMs); })
+    .map(function(k){
+      return { date:new Date(k[0]).toISOString().slice(0,10),
+               cierre:new Date(k[6]).toISOString().slice(0,10),
+               enCurso:(k[6] > ahoraMs),
+               open:+k[1], high:+k[2], low:+k[3], close:+k[4] };
+    });
+}
+function analizarMarco(velas, marco){
+  var hist = vmcNivelHistorial(velas.length, marco);
+  if(hist.nivel==="insuficiente") return {hist:hist, ok:false};
+  var calc = vmcCalcular(velas);
+  var i = velas.length-1;
+  var diz = vmcDotInZone(calc, i);
+  var ud  = vmcUltimoDot(calc, i);
+  var div = vmcDivergencia(calc, velas);
+  var reg = vmcRegimen(calc, velas, i);
+  var mfE = vmcEstadoMF(calc, i);
+  var lado = vmcLado(calc, i, ud);
+  var ladoMotivo = (ud && ud.hace<=3)
+    ? {texto:"por el cruce de hace "+ud.hace, neutro:false}
+    : (Math.abs(calc.wt1[i]) < 20
+        ? {texto:"por el signo del WT ("+calc.wt1[i].toFixed(1)+"), sin cruce reciente — zona neutra, la elección del lado es arbitraria", neutro:true}
+        : {texto:"por el signo del WT ("+calc.wt1[i].toFixed(1)+"), sin cruce reciente", neutro:false});
+  var chk = vmcChecklist(calc, velas, i, div, reg, diz, lado, marco);
+  var qqe = qqeEstado(velas, marco);   // informativo: no entra en chk ni en el payload
+  var vig = vmcSenalVigente(calc, i, ud, marco);
+  // Excepción de rango: es determinista, así que la resuelve el motor y se PINTA.
+  // Cuatro intentos de que la IA la nombrara fallaron; con razón, porque un camino
+  // que no puede abrirse no es "lo que abriría el camino". El dato tiene que estar igual.
+  var wtRef = (ud && ud.hace<=3) ? ud.wt : calc.wt1[i];
+  var enBorde = (lado==="compra") ? (wtRef<=-40 && wtRef>-53) : (wtRef>=40 && wtRef<53);
+  // Gestión de posición 📤: condición determinista de la matriz. Se muestra como
+  // condicional porque el motor no sabe si hay posición abierta, pero el nivel sí lo sabe.
+  var gestion = null;
+  var VENT = (marco==="1S") ? 2 : 3;
+  if(ud && ud.hace<=VENT){
+    if(ud.color==="rojo" && ud.wt>=53)
+      gestion = {lado:"toma de ganancia", texto:"si estás comprado, el punto rojo en WT "+ud.wt.toFixed(1)+" (≥ +53) es zona de toma de ganancia, aunque el veredicto sea ESPERAR."};
+    else if(ud.color==="rojo" && ud.wt>=30 && div && div.tipo==="bajista")
+      gestion = {lado:"toma de ganancia", texto:"si estás comprado, techo con divergencia y punto rojo en WT "+ud.wt.toFixed(1)+" (≥ +30) es zona de toma de ganancia."};
+    else if(ud.color==="verde" && ud.wt<=-53)
+      gestion = {lado:"cobertura", texto:"si estás vendido, el punto verde en WT "+ud.wt.toFixed(1)+" (≤ −53) es zona de cobertura del short."};
+  }
+  var rango = null;
+  if(div && enBorde){
+    var mixto = (reg.texto==="Mixto");
+    rango = {aplica:mixto, wt:wtRef,
+      texto: mixto
+        ? "condiciones numéricas dadas (punto en el borde ±40/53 + divergencia). Aplica SOLO si en el gráfico hay rango lateral confirmado con dos toques de piso y techo — el motor no lo verifica."
+        : "NO aplica: exige rango lateral confirmado y la tendencia es "+reg.texto.toLowerCase()+", definida."};
+  }
+  var divVieja = div ? null : vmcDivergenciaVieja(calc, velas);
+  return { ok:true, hist:hist, velas:velas, calc:calc, i:i, marco:marco, enCurso:!!velas[i].enCurso,
+           diz:diz, ud:ud, div:div, reg:reg, mfE:mfE, lado:lado, chk:chk, vig:vig, divVieja:divVieja, rango:rango, gestion:gestion, ladoMotivo:ladoMotivo, qqe:qqe,
+           est:vmcEstructura(velas, i), zona:vmcZona(calc.wt1[i]),
+           techo:(marco==="1S") ? vmcTechoCiclo(calc, velas, i, div) : false };
+}
+
+/* Excluidos: stablecoins y versiones envueltas / en staking (no son el activo, son un derivado) */
+var EXCLUIR = /^(USDT|USDC|USDE|DAI|FDUSD|TUSD|USDD|USDS|USD1|PYUSD|RLUSD|BUIDL|USDF|EURC|USDP|GUSD|LUSD|FRAX|CRVUSD|SUSDE|SUSDS|USDY|USTC|WBTC|CBBTC|LBTC|SOLVBTC|TBTC|WEETH|WSTETH|STETH|RETH|CBETH|WBETH|METH|EZETH|RSETH|WETH|WBNB|BNSOL|JITOSOL|MSOL|JUPSOL|BSC-USD|XAUT|PAXG)$/i;
+async function fetchJSONReintento(url, intentos, ms){
+  var n = intentos||3, ultimoError;
+  for(var i=0;i<n;i++){
+    try{ return await fetchJSON(url, ms); }
+    catch(e){ ultimoError=e; if(i<n-1) await esperar(2000*(i+1)); }
+  }
+  throw ultimoError;
+}
+/* La validación de pares es un extra: si Binance no contesta rápido, se sigue sin ella
+   (el par se valida igual al seleccionar, cuando se piden las velas). */
+async function paresUSDT(){
+  var c = await cacheLeer("vmcm:pares");
+  if(c && c.set && Object.keys(c.set).length >= 50 && (Date.now()-c.ts) < 24*3600*1000) return c.set;
+  try{
+    var precios = await fetchBinance("/api/v3/ticker/price", 8000);
+    // Si la respuesta no es la lista esperada, NO se valida nada: un set vacío
+    // filtraría el top 100 entero y dejaría los selectores en blanco.
+    if(!Array.isArray(precios) || precios.length < 100) return null;
+    var set = {}, n = 0;
+    for(var i=0;i<precios.length;i++) if(precios[i] && /USDT$/.test(precios[i].symbol)){ set[precios[i].symbol] = 1; n++; }
+    if(n < 50) return null;
+    await cacheGuardar("vmcm:pares", {ts:Date.now(), set:set});
+    return set;
+  }catch(e){ return null; }
+}
+/* Fallback: armar el universo con la MISMA API de la que dependen las cards.
+   Si Binance responde (y si no, tampoco hay velas), el selector tiene que funcionar.
+   Acá el orden es por volumen negociado, no por capitalización — se declara en pantalla. */
+var APALANCADOS = /(UP|DOWN|BULL|BEAR)USDT$/;
+/* ===== FIN DEL BLOQUE COPIADO ===== */
+/* =====================================================================
+   VMC RADAR — lógica propia (todo lo de arriba es el motor copiado del v1.35)
+   ===================================================================== */
+var RADAR_VERSION = "v1.9";
+var MARCOS   = ["4H","1D","1S"];
+var INTERVALO= {"4H":"4h","1D":"1d","1S":"1w"};
+MIN_VELAS["4H"]  = {completo:260, minimo:70};
+GRAF_VELAS["4H"] = 49;
+
+var CFG = {top:100, marco:"1D", umbral:60, canal:10, enCurso:false};
+var WATCH_MARCO = "1D";
+var VENTANA_CRUCE = 3;     // "hasta 3 velas para atrás"
+var DIV_VIGENTE   = 3;     // divergencia cercana: pivote a 3 velas o menos
+var MAX_SEGUIR    = 5;
+var CONCURRENCIA  = 6;
+
+var UNIVERSO = null;       // {items:[], stats:{}}
+var ULTIMO   = null;       // resultado del último escaneo
+var SEGUIDOS = [];         // [{ticker,sym,nombre}]
+
+var GRUPO_TXT = {1:"piso + divergencia", 2:"piso", 3:"tardía + divergencia", 4:"tardía"};
+/* Primera línea: las tres condiciones que en el backtest (2.864 eventos, 2021-2026)
+   dieron 68% en verde contra 46% de los grupos, con la mitad de excursión adversa.
+   Se evalúan EN LA VELA DEL CRUCE, como en el estudio. Solo aplica al lado comprador. */
+var PL_MF   = -5;    // money flow en el cruce
+var PL_ROOM = 30;    // % hasta el techo de 30 velas
+var GRUPO_CLS = {1:"g1", 2:"g2", 3:"g3", 4:"g4"};
+
+/* ---------------------------------------------------------------- utilidades */
+function $(id){ return document.getElementById(id); }
+function pct(v,d){ return (v>=0?"+":"−")+Math.abs(v).toFixed(d===undefined?1:d)+"%"; }
+function coma(v,d){ return num(v,d).replace(".",","); }
+async function enLotes(lista, n, fn){
+  var i = 0;
+  async function worker(){
+    while(i < lista.length){ var k = i++; await fn(lista[k], k); }
+  }
+  var ws = []; for(var w=0; w<Math.min(n,lista.length); w++) ws.push(worker());
+  await Promise.all(ws);
+}
+
+/* ---------------------------------------------------------------- universo */
+/* Binance no lista todo contra USDT: hay activos que solo tienen par en USDC o FDUSD.
+   Las klines funcionan igual con cualquiera de esos pares, así que se prueban en orden
+   y se declara en la card cuando el par no es el habitual. */
+/* CORRECCIÓN sobre el bloque copiado: el APALANCADOS del v1.35 es /(UP|DOWN|BULL|BEAR)USDT$/,
+   que también matchea JUPUSDT ("J"+"UP"+"USDT") y bloquea a Jupiter, que es un activo real del
+   top 100. Los tokens apalancados de Binance siempre tenían al menos 2 caracteres de base antes
+   del sufijo, así que exigirlo alcanza para distinguirlos. Se redefine acá para no tocar el
+   bloque certificado; el mismo bug existe en el v1.35 y en el panel.  */
+APALANCADOS = /^[A-Z0-9]{2,}(UP|DOWN|BULL|BEAR)USDT$/;
+
+var QUOTES = ["USDT","USDC","FDUSD"];
+async function todosLosPares(){
+  var c = await cacheLeer("vmcr:pares");
+  if(c && c.set && Object.keys(c.set).length >= 100 && (Date.now()-c.ts) < 24*3600*1000) return c.set;
+  try{
+    var p = await fetchBinance("/api/v3/ticker/price", 10000);
+    if(!Array.isArray(p) || p.length < 100) return null;
+    var set = {};
+    for(var i=0;i<p.length;i++) if(p[i] && p[i].symbol) set[p[i].symbol] = 1;
+    await cacheGuardar("vmcr:pares", {ts:Date.now(), set:set});
+    return set;
+  }catch(e){ return null; }
+}
+/* Para los que no tienen par: buscar en Binance símbolos cuya base EMPIECE con el ticker.
+   Así se detectan los desajustes de nomenclatura entre CoinGecko y Binance (el caso clásico
+   es BTT contra BTTC). No se usan automáticamente: se muestran para que el usuario decida. */
+function sugerirPar(tk, set){
+  if(!set || tk.length < 2) return [];
+  var out = [], re = new RegExp("^"+tk+"[A-Z0-9]{1,4}(USDT|USDC|FDUSD)$");
+  for(var s in set){ if(re.test(s)) out.push(s); if(out.length>=3) break; }
+  return out;
+}
+function buscarPar(tk, set){
+  if(!set) return {sym:tk+"USDT", quote:"USDT"};      // sin lista no se filtra nada
+  for(var q=0;q<QUOTES.length;q++){
+    var s = tk+QUOTES[q];
+    if(set[s]) return {sym:s, quote:QUOTES[q]};
+  }
+  return null;
+}
+/* La clave lleva versión: un universo guardado por una versión anterior no tiene los campos
+   nuevos (el par usado, las listas de descartes) y devolvería listas vacías sin avisar.
+   Subir UNI_VER invalida la caché vieja en vez de servir datos incompletos. */
+var UNI_VER = 2;
+async function cargarUniversoRadar(top){
+  var clave = "vmcr:uni:v"+UNI_VER+":"+top;
+  var c = await cacheLeer(clave);
+  var completo = c && c.items && c.items.length && c.stats && c.stats.listaSinPar &&
+                 c.items[0] && c.items[0].quote;
+  if(completo && (Date.now()-c.ts) < 24*3600*1000) return c;
+  var monedas = null, fuente = "coingecko";
+  try{
+    monedas = await fetchJSONReintento(
+      "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=false", 2, 15000);
+  }catch(e){ monedas = null; }
+  var items = [], sinPar = [], excluidas = [], noUSDT = 0, pares = await todosLosPares();
+  if(Array.isArray(monedas) && monedas.length){
+    monedas = monedas.slice(0, top);
+    for(var i=0;i<monedas.length;i++){
+      var m = monedas[i], tk = (m.symbol||"").toUpperCase();
+      if(!tk){ continue; }
+      if(EXCLUIR.test(tk)){ excluidas.push(tk); continue; }
+      var par = buscarPar(tk, pares);
+      if(!par){
+        var sug = sugerirPar(tk, pares);
+        sinPar.push(tk+" ("+(m.name||"")+")"+(sug.length? "  ⟶ ¿"+sug.join(" / ")+"?" : ""));
+        continue;
+      }
+      if(par.quote!=="USDT") noUSDT++;
+      items.push({ticker:tk, sym:par.sym, quote:par.quote, nombre:m.name||tk,
+                  rank:i+1, vol:m.total_volume||null});
+    }
+  }
+  if(!items.length){
+    // Respaldo: mismo criterio que el v1.35 — si Binance responde, hay universo.
+    fuente = "binance (por volumen)";
+    var t = await fetchBinance("/api/v3/ticker/24hr", 20000);
+    if(!Array.isArray(t) || !t.length) throw new Error("no se pudo armar el universo");
+    var filas = t.filter(function(x){
+      if(!/USDT$/.test(x.symbol)) return false;
+      if(APALANCADOS.test(x.symbol)) return false;
+      return !EXCLUIR.test(x.symbol.replace(/USDT$/,""));
+    }).sort(function(a,b){ return (+b.quoteVolume)-(+a.quoteVolume); }).slice(0, top);
+    filas.forEach(function(x, idx){
+      var tk = x.symbol.replace(/USDT$/,"");
+      items.push({ticker:tk, sym:x.symbol, quote:"USDT", nombre:tk, rank:idx+1, vol:+x.quoteVolume});
+    });
+  }
+  var out = {ts:Date.now(), items:items, top:top, fuente:fuente,
+             stats:{pedidos:top, sinPar:sinPar.length, excluidas:excluidas.length,
+                    utiles:items.length, noUSDT:noUSDT,
+                    listaSinPar:sinPar, listaExcluidas:excluidas}};
+  if(items.length) await cacheGuardar(clave, out);
+  return out;
+}
+
+/* ---------------------------------------------------------------- evaluación */
+/* El punto del cruce se mide con WT1, igual que toda la matriz del ecosistema
+   (vmcUltimoDot y vmcZona usan wt1). WT2 se muestra al lado como referencia. */
+function buscarCruce(a){
+  var calc = a.calc, i = a.i, U = CFG.umbral;
+  for(var h=0; h<=VENTANA_CRUCE; h++){
+    var j = i-h; if(j < 0) break;
+    var d = calc.dots[j]; if(!d) continue;
+    var wt = calc.wt1[j];
+    if(d==="verde" && wt <= -U) return {lado:"compra", j:j, hace:h, wt:wt, wt2:calc.wt2[j]};
+    if(d==="rojo"  && wt >=  U) return {lado:"venta",  j:j, hace:h, wt:wt, wt2:calc.wt2[j]};
+    return null;   // hubo un cruce más reciente que no califica: ese manda
+  }
+  return null;
+}
+function extremoDelTramo(velas, j, lado){
+  var desde = Math.max(0, j-10), idx = j;
+  var ext = (lado==="compra") ? velas[j].low : velas[j].high;
+  for(var k=desde; k<=j; k++){
+    if(lado==="compra"){ if(velas[k].low  < ext){ ext = velas[k].low;  idx = k; } }
+    else               { if(velas[k].high > ext){ ext = velas[k].high; idx = k; } }
+  }
+  return {idx:idx, valor:ext, edad:j-idx};
+}
+function recorridoEn(velas, k, lado){ return recorrido(velas, k, lado); }
+function recorrido(velas, i, lado){
+  var desde = Math.max(0, i-29), mx = -Infinity, mn = Infinity;
+  for(var k=desde;k<=i;k++){ if(velas[k].high>mx) mx=velas[k].high; if(velas[k].low<mn) mn=velas[k].low; }
+  var c = velas[i].close;
+  return (lado==="compra") ? (mx/c-1)*100 : (1-mn/c)*100;
+}
+/* Veredicto DETERMINISTA de la matriz. Es una alarma, no el juez: la matriz se
+   certificó a ojo sobre BTC, SOL y GALA, no sobre 200 alts. Se declara en pantalla. */
+function veredictoMotor(a){
+  var c = a.chk, lado = c.lado, señal = (lado==="compra") ? "COMPRAR" : "VENDER";
+  var v = null;
+  if(c.zonaAlta && c.div && c.mf && c.cuchillo)              v = {v:señal, c:"Alta"};
+  else if(c.zonaMedia && c.mf && c.cuchillo && c.tend)       v = {v:señal, c:"Media"};
+  else if(lado==="venta" && c.div && c.mf && c.cuchillo && a.ud && a.ud.hace<=VENTANA_CRUCE
+          && a.ud.color==="rojo" && a.ud.wt>=30)             v = {v:"VENDER", c:"Media"};
+  if(!v) return {v:"ESPERAR", c:"—", deg:[]};
+  var deg = [];
+  if(a.hist.nivel==="parcial") deg.push("historial parcial");
+  if(a.enCurso)                deg.push("vela en curso");
+  if(CFG.marco==="4H")         deg.push("marco menor");
+  if(deg.length >= 2) return {v:"ESPERAR", c:"—", deg:deg};
+  if(deg.length === 1) v.c = (v.c==="Alta") ? "Media" : "Baja";
+  v.deg = deg;
+  return v;
+}
+function calcScore(f){
+  var br = [];
+  var d = f.divOK ? (f.divHace<=1 ? 30 : 24) : 0;
+  var giro = f.a.mfE && f.a.mfE.giro;
+  var mfOk = f.a.chk.mf;
+  var mfGira = (f.lado==="compra") ? (giro==="girando al alza") : (giro==="girando a la baja");
+  var m = mfOk ? 20 : (mfGira ? 12 : 0);
+  /* Invertido en v1.4: el backtest mostró que MENOS recorrido al techo predice mejor
+     (43% en verde sin filtro vs 63% con recorrido ≤20%), de forma monótona. */
+  var r = Math.max(0, Math.min(25, 25*(1-(f.room-10)/50)));
+  var fr = Math.max(4, 25 - f.hace*7);
+  br.push(["div",d],["mf",m],["cerca",Math.round(r)],["fresh",fr]);
+  return {total:Math.round(d+m+r+fr), br:br};
+}
+function evaluarActivo(a, it, precioAhora){
+  var cr = buscarCruce(a); if(!cr) return null;
+  var velas = a.velas, i = a.i;
+  var ext = extremoDelTramo(velas, cr.j, cr.lado);
+  var enPiso = (ext.edad <= 2);
+  var div = a.div, divOK = false, divHace = null;
+  if(div && ((cr.lado==="compra" && div.tipo==="alcista") || (cr.lado==="venta" && div.tipo==="bajista"))){
+    divHace = i - div.actual;
+    divOK = (divHace <= DIV_VIGENTE);
+  }
+  var invalid = (cr.lado==="compra") ? ext.valor*0.98 : ext.valor*1.02;
+  var mfCruce   = a.calc.mf[cr.j];
+  var roomCruce = recorridoEn(velas, cr.j, cr.lado);
+  var primera   = (cr.lado==="compra") && enPiso && (mfCruce<=PL_MF) && (roomCruce<=PL_ROOM);
+  var s50 = a.calc.sma50, ma50Sube = (cr.j>=5 && s50[cr.j]!=null && s50[cr.j-5]!=null) ? (s50[cr.j]>s50[cr.j-5]) : null;
+  var f = {
+    it:it, a:a, lado:cr.lado, j:cr.j, hace:cr.hace, wt:cr.wt, wt2:cr.wt2,
+    enPiso:enPiso, edadExtremo:ext.edad, extremo:ext.valor, invalid:invalid,
+    mfCruce:mfCruce, roomCruce:roomCruce, primera:primera, ma50Sube:ma50Sube, divOK:divOK, divHace:divHace,
+    div:div, divVieja:a.divVieja, room:recorrido(velas, i, cr.lado),
+    grupo: enPiso ? (divOK?1:2) : (divOK?3:4),
+    precio:velas[i].close, ahora:precioAhora,
+    varPct: (i>=1 && velas[i-1].close) ? (velas[i].close/velas[i-1].close-1)*100 : null,
+    fecha: velas[i].date, cierre: velas[i].cierre
+  };
+  f.veredicto = veredictoMotor(a);
+  f.score = calcScore(f);
+  return f;
+}
+function ordenar(fichas){
+  return fichas.slice().sort(function(x,y){
+    if(!!x.primera !== !!y.primera) return x.primera ? -1 : 1;
+    if(x.grupo !== y.grupo) return x.grupo - y.grupo;
+    return (x.lado==="compra") ? (x.wt - y.wt) : (y.wt - x.wt);   // más extremo primero
+  });
+}
+
+/* ---------------------------------------------------------------- escaneo */
+async function traerFicha(it, marco){
+  var kl = await fetchBinance("/api/v3/klines?symbol="+it.sym+"&interval="+INTERVALO[marco]+"&limit=500", 15000);
+  if(!Array.isArray(kl) || kl.length < 80) return {err:"pocas velas"};
+  var velas = vmcVelasDesdeKlines(kl, Date.now(), CFG.enCurso);
+  if(velas.length < 70) return {err:"pocas velas"};
+  var a = analizarMarco(velas, marco);
+  if(!a.ok) return {err:"historial insuficiente", hist:a.hist};
+  return {a:a, ahora:+kl[kl.length-1][4]};
+}
+async function escanear(){
+  var btn = $("btn-escanear"); btn.disabled = true;
+  WT_CANAL = CFG.canal;
+  pintarEstado("Cargando universo…", 2);
+  try{ UNIVERSO = await cargarUniversoRadar(CFG.top); }
+  catch(e){ pintarError("No se pudo armar el universo: "+e.message); btn.disabled=false; return; }
+  var lista = UNIVERSO.items, hechos = 0;
+  var fichas = [], insuf = 0, errores = 0;
+  pintarEstado("Leyendo velas de "+lista.length+" activos…", 4);
+  var t0 = Date.now();
+  await enLotes(lista, CONCURRENCIA, async function(it){
+    try{
+      var r = await traerFicha(it, CFG.marco);
+      if(r.err){ insuf++; }
+      else{
+        var f = evaluarActivo(r.a, it, r.ahora);
+        if(f) fichas.push(f);
+      }
+    }catch(e){ errores++; }
+    hechos++;
+    if(hechos % 5 === 0 || hechos === lista.length)
+      pintarEstado("Leyendo velas… "+hechos+"/"+lista.length, 4+90*hechos/lista.length);
+  });
+  var segs = Math.round((Date.now()-t0)/1000);
+  var compras = ordenar(fichas.filter(function(f){ return f.lado==="compra"; }));
+  var ventas  = ordenar(fichas.filter(function(f){ return f.lado==="venta"; }));
+  ULTIMO = {ts:Date.now(), marco:CFG.marco, top:CFG.top, umbral:CFG.umbral, canal:CFG.canal,
+            enCurso:CFG.enCurso, compras:compras, ventas:ventas,
+            leidos:lista.length, insuf:insuf, errores:errores, segs:segs,
+            cierre: (compras[0]||ventas[0]||{}).cierre || null};
+  await guardarEscaneo();
+  pintarTodo();
+  btn.disabled = false;
+}
+async function guardarEscaneo(){
+  if(!ULTIMO) return;
+  function lite(f){ return {ticker:f.it.ticker, sym:f.it.sym, nombre:f.it.nombre, rank:f.it.rank}; }
+  await cacheGuardar("vmcr:scan:"+CFG.marco+":"+CFG.top+":"+CFG.umbral+":"+CFG.canal, {
+    ts:ULTIMO.ts, cierre:ULTIMO.cierre, leidos:ULTIMO.leidos, insuf:ULTIMO.insuf,
+    errores:ULTIMO.errores, segs:ULTIMO.segs, enCurso:ULTIMO.enCurso,
+    compras:ULTIMO.compras.map(lite), ventas:ULTIMO.ventas.map(lite)
+  });
+}
+/* Al abrir, en vez de reescanear 150 activos se rehidratan solo los que salieron
+   elegidos: mismos números, una fracción de las llamadas. */
+async function rehidratar(){
+  var c = await cacheLeer("vmcr:scan:"+CFG.marco+":"+CFG.top+":"+CFG.umbral+":"+CFG.canal);
+  if(!c || (!c.compras.length && !c.ventas.length)) return false;
+  WT_CANAL = CFG.canal;
+  pintarEstado("Recuperando el último escaneo…", 30);
+  var todos = c.compras.concat(c.ventas), out = [];
+  await enLotes(todos, CONCURRENCIA, async function(it){
+    try{
+      var r = await traerFicha(it, CFG.marco);
+      if(r.err) return;
+      var f = evaluarActivo(r.a, it, r.ahora);
+      if(f) out.push(f);
+    }catch(e){}
+  });
+  ULTIMO = {ts:c.ts, marco:CFG.marco, top:CFG.top, umbral:CFG.umbral, canal:CFG.canal,
+            enCurso:c.enCurso, cierre:c.cierre, leidos:c.leidos, insuf:c.insuf,
+            errores:c.errores, segs:c.segs, recuperado:true,
+            compras:ordenar(out.filter(function(f){return f.lado==="compra";})),
+            ventas: ordenar(out.filter(function(f){return f.lado==="venta";}))};
+  pintarTodo();
+  return true;
+}
+
+/* ---------------------------------------------------------------- seguimiento */
+async function cargarSeguidos(){
+  var c = await cacheLeer("vmcr:watch");
+  SEGUIDOS = (c && c.items) ? c.items.slice(0, MAX_SEGUIR) : [];
+}
+async function guardarSeguidos(){ await cacheGuardar("vmcr:watch", {items:SEGUIDOS}); }
+async function agregarSeguido(sym){
+  if(!sym || SEGUIDOS.length >= MAX_SEGUIR) return;
+  if(SEGUIDOS.some(function(x){ return x.sym===sym; })) return;
+  var it = (UNIVERSO && UNIVERSO.items || []).filter(function(x){ return x.sym===sym; })[0];
+  if(!it) it = {ticker:sym.replace(/USDT$/,""), sym:sym, nombre:sym.replace(/USDT$/,"")};
+  SEGUIDOS.push({ticker:it.ticker, sym:it.sym, nombre:it.nombre});
+  await guardarSeguidos(); pintarChips(); pintarSeguimiento();
+}
+async function quitarSeguido(sym){
+  SEGUIDOS = SEGUIDOS.filter(function(x){ return x.sym!==sym; });
+  await guardarSeguidos(); pintarChips(); pintarSeguimiento();
+}
+async function pintarSeguimiento(){
+  var cont = $("watch-grid");
+  if(!SEGUIDOS.length){ cont.innerHTML = "<div class='vacio'>Todavía no seguís ningún activo. Elegí uno del desplegable o tocá ⭐ en una card del radar.</div>"; return; }
+  cont.innerHTML = "<div class='vacio'>Leyendo "+SEGUIDOS.length+" activo(s) en "+WATCH_MARCO+"…</div>";
+  WT_CANAL = CFG.canal;
+  var out = [];
+  await enLotes(SEGUIDOS.slice(), 3, async function(it){
+    try{
+      var r = await traerFicha(it, WATCH_MARCO);
+      if(r.err){ out.push({it:it, err:r.err}); return; }
+      var f = evaluarActivo(r.a, it, r.ahora);
+      if(!f){
+        f = {it:it, a:r.a, lado:r.a.lado, hace:null, wt:r.a.calc.wt1[r.a.i], wt2:r.a.calc.wt2[r.a.i],
+             grupo:null, divOK:false, divHace:null, div:r.a.div, divVieja:r.a.divVieja,
+             room:recorrido(r.a.velas, r.a.i, r.a.lado), precio:r.a.velas[r.a.i].close, ahora:r.ahora,
+             varPct:(r.a.i>=1)?(r.a.velas[r.a.i].close/r.a.velas[r.a.i-1].close-1)*100:null,
+             fecha:r.a.velas[r.a.i].date, cierre:r.a.velas[r.a.i].cierre, sinCruce:true};
+        f.veredicto = veredictoMotor(r.a);
+        f.score = null;
+      }
+      out.push(f);
+    }catch(e){ out.push({it:it, err:e.message}); }
+  });
+  var orden = {}; SEGUIDOS.forEach(function(x,k){ orden[x.sym]=k; });
+  out.sort(function(a,b){ return orden[a.it.sym]-orden[b.it.sym]; });
+  cont.innerHTML = out.map(function(f){
+    return f.err ? cardError(f.it, f.err) : card(f, "watch");
+  }).join("");
+}
+
+/* ---------------------------------------------------------------- render */
+function pintarEstado(txt, pctBarra){
+  $("banda").innerHTML = "<b>"+escaparHTML(txt)+"</b>"+
+    "<div class='bar'><i style='width:"+Math.max(2,Math.min(100,pctBarra||0))+"%'></i></div>";
+}
+function pintarError(msg){
+  $("banda").innerHTML = "<b style='color:var(--down)'>"+escaparHTML(msg)+"</b> · revisá la conexión y volvé a escanear.";
+}
+function cardError(it, err){
+  return "<div class='card g4'><div class='card-head'><div class='top'><div><div class='tick'>"+
+    escaparHTML(it.ticker)+"<span>"+escaparHTML(it.nombre||"")+"</span></div></div></div></div>"+
+    "<div class='card-body'><div class='linea hi'><span class='ic'>⚠</span><span>No se pudo analizar: "+
+    escaparHTML(err)+"</span></div><div class='acts'><button class='btn' onclick=\"quitarSeguido('"+it.sym+"')\">Quitar</button></div></div></div>";
+}
+var COLS = {div:"var(--live)", mf:"var(--up)", cerca:"var(--warn)", fresh:"var(--eth)"};
+var LBLS = {div:"divergencia", mf:"money flow", cerca:"cercanía al techo", fresh:"frescura"};
+
+function lineaExtremo(f){
+  if(f.sinCruce) return null;
+  var q = (f.lado==="compra") ? "mínimo" : "máximo";
+  if(f.enPiso)
+    return {k:"", txt:"El "+q+" del tramo es de "+(f.edadExtremo===0?"la vela del cruce":"hace "+f.edadExtremo+" vela"+(f.edadExtremo>1?"s":""))+" — el cruce está en el "+(f.lado==="compra"?"piso":"techo")};
+  return {k:"hi", txt:"⚠ Cruce tardío: el "+q+" del tramo es de hace "+f.edadExtremo+" velas y el precio ya se movió antes del cruce"};
+}
+function lineaDiv(f){
+  var esperado = (f.lado==="compra") ? "alcista" : "bajista";
+  if(f.divOK) return {k:(f.lado==="compra"?"g":"r"), txt:"Divergencia "+esperado+" vigente · pivote hace "+f.divHace+" vela"+(f.divHace===1?"":"s")};
+  if(f.div && f.div.tipo===esperado) return {k:"y", txt:"Divergencia "+esperado+" del motor, pero el pivote es de hace "+f.divHace+" velas (más de "+DIV_VIGENTE+") — no cuenta como cercana"};
+  if(f.divVieja) return {k:"y", txt:"Sin divergencia vigente · la última fue hace "+f.divVieja.hace+" velas ("+f.divVieja.tipo+")"};
+  return {k:"y", txt:"Sin divergencia"};
+}
+function card(f, modo){
+  var a = f.a, i = a.i, calc = a.calc;
+  var v = f.veredicto;
+  var cls = f.primera ? "pl" : (f.grupo ? GRUPO_CLS[f.grupo] : (v.v==="COMPRAR"?"g1":v.v==="VENDER"?"sell":"neutral"));
+  var tags = [];
+  if(f.primera) tags.push("<span class='primera'>★ primera línea</span>");
+  if(f.grupo) tags.push("<span class='grupo'>"+GRUPO_TXT[f.grupo]+"</span>");
+  if(f.it.rank) tags.push("<span class='tag'>#"+f.it.rank+"</span>");
+  var tr = tramoDe(f); if(tr) tags.push("<span class='tag b'>"+tr+"</span>");
+  if(f.it.quote && f.it.quote!=="USDT") tags.push("<span class='tag y'>par "+f.it.quote+"</span>");
+  if(f.ahora) tags.push("<span class='tag'>ahora "+formatoPrecio(f.ahora)+"</span>");
+  if(a.hist.nivel!=="completo") tags.push("<span class='tag y'>historial "+a.hist.nivel+" ("+a.hist.n+")</span>");
+  if(a.enCurso) tags.push("<span class='tag y'>vela en curso</span>");
+
+  var lex = lineaExtremo(f), ldv = lineaDiv(f);
+  var cond = bloqueCondiciones(f, lex, ldv);
+  var mfE = a.mfE || {};
+  var lineas = "";
+  if(!f.sinCruce){
+    lineas += linea(f.lado==="compra"?"🟢":"🔴",
+      "Cruce "+(f.hace===0?"en la última vela":"hace "+f.hace+" vela"+(f.hace>1?"s":""))+
+      " · punto en WT "+coma(f.wt,1));
+  } else if(a.ud){
+    lineas += linea("○","Sin cruce en zona dentro de las últimas "+VENTANA_CRUCE+" velas · último punto "+
+      a.ud.color+" hace "+a.ud.hace+" en WT "+coma(a.ud.wt,1));
+  }
+  if(!cond){
+    if(lex) lineas += linea("📍", lex.txt, lex.k);
+    lineas += linea(ldv.k==="g"?"📈":(ldv.k==="r"?"📉":"○"), ldv.txt);
+    if(mfE.valor!==null && mfE.valor!==undefined)
+      lineas += linea("💧","Money flow "+coma(mfE.valor,1)+(mfE.giro?" · "+mfE.giro:""));
+    lineas += linea("📏","Recorrido: "+pct(f.room,1)+" al "+(f.lado==="compra"?"techo":"piso")+" de 30 velas");
+  }
+  var linv = lineaInvalidacion(f);
+  if(linv) lineas += linea("🛑", linv);
+  if(a.reg) lineas += linea("🧭","Régimen: "+escaparHTML(a.reg.texto)+(a.reg.detalle?" · "+escaparHTML(a.reg.detalle):""));
+  if(f.it.vol) lineas += linea("📊", volTxt(f.it.vol).txt, volTxt(f.it.vol).k);
+  if(a.gestion) lineas += linea("📤", escaparHTML(a.gestion.texto), "eth");
+
+  var sc = f.score;
+  var barra = "";
+  if(sc){
+    barra = "<div class='score'><div class='sh'><span>score de calidad (informativo)</span><span>"+sc.total+"/100</span></div>"+
+      "<div class='sbar'>"+sc.br.map(function(p){ return "<i style='width:"+p[1]+"%;background:"+COLS[p[0]]+"'></i>"; }).join("")+"</div>"+
+      "<div class='leg'>"+sc.br.map(function(p){ return "<s><span class='dot' style='background:"+COLS[p[0]]+"'></span>"+LBLS[p[0]]+" "+p[1]+"</s>"; }).join("")+"</div></div>";
+  }
+  var vcls = v.v==="COMPRAR"?"buyv":(v.v==="VENDER"?"sellv":"waitv");
+  var medalla = f.medalla ? f.medalla+" " : "";
+  return "<div class='card "+cls+"'>"+
+    "<div class='card-head'><div class='top'>"+
+      "<div><div class='tick'>"+medalla+escaparHTML(f.it.ticker)+"<span>"+escaparHTML(f.it.nombre||"")+
+        (modo==="watch"?" · "+WATCH_MARCO:"")+"</span></div><div class='tags'>"+tags.join("")+"</div></div>"+
+      "<div class='precio'><b>"+formatoPrecio(f.precio)+"</b> "+
+        (f.varPct===null?"":"<span style='color:"+(f.varPct<0?"var(--down)":"var(--up)")+"'>"+pct(f.varPct,1)+"</span>")+
+        "<i>cierre "+fechaCorta(f.cierre||f.fecha)+"</i></div>"+
+    "</div></div>"+
+    "<div class='card-body'>"+
+      "<div class='verd'><b class='"+vcls+"'>"+v.v+"</b>"+
+        (v.c!=="—" ? "<span class='conf'>confianza "+v.c+"</span>" : "")+
+        (v.deg && v.deg.length ? "<span class='conf' style='color:var(--warn)'>· "+v.deg.join(", ")+"</span>" : "")+
+        "<small>"+(sc?"score "+sc.total+"/100":"motor")+"</small></div>"+
+      "<div class='graf'>"+grafOscilador(calc, a.velas, i, CFG_MARCO_GRAF(modo))+"</div>"+
+      "<div class='nums'>"+
+        celda("WT1", coma(calc.wt1[i],1), calc.wt1[i]<0?"var(--down)":"var(--up)")+
+        celda("WT2", coma(calc.wt2[i],1), null)+
+        celda("Money flow", coma(calc.mf[i],1), (calc.mf[i]||0)<0?"var(--down)":"var(--up)")+
+      "</div>"+
+      (cond||"") + lineas + barra +
+      "<div class='acts'>"+
+        "<button class='btn' disabled title='sin funcionalidad en esta versión'>🤖 Analizar con IA</button>"+
+        (modo==="watch"
+          ? "<button class='btn' onclick=\"quitarSeguido('"+f.it.sym+"')\">Quitar</button>"
+          : "<button class='btn' onclick=\"agregarSeguido('"+f.it.sym+"')\">⭐ Seguir</button>")+
+      "</div>"+
+    "</div></div>";
+}
+/* Recuadro de condiciones de señal limpia. Solo del lado comprador: nada de esto se midió
+   para shorts. Las tres primeras definen la primera línea; las dos últimas son refuerzo.
+   El orden es por fuerza medida en el backtest, no por comodidad de lectura. */
+function bloqueCondiciones(f, lex, ldv){
+  if(f.sinCruce || f.lado!=="compra") return null;
+  var mfE = f.a.mfE || {};
+  var filas = [
+    {ok:(f.roomCruce<=PL_ROOM), peso:"+12 pp",
+     tit:"Recorrido ≤ "+PL_ROOM+"% al techo de 30 velas",
+     val:"está a "+f.roomCruce.toFixed(0)+"% en el cruce"+(f.room!==f.roomCruce?" · "+pct(f.room,1)+" ahora":""),
+     nota:"Menos recorrido predijo mejor, no más."},
+    {ok:f.enPiso, peso:"+7 pp",
+     tit:"El cruce está en el mínimo",
+     val:(lex? lex.txt : ""), nota:""},
+    {ok:(f.mfCruce<=PL_MF), peso:"+5 pp",
+     tit:"Money flow ≤ "+PL_MF+" en el cruce",
+     val:coma(f.mfCruce,1)+" en el cruce"+(mfE.valor!=null?" · "+coma(mfE.valor,1)+" ahora"+(mfE.giro?", "+mfE.giro:""):""),
+     nota:"Mide el nivel, no el giro: la capitulación rebotó mejor que el goteo."},
+    {ok:f.divOK, peso:"+8 pp", refuerzo:true,
+     tit:"Divergencia cercana",
+     val:(ldv? ldv.txt : ""), nota:"Sube la salida ganadora de 74% a 90%."},
+  ];
+  var html = "<div class='cond"+(f.primera?" cond-pl":"")+"'>"+
+    "<div class='cond-h'><b>Condiciones de señal limpia</b>"+
+      "<span>"+filas.filter(function(x){return x.ok;}).length+" de 4</span></div>";
+  filas.forEach(function(x,k){
+    if(k===3) html += "<div class='cond-sep'>refuerzo · no define el nivel</div>";
+    html += "<div class='cond-f"+(x.ok?" si":" no")+(x.refuerzo?" ref":"")+"'>"+
+      "<span class='tk'>"+(x.ok?"✅":"❌")+"</span>"+
+      "<span class='tx'><b>"+x.tit+"</b> <i>"+x.peso+"</i><br>"+escaparHTML(x.val)+
+      (x.nota?"<u>"+x.nota+"</u>":"")+"</span></div>";
+  });
+  html += "<div class='cond-pie'>"+
+    (f.primera
+      ? "★ <b>Primera línea:</b> las tres primeras juntas. En el backtest esa combinación dio 68% en verde "+
+        "contra 46% del resto, y la salida terminó ganadora el 81% de las veces."
+      : "No es primera línea: hacen falta las tres primeras juntas.")+
+    "<br><b>No cuentes tildes.</b> Lo que midió el backtest es la combinación, no el puntaje: la salida "+
+    "ganadora va de 56% sin ninguna condición a 70% con la primera, 74% con dos, 81% con las tres "+
+    "(primera línea) y 92% con las cuatro. El detalle está en Estrategia de entrada.</div></div>";
+  return html;
+}
+function CFG_MARCO_GRAF(modo){ return modo==="watch" ? WATCH_MARCO : CFG.marco; }
+function celda(t, v, color){
+  return "<div><em>"+t+"</em><b"+(color?" style='color:"+color+"'":"")+">"+v+"</b></div>";
+}
+function linea(ic, txt, k){
+  var c = (k==="hi")?"hi":(k==="eth")?"eth":(k==="star")?"star":(k==="dim")?"dim":"";
+  return "<div class='linea "+c+"'><span class='ic'>"+ic+"</span><span>"+txt+"</span></div>";
+}
+/* Tramo de liquidez: el estudio mostró perfiles de riesgo muy distintos entre BTC,
+   el top 20 y las alts chicas. El rank viene del universo, no se calcula acá. */
+function tramoDe(f){
+  if(f.it.ticker==="BTC") return "BTC";
+  var r = f.it.rank;
+  if(!r) return null;
+  if(r<=20)  return "top 20";
+  if(r<=100) return "21-100";
+  return "101-200";
+}
+function lineaInvalidacion(f){
+  if(f.sinCruce || !f.invalid) return null;
+  var dist = (f.lado==="compra") ? (1-f.invalid/f.precio)*100 : (f.invalid/f.precio-1)*100;
+  var q = (f.lado==="compra") ? "mínimo" : "máximo";
+  return "Invalidación en "+formatoPrecio(f.invalid)+" · a "+dist.toFixed(1)+"% del cierre"+
+    " (el "+q+" del tramo "+(f.lado==="compra"?"−":"+")+"2%). Si el precio lo "+
+    (f.lado==="compra"?"pierde":"supera")+", la tesis del "+(f.lado==="compra"?"piso":"techo")+" dejó de valer.";
+}
+function volTxt(v){
+  if(v >= 10e6) return {txt:"Volumen 24h $"+(v/1e6).toFixed(0)+" M · operable", k:""};
+  return {txt:"⚠ Volumen 24h $"+(v/1e6).toFixed(1)+" M · puede no ser operable con tamaño", k:"hi"};
+}
+
+function pintarSeccion(idGrid, idPie, fichas, lado){
+  var elegidas = fichas.filter(function(f){ return f.grupo<=3; }).slice(0,5);
+  var MED = ["🥇","🥈","🥉","4","5"];
+  elegidas.forEach(function(f,k){ f.medalla = MED[k]; });
+  var g = $(idGrid);
+  g.innerHTML = elegidas.length
+    ? elegidas.map(function(f){ return card(f,"scan"); }).join("")
+    : "<div class='vacio'>Ningún activo del top "+CFG.top+" tiene un cruce "+
+      (lado==="compra"?"verde bajo −":"rojo sobre +")+CFG.umbral+" en las últimas "+VENTANA_CRUCE+
+      " velas cerradas. Eso es información, no una falla: hoy no hay candidatas.</div>";
+  var tardias = fichas.filter(function(f){ return f.grupo===4; });
+  var pie = "";
+  if(tardias.length){
+    pie += "<b class='rojo'>Descartadas · tardías sin divergencia ("+tardias.length+"):</b> "+
+      tardias.map(function(f){ return escaparHTML(f.it.ticker)+" punto "+coma(f.wt,1)+", "+
+        (f.lado==="compra"?"mínimo":"máximo")+" de hace "+f.edadExtremo+" velas"; }).join(" · ")+
+      ". <span class='rojo'>En el backtest de 189 activos este grupo quedó en verde el 30% de las veces, "+
+      "peor que una vela cualquiera (40%).</span><br>";
+  }
+  if(elegidas.length && elegidas.length < 5)
+    pie += "<b>Solo "+elegidas.length+" candidata(s) hoy — los puestos restantes quedan vacíos a propósito.</b> "+
+      "Nunca se completa con activos que no pasaron el filtro.";
+  $(idPie).innerHTML = pie || "<span class='dim'>Sin descartes en esta pasada.</span>";
+  return elegidas.length;
+}
+function conteo(fichas){
+  var c = {1:0,2:0,3:0,4:0};
+  fichas.forEach(function(f){ c[f.grupo]++; });
+  return c;
+}
+function pintarTodo(){
+  if(!ULTIMO) return;
+  var c = conteo(ULTIMO.compras), v = conteo(ULTIMO.ventas);
+  var f = new Date(ULTIMO.ts);
+  $("banda").innerHTML =
+    "<b>Universo:</b> top "+ULTIMO.top+" "+(UNIVERSO?escaparHTML(UNIVERSO.fuente):"")+
+      (UNIVERSO ? " → "+UNIVERSO.stats.utiles+" con par en Binance"+
+        (UNIVERSO.stats.noUSDT ? " ("+UNIVERSO.stats.noUSDT+" vía USDC/FDUSD)" : "")+
+        " · "+UNIVERSO.stats.excluidas+" excluidas (stables / wrapped / staked) · "+
+        UNIVERSO.stats.sinPar+" sin par "+
+        "<a href='#' onclick='verDescartes();return false' style='color:var(--live)'>[ver lista]</a>" : "")+"<br>"+
+    "<b>Escaneo:</b> "+fechaLarga(f)+" "+f.toTimeString().slice(0,5)+" · marco "+ULTIMO.marco+
+      " · umbral ±"+ULTIMO.umbral+" · canal "+ULTIMO.canal+
+      (ULTIMO.cierre ? " · vela <b>cerrada del "+fechaCorta(ULTIMO.cierre)+"</b>" : "")+
+      " · "+ULTIMO.leidos+" activos leídos"+(ULTIMO.segs?" en "+ULTIMO.segs+" s":"")+
+      (ULTIMO.insuf?" · "+ULTIMO.insuf+" sin historial suficiente":"")+
+      (ULTIMO.errores?" · "+ULTIMO.errores+" con error de red":"")+
+      (ULTIMO.recuperado?" · <span style='color:var(--warn)'>recuperado de la caché, sin reescanear</span>":"")+"<br>"+
+    "<b>Primera línea:</b> "+ULTIMO.compras.filter(function(f){return f.primera;}).length+
+      " de "+ULTIMO.compras.length+" candidatas compradoras cumplen las tres condiciones<br>"+
+    "<b>Sobrevendidas:</b> "+(ULTIMO.compras.length)+" cruces ≤ −"+ULTIMO.umbral+" → "+
+      "<b class='up'>"+c[1]+" piso + divergencia</b> · <b class='live'>"+c[2]+" piso</b> · "+
+      "<b class='warn'>"+c[3]+" tardía + divergencia</b> · <span class='down'>"+c[4]+" tardías descartadas</span><br>"+
+    "<b>Sobrecompradas:</b> "+(ULTIMO.ventas.length)+" cruces ≥ +"+ULTIMO.umbral+" → "+
+      "<b class='up'>"+v[1]+" techo + divergencia</b> · <b class='live'>"+v[2]+" techo</b> · "+
+      "<b class='warn'>"+v[3]+" tardía + divergencia</b> · <span class='down'>"+v[4]+" tardías descartadas</span>";
+  var nc = pintarSeccion("over-grid","over-pie", ULTIMO.compras, "compra");
+  var nv = pintarSeccion("under-grid","under-pie", ULTIMO.ventas, "venta");
+  $("over-sub").textContent  = nc+" de 5 puestos · la profundidad desempata dentro de cada grupo";
+  $("under-sub").textContent = nv+" de 5 puestos · la profundidad desempata dentro de cada grupo";
+  $("aviso-4h").style.display = (ULTIMO.marco==="4H") ? "block" : "none";
+}
+function pintarChips(){
+  var h = SEGUIDOS.map(function(x){
+    return "<span class='chip'>"+escaparHTML(x.ticker)+" <button onclick=\"quitarSeguido('"+x.sym+"')\">×</button></span>";
+  }).join("");
+  $("chips").innerHTML = h + "<span class='cont'>"+SEGUIDOS.length+" / "+MAX_SEGUIR+"</span>";
+  var sel = $("sel-seguir");
+  var items = (UNIVERSO && UNIVERSO.items) || [];
+  sel.innerHTML = "<option value=''>Agregar activo…</option>" + items.map(function(it){
+    return "<option value='"+it.sym+"'>"+escaparHTML(it.ticker)+" · "+escaparHTML(it.nombre)+"</option>";
+  }).join("");
+  sel.disabled = (SEGUIDOS.length >= MAX_SEGUIR) || !items.length;
+}
+
+function verDescartes(){
+  if(!UNIVERSO || !UNIVERSO.stats) return;
+  var e = $("descartes");
+  if(e.style.display==="block"){ e.style.display="none"; return; }
+  var s = UNIVERSO.stats;
+  e.innerHTML =
+    "<b>Sin par en Binance ("+(s.listaSinPar||[]).length+")</b> — se probó USDT, USDC y FDUSD:<br>"+
+    escaparHTML((s.listaSinPar||[]).join(" · ") || "ninguna")+
+    "<br><br><b>Excluidas por tipo ("+(s.listaExcluidas||[]).length+")</b> — stablecoins, wrapped y staked:<br>"+
+    escaparHTML((s.listaExcluidas||[]).join(" · ") || "ninguna")+
+    "<br><br><span style='color:var(--dim)'>Las marcadas con ⟶ tienen en Binance un símbolo parecido: "+
+    "puede ser el mismo activo con otro ticker. Las demás, o no cotizan en Binance, o son fondos "+
+    "tokenizados y tokens de exchange que CoinGecko cuenta por capitalización pero no son cripto operable."+
+    "</span>";
+  e.style.display="block";
+}
+
+/* ---------------------------------------------------------------- estrategia */
+function abrirEstrategia(){ $("modal").style.display="flex"; }
+function cerrarEstrategia(){ $("modal").style.display="none"; }
+
+/* ---------------------------------------------------------------- UI */
+function segGrupo(id, valores, actual, cb){
+  var cont = $(id);
+  cont.querySelectorAll("button").forEach(function(b){
+    b.classList.toggle("on", String(b.dataset.v)===String(actual));
+    b.onclick = function(){ cb(b.dataset.v); };
+  });
+}
+function refrescarControles(){
+  segGrupo("seg-top", null, CFG.top, function(v){ CFG.top = +v; refrescarControles(); avisarCambio(); });
+  segGrupo("seg-marco", null, CFG.marco, function(v){ CFG.marco = v; refrescarControles(); avisarCambio(); intentarRehidratar(); });
+  segGrupo("seg-umbral", null, CFG.umbral, function(v){ CFG.umbral = +v; refrescarControles(); avisarCambio(); });
+  segGrupo("seg-canal", null, CFG.canal, function(v){ CFG.canal = +v; refrescarControles(); avisarCambio(); });
+  segGrupo("seg-wmarco", null, WATCH_MARCO, function(v){ WATCH_MARCO = v; refrescarControles(); pintarSeguimiento(); });
+}
+function avisarCambio(){
+  if(!ULTIMO) return;
+  if(ULTIMO.marco!==CFG.marco || ULTIMO.top!==CFG.top || ULTIMO.umbral!==CFG.umbral || ULTIMO.canal!==CFG.canal){
+    $("banda").innerHTML = "<b style='color:var(--warn)'>La configuración cambió respecto del escaneo que estás viendo.</b> "+
+      "Tocá <b>Escanear</b> para actualizar (lo de abajo sigue siendo el escaneo anterior: top "+ULTIMO.top+
+      ", marco "+ULTIMO.marco+", umbral ±"+ULTIMO.umbral+", canal "+ULTIMO.canal+").";
+  }
+}
+async function intentarRehidratar(){
+  var ok = await rehidratar();
+  if(!ok){ $("banda").innerHTML = "<b>Sin escaneo guardado para esta configuración.</b> Tocá <b>Escanear</b> para empezar."; }
+}
+async function iniciar(){
+  $("ver").textContent = RADAR_VERSION;
+  $("hoy").textContent = fechaLarga(new Date());
+  refrescarControles();
+  $("chk-curso").checked = CFG.enCurso;
+  $("chk-curso").onchange = function(){ CFG.enCurso = this.checked; avisarCambio(); };
+  $("btn-escanear").onclick = escanear;
+  $("btn-estrategia").onclick = abrirEstrategia;
+  $("modal-cerrar").onclick = cerrarEstrategia;
+  $("modal").onclick = function(e){ if(e.target===this) cerrarEstrategia(); };
+  document.addEventListener("keydown", function(e){ if(e.key==="Escape") cerrarEstrategia(); });
+  $("btn-watch").onclick = pintarSeguimiento;
+  $("sel-seguir").onchange = function(){ if(this.value){ agregarSeguido(this.value); this.value=""; } };
+  if(!storageDisponible() && !localStorageDisponible())
+    $("aviso-storage").style.display = "block";
+  await cargarSeguidos();
+  pintarChips();
+  try{ UNIVERSO = await cargarUniversoRadar(CFG.top); pintarChips(); }catch(e){}
+  var ok = await rehidratar();
+  if(!ok) $("banda").innerHTML = "<b>Listo para escanear.</b> Elegí el universo y el marco, y tocá <b>Escanear</b>. "+
+    "El escaneo no usa IA: es todo cálculo local sobre las velas de Binance.";
+  pintarSeguimiento();
+}
+window.addEventListener("DOMContentLoaded", iniciar);
+
+</script>
+</body>
+</html>
