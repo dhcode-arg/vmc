@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b0e13">
+<title>VMC — herramientas</title>
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMwYjBlMTMiLz48cGF0aCBkPSJNOCAyMiBMMjAgNDQgTDMyIDMwIEw0NCA0NiBMNTYgMjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzdkOWJmZiIgc3Ryb2tlLXdpZHRoPSI2IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48Y2lyY2xlIGN4PSIyMCIgY3k9IjQ0IiByPSI2IiBmaWxsPSIjNGFkZTgwIi8+PGNpcmNsZSBjeD0iNDQiIGN5PSI0NiIgcj0iNSIgZmlsbD0iI2ZmNTI1MiIvPjwvc3ZnPg==">
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMwYjBlMTMiLz48cGF0aCBkPSJNOCAyMiBMMjAgNDQgTDMyIDMwIEw0NCA0NiBMNTYgMjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzdkOWJmZiIgc3Ryb2tlLXdpZHRoPSI2IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48Y2lyY2xlIGN4PSIyMCIgY3k9IjQ0IiByPSI2IiBmaWxsPSIjNGFkZTgwIi8+PGNpcmNsZSBjeD0iNDQiIGN5PSI0NiIgcj0iNSIgZmlsbD0iI2ZmNTI1MiIvPjwvc3ZnPg==">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="VMC">
+<style>
+:root{--bg:#0b0e13;--card:#12161d;--card2:#0e1218;--bd:#242b36;--bd2:#1a2028;
+ --tx:#e8eef7;--mu:#7d8794;--mu2:#5a636e;--ac:#4d9dff;--gr:#4ade80;--am:#f5b544;--vi:#a78bfa}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--tx);padding:18px 14px 40px;
+ font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:880px;margin:0 auto}
+header{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+header svg{width:38px;height:38px;flex:none}
+h1{font-size:22px;margin:0;letter-spacing:-.02em}
+.sub{color:var(--mu);font-size:13px;margin:0 0 22px}
+h2{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--mu2);
+ margin:26px 0 10px;font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+a.card{display:block;background:var(--card);border:1px solid var(--bd);border-radius:14px;
+ padding:16px 17px;text-decoration:none;color:inherit;transition:border-color .15s,transform .15s}
+a.card:hover{border-color:#33507a;transform:translateY(-2px)}
+a.card:active{transform:translateY(0)}
+.tt{display:flex;align-items:center;gap:9px;font-weight:650;font-size:16px;margin-bottom:5px}
+.tt i{width:10px;height:10px;border-radius:50%;flex:none}
+.ds{color:var(--mu);font-size:13px;line-height:1.5}
+.tags{margin-top:11px;display:flex;flex-wrap:wrap;gap:6px}
+.tags span{font-size:10.5px;color:var(--mu2);border:1px solid var(--bd);
+ border-radius:999px;padding:2px 9px}
+a.doc{display:flex;align-items:center;gap:10px;background:var(--card2);border:1px solid var(--bd);
+ border-radius:12px;padding:12px 15px;text-decoration:none;color:inherit;font-size:14px}
+a.doc:hover{border-color:#33507a}
+a.doc small{color:var(--mu2);margin-left:auto;font-size:11.5px}
+.nota{background:rgba(245,181,68,.09);border:1px solid rgba(245,181,68,.3);color:#f5c877;
+ border-radius:12px;padding:12px 15px;font-size:12.5px;line-height:1.6;margin-top:26px}
+footer{color:var(--mu2);font-size:11.5px;margin-top:28px;border-top:1px solid var(--bd2);
+ padding-top:14px;line-height:1.6}
+</style></head><body><div class="wrap">
+
+<header>
+<svg viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#12161d"/>
+<path d="M8 22 L20 44 L32 30 L44 46 L56 20" fill="none" stroke="#7d9bff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="20" cy="44" r="6" fill="#4ade80"/><circle cx="44" cy="46" r="5" fill="#ff5252"/></svg>
+<h1>VMC — herramientas</h1>
+</header>
+<p class="sub">Motor VuManChu Cipher B certificado contra TradingView · canal 10 / promedio 12 / MA 3 sobre hlc3</p>
+
+<h2>Artefactos</h2>
+<div class="grid">
+
+ <a class="card" href="multi.html">
+  <div class="tt"><i style="background:#7d9bff"></i>VMC Multi</div>
+  <div class="ds">Un activo a la vez, con las cards de diario y semanal, checklist del motor y análisis con IA. BTC, líquidas e ilíquidas del top 100.</div>
+  <div class="tags"><span>1D · 1S</span><span>top 100</span><span>análisis IA</span><span>QQE</span></div>
+ </a>
+
+ <a class="card" href="radar.html">
+  <div class="tt"><i style="background:#4ade80"></i>VMC Radar</div>
+  <div class="ds">Escanea el top 200 buscando cruces en zona extrema y arma la lista de candidatas por celdas, con la estrategia de entrada y salida medida sobre el histórico.</div>
+  <div class="tags"><span>4H · 1D · 1S</span><span>top 200</span><span>seguimiento</span><span>estrategia</span></div>
+ </a>
+
+ <a class="card" href="vmc-chart.html">
+  <div class="tt"><i style="background:#f5b544"></i>VMC Chart</div>
+  <div class="ds">Solo BTC, en profundidad: velas con el oscilador, ciclo completo desde 2012, RSI y MACD con marco propio, Pi Cycle, atención social y liquidez.</div>
+  <div class="tags"><span>4H a 1S</span><span>ciclo</span><span>Pi Cycle</span><span>liquidez</span><span>confirmación</span></div>
+ </a>
+
+</div>
+
+<h2>Manuales</h2>
+<div class="grid">
+ <a class="doc" href="manual-multi.html">📘 Manual del Multi <small>12 secciones</small></a>
+ <a class="doc" href="manual-radar.html">📗 Manual del Radar <small>12 secciones</small></a>
+</div>
+
+<div class="nota">
+<b>Cuál abrir según lo que estés buscando.</b> Si querés saber qué hacer con un activo puntual, el <b>Multi</b>.
+Si estás buscando en qué entrar, el <b>Radar</b>. Si querés entender en qué momento del ciclo está el mercado,
+el <b>Chart</b>. Los tres comparten el mismo motor y los mismos umbrales, así que no se contradicen entre sí.
+</div>
+
+<footer>
+Herramientas personales de análisis técnico sobre el indicador VMC Cipher B. Los datos se bajan en vivo
+de Binance y CoinGecko; nada se guarda fuera de tu navegador. <b>Nada de esto es una recomendación de inversión.</b><br>
+github.com/dhcode-arg/vmc
+</footer>
+</div></body></html>
