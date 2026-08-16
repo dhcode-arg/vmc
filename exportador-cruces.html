@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b0e13">
+<title>Exportador de cruces VMC</title>
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMwYjBlMTMiLz48cGF0aCBkPSJNOCAyMiBMMjAgNDQgTDMyIDMwIEw0NCA0NiBMNTYgMjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzdkOWJmZiIgc3Ryb2tlLXdpZHRoPSI2IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48Y2lyY2xlIGN4PSIyMCIgY3k9IjQ0IiByPSI2IiBmaWxsPSIjNGFkZTgwIi8+PGNpcmNsZSBjeD0iNDQiIGN5PSI0NiIgcj0iNSIgZmlsbD0iI2ZmNTI1MiIvPjwvc3ZnPg==">
+<style>
+:root{--bg:#0b0e13;--card:#12161d;--card2:#0e1218;--bd:#242b36;--bd2:#1a2028;
+ --tx:#e8eef7;--mu:#7d8794;--mu2:#5a636e;--ac:#4d9dff;--gr:#4ade80;--rd:#ff5252;--am:#f5b544}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--tx);padding:18px 14px 40px;
+ font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:820px;margin:0 auto}
+h1{font-size:20px;margin:0 0 4px}
+.sub{color:var(--mu);font-size:13px;margin:0 0 20px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px;margin-bottom:14px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
+.row:last-child{margin-bottom:0}
+.lbl{font-size:11px;color:var(--mu2);text-transform:uppercase;letter-spacing:.06em}
+select,button{background:#1a212b;border:1px solid var(--bd);color:var(--tx);border-radius:9px;
+ padding:9px 13px;font-size:14px;min-height:40px;font-family:inherit}
+button{cursor:pointer;font-weight:600}
+button.go{background:var(--ac);border-color:var(--ac);color:#04121f;padding:11px 22px}
+button:disabled{opacity:.5;cursor:default}
+.barra{height:8px;background:#1a212b;border-radius:99px;overflow:hidden;margin:14px 0 8px}
+.barra div{height:100%;background:var(--ac);width:0;transition:width .2s}
+.est{font-size:12.5px;color:var(--mu);min-height:20px}
+.log{background:var(--card2);border:1px solid var(--bd2);border-radius:10px;padding:10px 12px;
+ font:11.5px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace;max-height:220px;overflow:auto;
+ color:var(--mu);white-space:pre-wrap;margin-top:12px;display:none}
+.log.on{display:block}
+.res{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-top:14px;display:none}
+.res.on{display:grid}
+.res div{background:var(--card2);border:1px solid var(--bd2);border-radius:10px;padding:10px 12px}
+.res b{display:block;font-size:19px}
+.res span{font-size:10.5px;color:var(--mu2);text-transform:uppercase;letter-spacing:.05em}
+.nota{border-left:3px solid var(--ac);background:rgba(77,157,255,.07);padding:11px 14px;
+ border-radius:0 9px 9px 0;font-size:13px;line-height:1.55;margin:14px 0}
+.nota.w{border-left-color:var(--am);background:rgba(245,181,68,.08)}
+.nota b{color:var(--tx)}
+ol{padding-left:20px}li{margin:6px 0;font-size:13.5px}
+footer{color:var(--mu2);font-size:11.5px;margin-top:24px;border-top:1px solid var(--bd2);padding-top:12px;line-height:1.6}
+</style></head><body><div class="wrap">
+
+<h1>Exportador de cruces VMC</h1>
+<p class="sub">Baja las velas diarias del top de Binance, les corre el motor certificado y guarda solo los cruces. Nada sale de tu navegador salvo los pedidos a Binance.</p>
+
+<div class="card">
+ <div class="row">
+  <span class="lbl">universo</span>
+  <select id="uni"><option value="50">top 50</option><option value="100">top 100</option>
+   <option value="200" selected>top 200</option></select>
+  <span class="lbl">historia</span>
+  <select id="hist"><option value="1">1000 velas (~3 años)</option>
+   <option value="2" selected>2000 velas (~5,5 años)</option>
+   <option value="3">3000 velas (~8 años)</option></select>
+  <span class="lbl">marco</span>
+  <select id="tf"><option value="1d" selected>diario</option><option value="1w">semanal</option></select>
+ </div>
+ <div class="row">
+  <button class="go" id="go">Empezar</button>
+  <button id="bajar" disabled>Descargar archivo</button>
+ </div>
+ <div class="barra"><div id="prog"></div></div>
+ <div class="est" id="est">Listo para empezar.</div>
+ <div class="res" id="res">
+  <div><b id="rAct">—</b><span>activos</span></div>
+  <div><b id="rCru">—</b><span>cruces</span></div>
+  <div><b id="rDes">—</b><span>desde</span></div>
+  <div><b id="rPeso">—</b><span>tamaño</span></div>
+ </div>
+ <div class="log" id="log"></div>
+</div>
+
+<div class="nota"><b>Qué guarda.</b> Por cada activo, una lista de cruces: fecha, si fue verde o rojo, el nivel del WT2 y el del money flow. No guarda las velas, por eso el archivo pesa cientos de kilobytes en vez de decenas de megas. Incluye también la fecha del primer y último dato de cada activo, para saber qué parte de la historia estaba disponible en cada momento.</div>
+
+<div class="nota w"><b>Va a tardar unos minutos.</b> Son dos o tres llamadas por activo, con una pausa entre tandas para no golpear a Binance. Con el top 200 y 2000 velas son unas 400 llamadas. Dejá la pestaña abierta; si algún activo falla, sigue con el resto y lo anota al final.</div>
+
+<h2 style="font-size:14px;margin:22px 0 8px">Después</h2>
+<ol>
+ <li>Apretá <b>Descargar archivo</b> cuando termine.</li>
+ <li>Subí ese archivo al chat.</li>
+ <li>Con eso corro el estudio de amplitud con muestra de verdad, en vez de los nueve meses que puedo alcanzar yo.</li>
+</ol>
+
+<footer>Motor VuManChu Cipher B — canal 10 / promedio 12 / MA 3 sobre hlc3, money flow RSIMFI 60/150 −2,5. Es el mismo bloque que usan el Multi, el Radar y el Chart, así que los cruces coinciden con lo que ves en tus artefactos. Datos de Binance; el universo sale de CoinGecko por capitalización.</footer>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+function ema(a,n){const k=2/(n+1);let o=[],p=null;for(let i=0;i<a.length;i++){const v=a[i];
+ if(!Number.isFinite(v)){o.push(p===null?NaN:p);continue}p=(p===null)?v:v*k+p*(1-k);o.push(p)}return o}
+function sma(a,n){let o=[],s=0,c=0;for(let i=0;i<a.length;i++){s+=a[i];c++;if(c>n){s-=a[i-n];c=n}o.push(c>=n?s/n:NaN)}return o}
+function rma(a,n){let o=[],p=null,s=0;for(let i=0;i<a.length;i++){if(i<n){s+=a[i];o.push(i===n-1?(p=s/n):NaN)}
+ else{p=(p*(n-1)+a[i])/n;o.push(p)}}return o}
+function vmc(c){const ap=c.map(x=>(x.h+x.l+x.c)/3);
+ const esa=ema(ap,10),de=ema(ap.map((v,i)=>Math.abs(v-esa[i])),10);
+ const ci=ap.map((v,i)=>de[i]===0?0:(v-esa[i])/(0.015*de[i]));
+ const wt1=ema(ci,12),wt2=sma(wt1,3);
+ const raw=c.map(x=>x.h-x.l>0?((x.c-x.o)/(x.h-x.l))*150:0);
+ return {wt1,wt2,mf:sma(raw,60).map(v=>v-2.5)}}
+function rsi(c,n){const ch=c.map((x,i)=>i?x.c-c[i-1].c:0);
+ const g=rma(ch.map(v=>v>0?v:0),n),l=rma(ch.map(v=>v<0?-v:0),n);
+ return g.map((v,i)=>!Number.isFinite(v)?NaN:(l[i]===0?100:100-100/(1+v/l[i])))}
+const QQ={tf:'auto',per:14,sf:5,fac:4.238,umb:0};
+function qqe(c,cfg){cfg=cfg||QQ;
+ const R=rsi(c,cfg.per),RsiMa=ema(R,cfg.sf),W=cfg.per*2-1;
+ const atr=RsiMa.map((v,i)=>i?Math.abs(RsiMa[i-1]-v):0);
+ const dar=ema(ema(atr,W),W).map(v=>v*cfg.fac);
+ const LB=[],SB=[],TL=[],sig=[];let trend=1,xl=0,xs=0;const sgn=v=>v>0?1:(v<0?-1:0);
+ for(let i=0;i<c.length;i++){const r2=RsiMa[i],nl=r2-dar[i],ns=r2+dar[i];
+  const plb=i?LB[i-1]:0,psb=i?SB[i-1]:0,pr=i?RsiMa[i-1]:r2;
+  LB.push((pr>plb&&r2>plb)?Math.max(plb,nl):nl);
+  SB.push((pr<psb&&r2<psb)?Math.min(psb,ns):ns);
+  if(i>1){const cUp=sgn(r2-SB[i-1])!==sgn(RsiMa[i-1]-SB[i-2]);
+   const cDn=sgn(LB[i-1]-r2)!==sgn(LB[i-2]-RsiMa[i-1]);trend=cUp?1:(cDn?-1:trend)}
+  TL.push(trend===1?LB[i]:SB[i]);
+  const pl=xl,ps=xs;xl=TL[i]<r2?pl+1:0;xs=TL[i]>r2?ps+1:0;
+  const pasa=!cfg.umb||(i&&Math.abs(TL[i-1]-50)>cfg.umb);
+  sig.push((i&&xl===1&&pasa)?1:((i&&xs===1&&pasa)?-1:0))}
+ return sig}
+
+
+/* ---------- utilidades ---------- */
+const dur=(t)=>new Date(t*1000).toISOString().slice(0,10);
+const log=(m)=>{const l=$('#log');l.classList.add('on');l.textContent+=m+'\n';l.scrollTop=l.scrollHeight};
+const est=(m)=>$('#est').textContent=m;
+const prog=(p)=>$('#prog').style.width=(p*100).toFixed(1)+'%';
+const dormir=ms=>new Promise(r=>setTimeout(r,ms));
+
+async function conTimeout(url,ms){
+ const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);
+ try{return await fetch(url,{signal:c.signal})}finally{clearTimeout(t)}
+}
+/* ---------- universo ---------- */
+const EXCLUIR=/^(USDT|USDC|DAI|TUSD|FDUSD|BUSD|PYUSD|USDE|USDS|USD1|WBTC|WETH|WBETH|STETH|WSTETH|RETH|CBBTC|LBTC|SOLVBTC|BSC-USD|EUR|EURC)$/i;
+async function universo(n){
+ est('Pidiendo el universo a CoinGecko…');
+ const out=[];
+ for(let p=1;p<=Math.ceil(n/250);p++){
+  const r=await conTimeout(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=${p}`,20000);
+  if(!r.ok)throw new Error('CoinGecko '+r.status);
+  out.push(...await r.json());
+  await dormir(1500);
+ }
+ const lista=out.slice(0,n).map(c=>({sym:c.symbol.toUpperCase(),rank:c.market_cap_rank}))
+   .filter(c=>!EXCLUIR.test(c.sym));
+ est('Consultando qué pares existen en Binance…');
+ const ri=await conTimeout('https://api.binance.com/api/v3/exchangeInfo',25000);
+ const info=await ri.json();
+ const pares=new Set(info.symbols.filter(s=>s.status==='TRADING').map(s=>s.symbol));
+ const APAL=/^[A-Z0-9]{2,}(UP|DOWN|BULL|BEAR)USDT$/;
+ const res=[];
+ for(const c of lista){
+  for(const q of ['USDT','USDC','FDUSD']){
+   const p=c.sym+q;
+   if(pares.has(p)&&!APAL.test(p)){res.push({...c,par:p});break}
+  }
+ }
+ return res;
+}
+/* ---------- velas ---------- */
+async function klines(par,tf,lim,end){
+ let u=`https://api.binance.com/api/v3/klines?symbol=${par}&interval=${tf}&limit=1000`;
+ if(end)u+='&endTime='+end;
+ const r=await conTimeout(u,20000);
+ if(!r.ok)throw new Error('HTTP '+r.status);
+ return (await r.json()).map(k=>({t:Math.floor(k[0]/1000),o:+k[1],h:+k[2],l:+k[3],c:+k[4]}));
+}
+async function historia(par,tf,tandas){
+ let todo=await klines(par,tf,1000);
+ for(let i=1;i<tandas&&todo.length;i++){
+  const mas=await klines(par,tf,1000,(todo[0].t-1)*1000);
+  if(!mas.length)break;
+  todo=[...mas,...todo].filter((v,k,a)=>k===0||v.t>a[k-1].t);
+  await dormir(120);
+ }
+ return todo;
+}
+/* ---------- cruces ---------- */
+function crucesDe(c){
+ const v=vmc(c),out=[];
+ for(let i=1;i<c.length;i++){
+  const a=v.wt1[i-1],b=v.wt2[i-1],p=v.wt1[i],q=v.wt2[i];
+  if(![a,b,p,q].every(Number.isFinite))continue;
+  if(a<=b&&p>q)out.push([c[i].t,1,+q.toFixed(2),Number.isFinite(v.mf[i])?+v.mf[i].toFixed(2):null]);
+  else if(a>=b&&p<q)out.push([c[i].t,-1,+q.toFixed(2),Number.isFinite(v.mf[i])?+v.mf[i].toFixed(2):null]);
+ }
+ return out;
+}
+/* ---------- corrida ---------- */
+let SALIDA=null;
+$('#go').onclick=async()=>{
+ $('#go').disabled=true;$('#bajar').disabled=true;$('#log').textContent='';
+ const n=+$('#uni').value, tandas=+$('#hist').value, tf=$('#tf').value;
+ const t0=Date.now();
+ try{
+  const uni=await universo(n);
+  log(`universo: ${uni.length} activos con par en Binance (de ${n} pedidos)`);
+  const datos={},fallas=[];
+  for(let i=0;i<uni.length;i++){
+   const a=uni[i];
+   est(`${i+1} de ${uni.length} · ${a.sym}`);
+   prog((i+1)/uni.length);
+   try{
+    const c=await historia(a.par,tf,tandas);
+    if(c.length<80){fallas.push(a.sym+' (pocas velas)');continue}
+    datos[a.sym]={par:a.par,rank:a.rank,n:c.length,desde:c[0].t,hasta:c[c.length-1].t,cruces:crucesDe(c)};
+   }catch(e){fallas.push(a.sym+' ('+e.message+')')}
+   await dormir(150);
+  }
+  const act=Object.keys(datos).length;
+  const cru=Object.values(datos).reduce((s,d)=>s+d.cruces.length,0);
+  const desde=Math.min(...Object.values(datos).map(d=>d.desde));
+  SALIDA={generado:new Date().toISOString(),marco:tf,universo:n,
+   motor:'VuManChu Cipher B canal 10 / prom 12 / MA 3 sobre hlc3; MF RSIMFI 60/150 -2.5',
+   formato:'cruces = [ timestamp_utc, 1 verde / -1 rojo, wt2, money_flow ]',
+   activos:datos, fallas};
+  const txt=JSON.stringify(SALIDA);
+  $('#rAct').textContent=act; $('#rCru').textContent=cru.toLocaleString('es-AR');
+  $('#rDes').textContent=dur(desde).slice(0,7);
+  $('#rPeso').textContent=(txt.length/1024/1024).toFixed(2)+' MB';
+  $('#res').classList.add('on');
+  log(`\nlisto en ${Math.round((Date.now()-t0)/1000)} s`);
+  if(fallas.length)log('sin datos ('+fallas.length+'): '+fallas.join(', '));
+  est('Terminado. Descargá el archivo y subilo al chat.');
+  $('#bajar').disabled=false;
+ }catch(e){
+  est('Falló: '+e.message);
+  log('ERROR: '+e.message+'\nSi dice \u0022Failed to fetch\u0022 y abriste el archivo desde el disco, subilo a GitHub Pages y abrilo desde ahí.');
+ }
+ $('#go').disabled=false;
+};
+$('#bajar').onclick=()=>{
+ const b=new Blob([JSON.stringify(SALIDA)],{type:'application/json'});
+ const a=document.createElement('a');
+ a.href=URL.createObjectURL(b);
+ a.download='cruces-vmc-'+new Date().toISOString().slice(0,10)+'.json';
+ a.click();
+};
+</script></body></html>
