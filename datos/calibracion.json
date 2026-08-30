@@ -1,0 +1,18 @@
+{
+  "factor": 1.0087,
+  "medido": "2026-08-30",
+  "por_que": "El market cap total de CoinGecko incluye más monedas de la cola que CRYPTOCAP, así que su total es mayor y todas las dominancias salen bajas en la misma proporción. Este factor las lleva a la escala de TradingView, que es la de la serie histórica.",
+  "referencia_tradingview": {
+    "dominancia_combinada": 81.14,
+    "usdt_d": 6.96,
+    "usdc_d": 2.81,
+    "others_d": 7.46
+  },
+  "calculado_por_coingecko_sin_factor": {
+    "dominancia_combinada": 80.44,
+    "usdt_d": 6.9,
+    "usdc_d": 2.78,
+    "others_d": 7.42
+  },
+  "como_recalibrar": "Abrir TradingView, anotar los valores en vivo de los tres símbolos, correr el script a mano y dividir el valor de TradingView por el que calcula CoinGecko sin factor. Actualizar el número de arriba y la fecha. Conviene revisarlo cada tres o cuatro meses."
+}
