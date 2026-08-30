@@ -1,0 +1,43 @@
+name: Actualizar dominancias
+
+# Corre todos los días a las 00:30 UTC (21:30 de Argentina del día anterior),
+# poco después del cierre del día en UTC. También se puede disparar a mano
+# desde la pestaña Actions con el botón "Run workflow".
+on:
+  schedule:
+    - cron: "30 0 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: dominancias
+  cancel-in-progress: false
+
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Bajar el repo
+        uses: actions/checkout@v4
+
+      - name: Preparar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Calcular y actualizar los CSV
+        run: node scripts/actualizar-dominancias.mjs
+
+      - name: Guardar si cambió algo
+        run: |
+          if [[ -z $(git status --porcelain datos) ]]; then
+            echo "Sin cambios, no hay nada que guardar."
+            exit 0
+          fi
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add datos
+          git commit -m "dominancias $(date -u +%Y-%m-%d)"
+          git push
