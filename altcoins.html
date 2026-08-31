@@ -414,7 +414,7 @@ function crearChart(o){
     }
     return r;
   }
-  const colEst=e=>e==="compra"?"#3ED9A4":e==="aviso"?"#F2B441":
+  const colEst=e=>e==="compra"?"#3ED9A4":e==="aviso"?"#F2B441":e==="neutro"?"#F2B441":
     banda?"#FF5C72":(o.niveles.find(n=>n.est==="venta")||{col:"#FF5C72"}).col;
   const rotulo=e=>({compra:"Zona de compra",venta:"Zona de venta",aviso:"Aviso",neutro:"Sin señal"})[e];
 
