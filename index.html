@@ -299,8 +299,7 @@ const GN=(q,hl,gl,ce)=>"https://news.google.com/rss/search?q="+encodeURIComponen
 const FEEDS={
  es:[
   {u:GN("bitcoin OR criptomonedas OR ethereum","es-419","AR","AR:es"),f:""},
-  {u:"https://es.cointelegraph.com/rss",f:"Cointelegraph ES"},
-  {u:"https://www.criptonoticias.com/feed/",f:"CriptoNoticias"},
+  {u:GN("ETF bitcoin OR regulacion cripto OR Reserva Federal","es-419","AR","AR:es"),f:""},
   {u:"https://es.beincrypto.com/feed/",f:"BeInCrypto ES"}
  ],
  en:[
@@ -326,20 +325,18 @@ const tinte=t=>{const c=COLOR[t]||"#5a636e";
 const hace=ts=>{const m=Math.round((Date.now()-new Date(ts))/60000);
  return m<1?"recién":m<60?"hace "+m+" min":m<1440?"hace "+Math.round(m/60)+" h":"hace "+Math.round(m/1440)+" d"};
 
-const ALTO=["etf","sec","fed","fomc","cpi","tasas","interest rate","hack","exploit","robo",
- "liquidacion","liquidation","quiebra","bankrupt","prohib","ban on","demanda","lawsuit","halving",
- "aprueba","approves","inflow","outflow","regula","custodia","reserva estrategica"];
-const MEDIO=["upgrade","actualizacion","listing","lista en","unlock","desbloqueo","alianza",
- "partnership","ronda","funding","integra","lanza","launches","mainnet","testnet","staking"];
-const RUIDO=["price prediction","prediccion de precio","podria alcanzar","could reach","could hit",
- "analyst says","segun el analista","top 5","top 10","estas altcoins","these altcoins",
- "esta cripto","best crypto","que comprar","price target","1000x"];
+/* con limites de palabra: "sec" no puede coincidir dentro de "sector",
+   ni "robo" dentro de "robot", ni "regula" dentro de "regular".
+   "demanda" sola queda afuera porque en castellano tambien es demanda de mercado. */
+const ALTO=/\betfs?\b|\bsec\b|\bcftc\b|\bfed\b|fomc|\bcpi\b|\btasas?\b|interest rate|\bhacke?|exploit|\brobad|liquidacion(es)?\b|liquidation|quiebra|bankrupt|prohibi|\bveta\b|lawsuit|demanda judicial|\bjuicio\b|halving|\baprueba|\bapproves|inflow|outflow|regulaci|regulator|\bcustodia\b|reserva estrategica/;
+const MEDIO=/upgrade|actualizacion|\blisting\b|\blista en\b|unlock|desbloqueo|alianza|partnership|\bronda de\b|funding round|integraci|\blanza\b|\blaunches\b|mainnet|testnet|staking/;
+const RUIDO=/price prediction|prediccion de precio|podria alcanzar|could reach|could hit|analyst says|segun (el|los) analista|\btop \d|estas altcoins|these altcoins|esta cripto|best crypto|que comprar|price target|1000x/;
 
 const sinTilde=t=>t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
 const tema=t=>{const x=sinTilde(t);
- if(RUIDO.some(k=>x.includes(k))) return 0;
- if(ALTO.some(k=>x.includes(k))) return 100;
- if(MEDIO.some(k=>x.includes(k))) return 60;
+ if(RUIDO.test(x)) return 0;
+ if(ALTO.test(x)) return 100;
+ if(MEDIO.test(x)) return 60;
  return 25};
 const etiqueta=t=>{const x=sinTilde(t);
  if(/\bfed\b|fomc|cpi|inflacion|inflation|tasas|interest rate|tesoro|treasury/.test(x)) return "MACRO";
@@ -359,7 +356,7 @@ function desdeXML(txt,fija){
  return [...x.querySelectorAll("item")].map(n=>{
   const bruto=(n.querySelector("title")?.textContent||"").trim();
   const src=(n.querySelector("source")?.textContent||"").trim();
-  const titulo=src?limpiarTit(bruto):bruto;
+  const titulo=fija?bruto:limpiarTit(bruto);
   return {titulo, link:(n.querySelector("link")?.textContent||"#").trim(),
    fuente:fija||src||"", ts:new Date(n.querySelector("pubDate")?.textContent||Date.now()).toISOString(),
    tag:etiqueta(titulo)};
@@ -440,7 +437,19 @@ function sello(d,viejo){
  f.className="fresco "+(h<3?"ok":h<12?"tibio":"viejo");
  f.innerHTML="<b></b>"+(viejo?"guardado ":"")+hace(d.actualizado);
  $("selloNw").textContent=d.ok+" de "+d.total+" fuentes \u00b7 "+d.revisadas+
-  " titulares \u00b7 ordenados por tema, cobertura y frescura";
+  " titulares"+(!viejo&&d.seg!=null?" en "+d.seg.toFixed(1).replace(".",",")+" s":"")+
+  " \u00b7 ordenados por tema, cobertura y frescura";
+}
+
+/* cuenta los segundos en el boton mientras se busca */
+let RELOJ=null;
+function arrancarReloj(b){
+ const t0=Date.now();
+ const tic=()=>{b.textContent="Buscando\u2026 "+Math.floor((Date.now()-t0)/1000)+" s"};
+ tic(); clearInterval(RELOJ); RELOJ=setInterval(tic,1000);
+ return ()=>{clearInterval(RELOJ); RELOJ=null;
+  b.disabled=false; b.textContent="Actualizar";
+  return (Date.now()-t0)/1000};
 }
 
 async function bajar(lista){
@@ -455,9 +464,12 @@ async function noticias(forzar){
  if(!forzar&&c&&(Date.now()-new Date(c.actualizado))/3600000<HORAS){
   pintar("nwEs",c.es); pintar("nwEn",c.en); sello(c,true); return;
  }
- b.disabled=true; b.textContent="Buscando…";
- const [es,en]=await Promise.all([bajar(FEEDS.es),bajar(FEEDS.en)]);
- b.disabled=false; b.textContent="Actualizar";
+ b.disabled=true;
+ const parar=arrancarReloj(b);
+ let es,en;
+ try{ [es,en]=await Promise.all([bajar(FEEDS.es),bajar(FEEDS.en)]) }
+ catch(e){ es={items:[],ok:0}; en={items:[],ok:0} }
+ const seg=parar();
  const total=FEEDS.es.length+FEEDS.en.length, ok=es.ok+en.ok;
  if(!ok){
   if(c){ pintar("nwEs",c.es); pintar("nwEn",c.en); sello(c,true); }
@@ -465,11 +477,11 @@ async function noticias(forzar){
    $("fresco").innerHTML="<b></b>sin conexión";
    $("selloNw").textContent = LOCAL
     ? "Abierto como archivo local: los intermediarios rechazan el origen null."
-    : "Ninguna de las "+total+" fuentes respondió.";
+    : "Ninguna de las "+total+" fuentes respondió ("+seg.toFixed(1).replace(".",",")+" s).";
    pintar("nwEs",null); pintar("nwEn",null) }
   return;
  }
- const d={actualizado:new Date().toISOString(), ok, total,
+ const d={actualizado:new Date().toISOString(), ok, total, seg,
   revisadas:es.items.length+en.items.length,
   es:colapsar(puntuar(es.items)).slice(0,12),
   en:colapsar(puntuar(en.items)).slice(0,12)};
