@@ -291,20 +291,33 @@ interesSocial().then(r=>{
 
 /* ─────────── noticias ─────────── */
 
+/* CryptoPanic está detrás de Cloudflare y rechaza a los intermediarios, así que
+   vamos a las fuentes. Google News agrega y trae el nombre del medio en cada item;
+   los medios directos suman cobertura. Si alguno deja de responder se ve en el pie. */
+const GN=(q,hl,gl,ce)=>"https://news.google.com/rss/search?q="+encodeURIComponent(q)+
+ "&hl="+hl+"&gl="+gl+"&ceid="+ce;
 const FEEDS={
- es:"https://cryptopanic.com/news/rss/?regions=es",
- en:"https://cryptopanic.com/news/rss/"
+ es:[
+  {u:GN("bitcoin OR criptomonedas OR ethereum","es-419","AR","AR:es"),f:""},
+  {u:"https://es.cointelegraph.com/rss",f:"Cointelegraph ES"},
+  {u:"https://www.criptonoticias.com/feed/",f:"CriptoNoticias"},
+  {u:"https://es.beincrypto.com/feed/",f:"BeInCrypto ES"}
+ ],
+ en:[
+  {u:GN("bitcoin OR cryptocurrency OR ethereum","en-US","US","US:en"),f:""},
+  {u:"https://www.coindesk.com/arc/outboundfeeds/rss/",f:"CoinDesk"},
+  {u:"https://cointelegraph.com/rss",f:"Cointelegraph"},
+  {u:"https://decrypt.co/feed",f:"Decrypt"},
+  {u:"https://cryptoslate.com/feed/",f:"CryptoSlate"}
+ ]
 };
-/* CryptoPanic no manda cabeceras CORS, así que el pedido pasa por un intermediario.
-   Se prueban en orden hasta que uno responda. Los dos primeros mandan la cabecera
-   fija, así que son los únicos que pueden llegar a funcionar desde file://. */
+/* intermediarios que mandan la cabecera fija; se prueban en orden */
 const PROXIES=[
  {u:x=>"https://api.rss2json.com/v1/api.json?rss_url="+encodeURIComponent(x), t:"rss2json"},
  {u:x=>"https://api.allorigins.win/get?url="+encodeURIComponent(x), t:"envuelto"},
- {u:x=>"https://api.codetabs.com/v1/proxy?quest="+encodeURIComponent(x), t:"xml"},
- {u:x=>"https://api.allorigins.win/raw?url="+encodeURIComponent(x), t:"xml"}
+ {u:x=>"https://api.codetabs.com/v1/proxy?quest="+encodeURIComponent(x), t:"xml"}
 ];
-const CACHE="vmc:noticias:v1";
+const CACHE="vmc:noticias:v2";
 const HORAS=20;
 
 const COLOR={BTC:"#f5b544",ETH:"#a78bfa",SOL:"#4ade80",XRP:"#7d9bff",MACRO:"#4d9dff"};
@@ -320,23 +333,64 @@ const MEDIO=["upgrade","actualizacion","listing","lista en","unlock","desbloqueo
  "partnership","ronda","funding","integra","lanza","launches","mainnet","testnet","staking"];
 const RUIDO=["price prediction","prediccion de precio","podria alcanzar","could reach","could hit",
  "analyst says","segun el analista","top 5","top 10","estas altcoins","these altcoins",
- "esta cripto","best crypto","que comprar","price target","moon","1000x"];
+ "esta cripto","best crypto","que comprar","price target","1000x"];
 
 const sinTilde=t=>t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
-const tema=t=>{const s=sinTilde(t);
- if(RUIDO.some(k=>s.includes(k))) return 0;
- if(ALTO.some(k=>s.includes(k))) return 100;
- if(MEDIO.some(k=>s.includes(k))) return 60;
+const tema=t=>{const x=sinTilde(t);
+ if(RUIDO.some(k=>x.includes(k))) return 0;
+ if(ALTO.some(k=>x.includes(k))) return 100;
+ if(MEDIO.some(k=>x.includes(k))) return 60;
  return 25};
-const etiqueta=t=>{const s=sinTilde(t);
- if(/\bfed\b|fomc|cpi|inflacion|inflation|tasas|interest rate|tesoro|treasury/.test(s)) return "MACRO";
- if(/bitcoin|\bbtc\b/.test(s)) return "BTC";
- if(/ethereum|\beth\b|ether\b/.test(s)) return "ETH";
- if(/solana|\bsol\b/.test(s)) return "SOL";
- if(/ripple|\bxrp\b/.test(s)) return "XRP";
+const etiqueta=t=>{const x=sinTilde(t);
+ if(/\bfed\b|fomc|cpi|inflacion|inflation|tasas|interest rate|tesoro|treasury/.test(x)) return "MACRO";
+ if(/bitcoin|\bbtc\b/.test(x)) return "BTC";
+ if(/ethereum|\beth\b|ether\b/.test(x)) return "ETH";
+ if(/solana|\bsol\b/.test(x)) return "SOL";
+ if(/ripple|\bxrp\b/.test(x)) return "XRP";
  return "CRIPTO"};
 const toks=t=>new Set(sinTilde(t).match(/[a-z0-9]{4,}/g)||[]);
 const jac=(a,b)=>{let i=0;a.forEach(x=>{if(b.has(x))i++});return i/((a.size+b.size-i)||1)};
+
+/* Google News pega " - Medio" al final del título y expone el medio aparte */
+const limpiarTit=t=>t.replace(/\s+-\s+[^-]{2,40}$/,"").trim();
+
+function desdeXML(txt,fija){
+ const x=new DOMParser().parseFromString(txt,"text/xml");
+ return [...x.querySelectorAll("item")].map(n=>{
+  const bruto=(n.querySelector("title")?.textContent||"").trim();
+  const src=(n.querySelector("source")?.textContent||"").trim();
+  const titulo=src?limpiarTit(bruto):bruto;
+  return {titulo, link:(n.querySelector("link")?.textContent||"#").trim(),
+   fuente:fija||src||"", ts:new Date(n.querySelector("pubDate")?.textContent||Date.now()).toISOString(),
+   tag:etiqueta(titulo)};
+ }).filter(o=>o.titulo);
+}
+
+async function traer(url,fija){
+ for(const p of PROXIES){
+  try{
+   const r=await fetch(p.u(url),{cache:"no-store"});
+   if(!r.ok) continue;
+   let items=null;
+   if(p.t==="rss2json"){
+    const j=await r.json();
+    if(j.status!=="ok"||!j.items) continue;
+    items=j.items.map(n=>{
+     const bruto=(n.title||"").trim(), src=(n.author||"").trim();
+     const titulo=fija?bruto:limpiarTit(bruto);
+     return {titulo, link:n.link||"#", fuente:fija||src||"",
+      ts:new Date(n.pubDate||Date.now()).toISOString(), tag:etiqueta(titulo)};
+    }).filter(o=>o.titulo);
+   }else if(p.t==="envuelto"){
+    const j=await r.json(); items=desdeXML(j.contents||"",fija);
+   }else{
+    items=desdeXML(await r.text(),fija);
+   }
+   if(items&&items.length) return items;
+  }catch(e){}
+ }
+ return null;
+}
 
 function puntuar(items){
  const T=items.map(o=>toks(o.titulo));
@@ -347,46 +401,21 @@ function puntuar(items){
   items.forEach((p,j)=>{ if(j!==i && otra(o,p) && jac(T[i],T[j])>.45) pares++ });
   const cobertura=Math.min(100,pares*35);
   const tm=tema(o.titulo);
-  return {...o,fuente:o.fuente||"CryptoPanic",
+  return {...o,fuente:o.fuente||"sin medio",
    tema:tm,frescura:Math.round(frescura),cobertura,
    score:.45*tm+.30*frescura+.25*cobertura};
  });
 }
 
-function desdeXML(txt){
- const x=new DOMParser().parseFromString(txt,"text/xml");
- return [...x.querySelectorAll("item")].map(n=>{
-  const titulo=(n.querySelector("title")?.textContent||"").trim();
-  return {titulo, link:(n.querySelector("link")?.textContent||"#").trim(),
-   fuente:(n.querySelector("source")?.textContent||"").trim(),
-   ts:new Date(n.querySelector("pubDate")?.textContent||Date.now()).toISOString(),
-   tag:etiqueta(titulo)};
- }).filter(o=>o.titulo);
-}
-
-async function traer(url){
- for(const p of PROXIES){
-  try{
-   const r=await fetch(p.u(url),{cache:"no-store"});
-   if(!r.ok) continue;
-   let items=null;
-   if(p.t==="rss2json"){
-    const j=await r.json();
-    if(j.status!=="ok"||!j.items) continue;
-    items=j.items.map(n=>({titulo:(n.title||"").trim(), link:n.link||"#",
-     fuente:(n.author||"").trim(),
-     ts:new Date(n.pubDate||Date.now()).toISOString(),
-     tag:etiqueta(n.title||"")})).filter(o=>o.titulo);
-   }else if(p.t==="envuelto"){
-    const j=await r.json();
-    items=desdeXML(j.contents||"");
-   }else{
-    items=desdeXML(await r.text());
-   }
-   if(items&&items.length) return items;
-  }catch(e){}
+/* una misma noticia llega por varias vías: se puntúa con todas y después se muestra una sola */
+function colapsar(items){
+ const orden=items.slice().sort((a,b)=>b.score-a.score), out=[], T=[];
+ for(const o of orden){
+  const t=toks(o.titulo);
+  if(T.some(p=>jac(t,p)>.6)) continue;
+  T.push(t); out.push(o);
  }
- return null;
+ return out;
 }
 
 const fila=(o,i)=>'<a class="rk'+(i<3?" top":"")+'" href="'+o.link+'" target="_blank" rel="noopener">'+
@@ -398,12 +427,10 @@ const fila=(o,i)=>'<a class="rk'+(i<3?" top":"")+'" href="'+o.link+'" target="_b
  '</span></span></a>';
 
 const LOCAL = location.protocol==="file:";
-const AVISO = LOCAL
- ? "Abierto como archivo local: el navegador manda origen <code>null</code> y los intermediarios lo rechazan. Subilo a GitHub Pages o servilo con <code>python -m http.server</code>."
- : "No respondió ningún intermediario. Probá con Actualizar en un rato.";
+const AVISO = "No respondió ninguna fuente. Probá con Actualizar en un rato.";
 
 function pintar(id,items){
- const l=(items||[]).slice().sort((a,b)=>b.score-a.score).slice(0,8);
+ const l=(items||[]).slice(0,8);
  $(id).innerHTML=l.length?'<div class="listaNw">'+l.map(fila).join("")+'</div>'
   :'<p class="vacio">'+AVISO+'</p>';
 }
@@ -412,8 +439,13 @@ function sello(d,viejo){
  const f=$("fresco"), h=(Date.now()-new Date(d.actualizado))/3600000;
  f.className="fresco "+(h<3?"ok":h<12?"tibio":"viejo");
  f.innerHTML="<b></b>"+(viejo?"guardado ":"")+hace(d.actualizado);
- $("selloNw").textContent="CryptoPanic \u00b7 "+d.revisadas+
-  " titulares revisados \u00b7 ordenados por tema, cobertura y frescura";
+ $("selloNw").textContent=d.ok+" de "+d.total+" fuentes \u00b7 "+d.revisadas+
+  " titulares \u00b7 ordenados por tema, cobertura y frescura";
+}
+
+async function bajar(lista){
+ const r=await Promise.all(lista.map(x=>traer(x.u,x.f)));
+ return {items:r.filter(Boolean).flat(), ok:r.filter(Boolean).length};
 }
 
 async function noticias(forzar){
@@ -424,17 +456,23 @@ async function noticias(forzar){
   pintar("nwEs",c.es); pintar("nwEn",c.en); sello(c,true); return;
  }
  b.disabled=true; b.textContent="Buscando…";
- const [es,en]=await Promise.all([traer(FEEDS.es),traer(FEEDS.en)]);
+ const [es,en]=await Promise.all([bajar(FEEDS.es),bajar(FEEDS.en)]);
  b.disabled=false; b.textContent="Actualizar";
- if(!es&&!en){
+ const total=FEEDS.es.length+FEEDS.en.length, ok=es.ok+en.ok;
+ if(!ok){
   if(c){ pintar("nwEs",c.es); pintar("nwEn",c.en); sello(c,true); }
-  else{ $("fresco").className="fresco viejo"; $("fresco").innerHTML="<b></b>sin conexión al feed";
-   pintar("nwEs",null); pintar("nwEn",null); }
+  else{ $("fresco").className="fresco viejo";
+   $("fresco").innerHTML="<b></b>sin conexión";
+   $("selloNw").textContent = LOCAL
+    ? "Abierto como archivo local: los intermediarios rechazan el origen null."
+    : "Ninguna de las "+total+" fuentes respondió.";
+   pintar("nwEs",null); pintar("nwEn",null) }
   return;
  }
- const d={actualizado:new Date().toISOString(),
-  revisadas:(es||[]).length+(en||[]).length,
-  es:puntuar(es||[]), en:puntuar(en||[])};
+ const d={actualizado:new Date().toISOString(), ok, total,
+  revisadas:es.items.length+en.items.length,
+  es:colapsar(puntuar(es.items)).slice(0,12),
+  en:colapsar(puntuar(en.items)).slice(0,12)};
  try{ localStorage.setItem(CACHE,JSON.stringify(d)) }catch(e){}
  pintar("nwEs",d.es); pintar("nwEn",d.en); sello(d,false);
 }
