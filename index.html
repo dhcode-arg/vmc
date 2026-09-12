@@ -325,12 +325,14 @@ const tinte=t=>{const c=COLOR[t]||"#5a636e";
 const hace=ts=>{const m=Math.round((Date.now()-new Date(ts))/60000);
  return m<1?"recién":m<60?"hace "+m+" min":m<1440?"hace "+Math.round(m/60)+" h":"hace "+Math.round(m/1440)+" d"};
 
-/* con limites de palabra: "sec" no puede coincidir dentro de "sector",
-   ni "robo" dentro de "robot", ni "regula" dentro de "regular".
-   "demanda" sola queda afuera porque en castellano tambien es demanda de mercado. */
-const ALTO=/\betfs?\b|\bsec\b|\bcftc\b|\bfed\b|fomc|\bcpi\b|\btasas?\b|interest rate|\bhacke?|exploit|\brobad|liquidacion(es)?\b|liquidation|quiebra|bankrupt|prohibi|\bveta\b|lawsuit|demanda judicial|\bjuicio\b|halving|\baprueba|\bapproves|inflow|outflow|regulaci|regulator|\bcustodia\b|reserva estrategica/;
-const MEDIO=/upgrade|actualizacion|\blisting\b|\blista en\b|unlock|desbloqueo|alianza|partnership|\bronda de\b|funding round|integraci|\blanza\b|\blaunches\b|mainnet|testnet|staking/;
-const RUIDO=/price prediction|prediccion de precio|podria alcanzar|could reach|could hit|analyst says|segun (el|los) analista|\btop \d|estas altcoins|these altcoins|esta cripto|best crypto|que comprar|price target|1000x/;
+/* diccionarios bilingues, con limites de palabra: "sec" no puede coincidir dentro de
+   "sector", ni "robo" dentro de "robot", ni "regula" dentro de "regular".
+   "demanda" sola queda afuera porque en castellano tambien es demanda de mercado.
+   Los verbos van como prefijo (\bapprov) porque los titulares en ingles usan
+   pasado y sustantivo mucho mas que presente. */
+const ALTO=/\betfs?\b|\bsec\b|\bcftc\b|\bfed\b|fomc|\bcpi\b|\btasas?\b|interest rate|rate (cut|hike)|recorte de tasas|\bhacke?|exploit|\brobad|breach|liquidacion(es)?\b|liquidation|quiebra|bankrupt|insolven|prohibi|\bbans?\b|\bbanned\b|\bveta\b|\bveto\b|crackdown|lawsuit|demanda judicial|\bjuicio\b|\bcourt\b|\bjudge\b|\bjuez\b|\bruling\b|\bfallo\b|\btribunal\b|subpoena|settlement|\bfined\b|penalt|multa|halving|\baprueb|\baprob|\bapprov|inflow|outflow|regulaci|regulator|\bcustod|senate|congress|senado|congreso|executive order|decreto|white house|casa blanca|\bley\b|\bbill\b|strategic reserve|reserva estrategica|\bpurchase|stockpile|delist|deslist|depeg|sanction|sancion|tariff|arancel|\boutage\b|suspend/;
+const MEDIO=/upgrade|actualizacion|\blisting\b|\blista en\b|lists on|unlock|desbloqueo|alianza|partner|\bronda de\b|funding round|\bintegrat|integraci|\blanza|\blaunch|mainnet|testnet|staking|airdrop|roadmap|\bhard fork\b/;
+const RUIDO=/price prediction|\bprediction\b|prediccion de precio|podria alcanzar|podrian alcanzar|could reach|could hit|poised to|set to (soar|surge|explode|skyrocket)|ready to explode|analyst says|segun (el|los) analista|\btop \d|estas altcoins|these altcoins|esta cripto|best crypto|mejores cripto|que comprar|should you buy|worth buying|price target|here'?s why|1000x/;
 
 const sinTilde=t=>t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
 const tema=t=>{const x=sinTilde(t);
