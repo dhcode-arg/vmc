@@ -373,6 +373,27 @@ footer{color:var(--mu2);font-size:11px;margin-top:26px;border-top:1px solid var(
 
  <div class="icard" style="margin-top:10px">
   <div class="ihd">
+   <span class="nm"><i style="background:#38bdf8"></i>Medias móviles <span id="emPar">EMA 50 / 200 · diario</span></span>
+   <span class="val" id="emVal" style="color:#38bdf8">—</span>
+   <span class="sp">
+    <span class="lbl">desde</span>
+    <select class="mini" id="emDes">
+     <option value="0">todo (2012)</option><option value="2017">2017</option><option value="2021" selected>2021</option>
+    </select>
+    <label class="chip" style="min-height:34px;padding:6px 11px"><input type="checkbox" id="emBaj"><i class="sw"></i>cruce bajista</label>
+   </span>
+  </div>
+  <canvas id="cve"></canvas>
+  <div class="cycmet" style="padding:0 12px 12px">
+   <div><b id="emU">—</b><span>último cruce dorado</span></div>
+   <div><b id="emD">—</b><span>días desde el cruce</span></div>
+   <div><b id="emG">—</b><span>brecha 50 contra 200</span></div>
+   <div><b id="emE">—</b><span>estado actual</span></div>
+  </div>
+ </div>
+
+ <div class="icard" style="margin-top:10px">
+  <div class="ihd">
    <span class="nm"><i style="background:#f5b544"></i>Liquidez <span id="lPar">EE.UU.</span></span>
    <span class="val" id="lVal" style="color:#f5b544">sin conectar</span>
    <span class="sp">
@@ -1134,6 +1155,68 @@ function drawPi(){
 }
 
 
+/* ================= medias móviles 50 / 200 ================= */
+/* la EMA 200 necesita calentar: antes de EM_WARM velas los cruces son del arranque
+   de la serie, no del mercado, y hay que ignorarlos */
+const EM_WARM=250;
+let EM=null;
+function calcEM(){
+ const c=DC.map(x=>x.c), e50=ema(c,50), e200=ema(c,200), cr=[];
+ for(let i=Math.max(1,EM_WARM);i<c.length;i++){
+  if(!Number.isFinite(e50[i])||!Number.isFinite(e200[i]))continue;
+  if(e50[i-1]<=e200[i-1]&&e50[i]>e200[i])cr.push({i,k:'oro'});
+  if(e50[i-1]>=e200[i-1]&&e50[i]<e200[i])cr.push({i,k:'baja'});
+ }
+ return {e50,e200,cr};
+}
+function drawEM(){
+ if(!EM)return;
+ resetLbl();
+ const verBaj=$('#emBaj').checked, desde=+$('#emDes').value;
+ const iAno=desde?DC.findIndex(x=>new Date(x.t*1000).getUTCFullYear()>=desde):-1;
+ const i0=Math.max(EM_WARM, iAno<0?EM_WARM:iAno);
+ const N=DC.length-i0; if(N<10)return;
+ const cc=DC.slice(i0);
+ const cv=$('#cve'),dpr=window.devicePixelRatio||1,W=cv.clientWidth;
+ const H=Math.round(Math.min(250,Math.max(170,window.innerHeight*0.23)));
+ cv.width=W*dpr;cv.height=H*dpr;cv.style.height=H+'px';
+ const x=cv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,W,H);
+ x.font='10px ui-monospace,monospace';
+ const PL=8,PR=W<420?46:58,PT=8,PB=18,h=H-PT-PB,X=i=>PL+((W-PL-PR)/N)*(i+0.5);
+ x.fillStyle='#0e1218';x.fillRect(PL,PT,W-PL-PR,h);
+ const vv=[];
+ for(let i=i0;i<DC.length;i++){vv.push(DC[i].c);
+  if(Number.isFinite(EM.e50[i]))vv.push(EM.e50[i]);
+  if(Number.isFinite(EM.e200[i]))vv.push(EM.e200[i])}
+ const lo=Math.log10(Math.min.apply(null,vv)),hi=Math.log10(Math.max.apply(null,vv)*1.08);
+ const Y=v=>PT+h-((Math.log10(v)-lo)/(hi-lo))*h;
+ [1000,10000,100000].forEach(v=>{if(Math.log10(v)<lo||Math.log10(v)>hi)return;const y=Y(v);
+  x.strokeStyle='#1a2028';x.beginPath();x.moveTo(PL,y);x.lineTo(W-PR,y);x.stroke();
+  x.fillStyle='#5a636e';x.textAlign='left';x.fillText(v>=1000?(v/1000)+'k':v,W-PR+6,y+3)});
+ const linea=(arr,col,lw)=>{x.strokeStyle=col;x.lineWidth=lw;x.beginPath();let st=0;
+  for(let i=0;i<N;i++){const v=arr[i];if(!Number.isFinite(v))continue;
+   st?x.lineTo(X(i),Y(v)):(x.moveTo(X(i),Y(v)),st=1)}x.stroke()};
+ linea(cc.map(p=>p.c),'rgba(232,238,247,.4)',1.1);
+ linea(EM.e200.slice(i0),'#a78bfa',1.7);
+ linea(EM.e50.slice(i0),'#38bdf8',1.7);
+ EM.cr.forEach(k=>{const i=k.i-i0;if(i<0||i>=N)return;
+  const oro=k.k==='oro'; if(!oro&&!verBaj)return;
+  x.strokeStyle=oro?'rgba(74,222,128,.42)':'rgba(255,82,82,.42)';x.lineWidth=1;x.setLineDash([2,3]);
+  x.beginPath();x.moveTo(X(i),PT);x.lineTo(X(i),PT+h);x.stroke();x.setLineDash([]);
+  x.beginPath();x.arc(X(i),Y(EM.e50[k.i]),5,0,Math.PI*2);
+  x.fillStyle=oro?'#4ade80':'#ff5252';x.fill();
+  x.strokeStyle='#0e1218';x.lineWidth=2;x.stroke()});
+ ejeX(x,cc,X,N,W,PL,PR,PT,PT+h,'d1');
+ const n=DC.length-1, sobre=EM.e50[n]>EM.e200[n];
+ const g=(EM.e50[n]-EM.e200[n])/EM.e200[n]*100;
+ $('#emVal').textContent=`EMA50 ${Math.round(EM.e50[n]).toLocaleString('es-AR')} · EMA200 ${Math.round(EM.e200[n]).toLocaleString('es-AR')}`;
+ const oros=EM.cr.filter(k=>k.k==='oro'), u=oros[oros.length-1];
+ $('#emU').innerHTML=u?`<span style="font-size:15px;color:#86efac">${fCorta(DC[u.i].t,'d1')}</span>`:'<span style="font-size:14px;color:var(--mu)">ninguno</span>';
+ $('#emD').innerHTML=u?`${Math.round((DC[n].t-DC[u.i].t)/86400)} <span style="font-size:12px;color:var(--mu)">días</span>`:'—';
+ $('#emG').innerHTML=`<span style="color:${g>=0?'#86efac':'#ff8a8a'}">${g>=0?'+':'\u2212'}${Math.abs(g).toFixed(1).replace('.',',')}%</span>`;
+ $('#emE').innerHTML=`<span style="font-size:14px;color:${sobre?'#86efac':'#ff8a8a'}">50 ${sobre?'sobre':'bajo'} 200</span>`;
+}
+
 /* ================= vista de confirmación ================= */
 function macdSer(c,f,sl,g){const cl=c.map(x=>x.c);
  const m=ema(cl,f).map((v,i)=>v-ema(cl,sl)[i]);return {m,sg:ema(m,g)}}
@@ -1330,7 +1413,7 @@ function drawM(){
 }
 
 const pintar=()=>{
- const pasos=[['gráfico',draw],['RSI',drawR],['MACD',drawM],['ciclo',drawCiclo],['Pi Cycle',drawPi],['vista de confirmación',drawVista]];
+ const pasos=[['gráfico',draw],['RSI',drawR],['MACD',drawM],['ciclo',drawCiclo],['Pi Cycle',drawPi],['medias móviles',drawEM],['vista de confirmación',drawVista]];
  const rotos=[];
  pasos.forEach(([n,f])=>{try{f()}catch(e){rotos.push(n+': '+e.message);console.error('[VMC]',n,e)}});
  if(rotos.length){const el=document.querySelector('#err');
@@ -1395,6 +1478,8 @@ $('#lBtc').onchange=e=>{LQ.btc=e.target.checked?1:0;e.target.closest('.chip').cl
 $('#piMod').onchange=drawPi;
 ['vLado','vDes','vVent','vPi'].forEach(id=>$('#'+id).onchange=e=>{if(e.target.type==='checkbox')e.target.closest('.chip').classList.toggle('on',e.target.checked);drawVista()});
 $('#piDes').onchange=drawPi;
+$('#emDes').onchange=drawEM;
+$('#emBaj').onchange=e=>{e.target.closest('.chip').classList.toggle('on',e.target.checked);drawEM()};
 $('#cRe').onclick=()=>{calcCiclos(true);drawCiclo()};
 $('#bDiag').onclick=probar;
 const cvm=$('#cvm');let dragM=null;
@@ -1821,6 +1906,7 @@ window.addEventListener('unhandledrejection',ev=>fallar('una promesa sin atrapar
  try{
   etapa='descarga de datos';   await cargarDatos(est);
   etapa='cálculo del Pi Cycle'; est('Calculando ciclos…'); PI=calcPI();
+  etapa='cálculo de las medias'; EM=calcEM();
   etapa='configuración guardada'; restaurar();
   etapa='dibujado';            est('Dibujando…'); pintar();
   avisarStorage(); drawLiq(); drawSocial();
