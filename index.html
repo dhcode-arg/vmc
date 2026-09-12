@@ -73,6 +73,19 @@ footer{color:var(--mu2);font-size:11.5px;margin-top:28px;border-top:1px solid va
 .fresco.ok{color:var(--gr);border-color:rgba(74,222,128,.32);background:rgba(74,222,128,.08)}
 .fresco.tibio{color:var(--am);border-color:rgba(245,181,68,.32);background:rgba(245,181,68,.08)}
 .fresco.viejo{color:#ff5252;border-color:rgba(255,82,82,.32);background:rgba(255,82,82,.08)}
+.alerta{border:1px solid rgba(255,82,82,.35);background:rgba(255,82,82,.06);
+ border-radius:14px;padding:13px 15px;margin-top:26px}
+.alerta .hd{display:flex;align-items:center;gap:9px;margin-bottom:4px}
+.alerta .hd b{font-size:13.5px;color:#ff8a8a;font-weight:650}
+.alerta .hd span{font-size:11px;color:var(--mu2)}
+a.rg{display:flex;gap:11px;padding:11px 0;border-top:1px solid rgba(255,82,82,.16);
+ text-decoration:none;color:inherit}
+a.rg:hover{background:rgba(255,255,255,.02)}
+.ex{flex:none;font-size:10px;font-weight:650;border-radius:6px;padding:2px 7px;height:fit-content;
+ margin-top:2px;background:rgba(255,82,82,.16);color:#ff8a8a;border:1px solid rgba(255,82,82,.32)}
+.rg .cu{min-width:0;flex:1}
+.rg .ti{font-size:13.5px;line-height:1.45;display:block}
+.rg .me{font-size:11.5px;color:var(--mu2);margin-top:5px;display:block}
 .dosCol{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:4px 28px}
 .rec{font:inherit;font-size:11.5px;color:var(--mu);background:none;border:1px solid var(--bd);
  border-radius:999px;padding:3px 11px;cursor:pointer;transition:border-color .15s,color .15s}
@@ -163,6 +176,8 @@ a.rk.top .no{color:var(--ac);font-weight:650}
  </a>
 
 </div>
+
+<div id="riesgo"></div>
 
 <div class="nwhd">
  <h2 style="margin:0">Lo que mueve el mercado</h2>
@@ -296,6 +311,7 @@ interesSocial().then(r=>{
    los medios directos suman cobertura. Si alguno deja de responder se ve en el pie. */
 const GN=(q,hl,gl,ce)=>"https://news.google.com/rss/search?q="+encodeURIComponent(q)+
  "&hl="+hl+"&gl="+gl+"&ceid="+ce;
+const NOMBRES='"Lemon Cash" OR Binance OR SatoshiTango OR "Gate.io" OR Bybit OR Buenbit OR Nexo OR CoinEx';
 const FEEDS={
  es:[
   {u:GN("bitcoin OR criptomonedas OR ethereum","es-419","AR","AR:es"),f:""},
@@ -308,6 +324,10 @@ const FEEDS={
   {u:"https://cointelegraph.com/rss",f:"Cointelegraph"},
   {u:"https://decrypt.co/feed",f:"Decrypt"},
   {u:"https://cryptoslate.com/feed/",f:"CryptoSlate"}
+ ],
+ riesgo:[
+  {u:GN(NOMBRES,"es-419","AR","AR:es"),f:""},
+  {u:GN(NOMBRES,"en-US","US","US:en"),f:""}
  ]
 };
 /* intermediarios que mandan la cabecera fija; se prueban en orden */
@@ -316,7 +336,7 @@ const PROXIES=[
  {u:x=>"https://api.allorigins.win/get?url="+encodeURIComponent(x), t:"envuelto"},
  {u:x=>"https://api.codetabs.com/v1/proxy?quest="+encodeURIComponent(x), t:"xml"}
 ];
-const CACHE="vmc:noticias:v2";
+const CACHE="vmc:noticias:v3";
 const HORAS=20;
 
 const COLOR={BTC:"#f5b544",ETH:"#a78bfa",SOL:"#4ade80",XRP:"#7d9bff",MACRO:"#4d9dff"};
@@ -347,6 +367,41 @@ const etiqueta=t=>{const x=sinTilde(t);
  if(/solana|\bsol\b/.test(x)) return "SOL";
  if(/ripple|\bxrp\b/.test(x)) return "XRP";
  return "CRIPTO"};
+/* exchanges donde el usuario tiene fondos. Los cuatro primeros son inequivocos;
+   los cuatro de abajo llevan salvaguardas porque son palabras comunes:
+   "satoshi" solo pesca a Nakamoto, "lemon pie", "Golden Gate", y "nexo" que en
+   castellano significa vinculo. */
+const EXCHANGES=[
+ {n:"Binance",      re:/\bbinance\b/},
+ {n:"Bybit",        re:/\bbybit\b/},
+ {n:"CoinEx",       re:/\bcoinex\b/},
+ {n:"Buenbit",      re:/\bbuenbit\b/},
+ {n:"SatoshiTango", re:/satoshi\s*tango/},
+ {n:"Lemon Cash",   re:/lemon\s*cash|\blemon\b(?!\s+(?:pie|tree|juice|squeez))/},
+ {n:"Gate.io",      re:/gate\.io|(?<!golden\s)\bgate\b(?!\s+(?:ventures|bridge|park))/},
+ {n:"Nexo",         re:/(?<!\b(?:el|un|ese|este|su|algun|ningun|cierto)\s)\bnexo\b(?!\s+(?:entre|con|de)\b)/}
+];
+/* solo nivel critico: algo que ya pasó y toca los fondos. Lo dudoso queda afuera
+   a propósito, una alerta que está siempre prendida deja de ser alerta. */
+const RIESGO=new RegExp([
+ "suspende (los )?retiros","pausa (los )?retiros","retiros suspendidos","congela (los )?fondos",
+ "fondos congelados","no pueden? retirar","frena (los )?retiros","corrida bancaria",
+ "halts? withdrawals","pauses? withdrawals","suspends? withdrawals","freezes? (funds|assets)",
+ "withdrawals? (halted|paused|suspended|frozen)","funds (stuck|frozen)","bank run",
+ "quiebra","bancarrota","insolven","concurso de acreedores","cesacion de pagos",
+ "bankrupt","chapter 11","receivership","liquidacion judicial","winding down","wind-?down",
+ "colapso","collapse",
+ "hacke","vulnerad","brecha de seguridad","robo de fondos","fondos robados","drenad",
+ "\\bhacked\\b","\\bhack\\b","security breach","exploited","drained","stolen funds",
+ "cierra operaciones","cesa operaciones","deja de operar","cierre de operaciones",
+ "se retira (del pais|de argentina|del mercado)","bloquea","bloqueo",
+ "shuts? down","ceases? operations","exits? the market","blocked","cease and desist",
+ "revoca (la )?licencia","licencia revocada","pierde la licencia","suspende la licencia",
+ "license revoked","loses? (its )?license","allanamiento","raided","\\braid\\b",
+ "detenid","arrestad","imputad","procesad","arrested","indicted","charged with","pleads guilty"
+].join("|"));
+const HS_RIESGO=72;
+
 const toks=t=>new Set(sinTilde(t).match(/[a-z0-9]{4,}/g)||[]);
 const jac=(a,b)=>{let i=0;a.forEach(x=>{if(b.has(x))i++});return i/((a.size+b.size-i)||1)};
 
@@ -417,6 +472,31 @@ function colapsar(items){
  return out;
 }
 
+/* entra solo si el titular nombra un exchange Y describe un hecho critico */
+function alertas(items){
+ const lim=Date.now()-HS_RIESGO*3600000, out=[];
+ for(const o of items){
+  if(new Date(o.ts).getTime()<lim) continue;
+  const x=sinTilde(o.titulo);
+  if(!RIESGO.test(x)) continue;
+  const e=EXCHANGES.find(e=>e.re.test(x));
+  if(!e) continue;
+  out.push({...o, ex:e.n, score:new Date(o.ts).getTime()});
+ }
+ return colapsar(out).slice(0,6);
+}
+
+function pintarRiesgo(items){
+ const c=$("riesgo");
+ if(!items||!items.length){ c.innerHTML=""; return }
+ c.innerHTML='<div class="alerta"><div class="hd"><b>Riesgo en exchanges</b>'+
+  '<span>'+items.length+(items.length===1?" noticia":" noticias")+" de las últimas 72 h</span></div>"+
+  items.map(o=>'<a class="rg" href="'+o.link+'" target="_blank" rel="noopener">'+
+   '<span class="ex">'+o.ex+'</span><span class="cu">'+
+   '<span class="ti">'+o.titulo+'</span>'+
+   '<span class="me">'+o.fuente+" \u00b7 "+hace(o.ts)+'</span></span></a>').join("")+'</div>';
+}
+
 const fila=(o,i)=>'<a class="rk'+(i<3?" top":"")+'" href="'+o.link+'" target="_blank" rel="noopener">'+
  '<span class="no">'+(i+1)+'</span><span class="cu">'+
  '<span class="ti">'+o.titulo+'</span>'+
@@ -464,31 +544,33 @@ async function noticias(forzar){
  let c=null;
  try{ c=JSON.parse(localStorage.getItem(CACHE)||"null") }catch(e){}
  if(!forzar&&c&&(Date.now()-new Date(c.actualizado))/3600000<HORAS){
-  pintar("nwEs",c.es); pintar("nwEn",c.en); sello(c,true); return;
+  pintar("nwEs",c.es); pintar("nwEn",c.en); pintarRiesgo(c.riesgo); sello(c,true); return;
  }
  b.disabled=true;
  const parar=arrancarReloj(b);
  let es,en;
- try{ [es,en]=await Promise.all([bajar(FEEDS.es),bajar(FEEDS.en)]) }
- catch(e){ es={items:[],ok:0}; en={items:[],ok:0} }
+ let rg;
+ try{ [es,en,rg]=await Promise.all([bajar(FEEDS.es),bajar(FEEDS.en),bajar(FEEDS.riesgo)]) }
+ catch(e){ es={items:[],ok:0}; en={items:[],ok:0}; rg={items:[],ok:0} }
  const seg=parar();
- const total=FEEDS.es.length+FEEDS.en.length, ok=es.ok+en.ok;
+ const total=FEEDS.es.length+FEEDS.en.length+FEEDS.riesgo.length, ok=es.ok+en.ok+rg.ok;
  if(!ok){
-  if(c){ pintar("nwEs",c.es); pintar("nwEn",c.en); sello(c,true); }
+  if(c){ pintar("nwEs",c.es); pintar("nwEn",c.en); pintarRiesgo(c.riesgo); sello(c,true); }
   else{ $("fresco").className="fresco viejo";
    $("fresco").innerHTML="<b></b>sin conexión";
    $("selloNw").textContent = LOCAL
     ? "Abierto como archivo local: los intermediarios rechazan el origen null."
     : "Ninguna de las "+total+" fuentes respondió ("+seg.toFixed(1).replace(".",",")+" s).";
-   pintar("nwEs",null); pintar("nwEn",null) }
+   pintar("nwEs",null); pintar("nwEn",null); pintarRiesgo(null) }
   return;
  }
  const d={actualizado:new Date().toISOString(), ok, total, seg,
   revisadas:es.items.length+en.items.length,
   es:colapsar(puntuar(es.items)).slice(0,12),
-  en:colapsar(puntuar(en.items)).slice(0,12)};
+  en:colapsar(puntuar(en.items)).slice(0,12),
+  riesgo:alertas([...rg.items,...es.items,...en.items])};
  try{ localStorage.setItem(CACHE,JSON.stringify(d)) }catch(e){}
- pintar("nwEs",d.es); pintar("nwEn",d.en); sello(d,false);
+ pintar("nwEs",d.es); pintar("nwEn",d.en); pintarRiesgo(d.riesgo); sello(d,false);
 }
 
 $("rec").onclick=()=>noticias(true);
