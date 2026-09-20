@@ -250,7 +250,9 @@ hr{border:0;border-top:1px solid var(--bd);margin:13px 0}
     </div>
     <div class="card" style="margin-bottom:10px">
       <h3>Respaldo</h3>
-      <p class="sub">Todo se guarda en este navegador. Exportá si vas a cambiar de dispositivo.</p>
+      <p class="sub">Todo se guarda en este navegador. Para pasar la lista a otro dispositivo, exportá acá,
+      mandate el archivo por donde te quede cómodo y lo importás allá.</p>
+      <p class="hint" id="estadoLista" style="margin:0 0 10px"></p>
       <div class="tools" style="margin:0">
         <button class="btn" id="btnExp">Exportar JSON</button>
         <button class="btn" id="btnImp">Importar JSON</button>
@@ -265,6 +267,9 @@ hr{border:0;border-top:1px solid var(--bd);margin:13px 0}
         máximo de las velas desde la última vez que lo abriste, así no se pierde un tramo tocado de madrugada.<br><br>
         Un tramo se marca solo cuando el precio lo toca y queda con la fecha. No pregunta si vendiste: <b>Revisado</b> apaga
         la alerta y <b>Reabrir</b> lo devuelve a pendiente si querés que vuelva a avisarte.<br><br>
+        La lista vive en el navegador de cada dispositivo, así que la notebook y el celular tienen cada uno la suya.
+        Al importar, el artefacto compara la fecha del archivo con la de tu lista y avisa si estás por pisar
+        algo más nuevo. Mandá siempre desde el dispositivo donde editaste último.<br><br>
         Los precios se escriben y se muestran a la argentina: el punto separa los miles y la coma los decimales
         (170.000 · 0,00305). Debajo de cada formulario, la línea «Se leen» muestra cómo se interpretó lo que escribiste.<br><br>
         Los activos que Binance no lista quedan marcados con <b>✎ precio a mano</b> y la antigüedad de ese valor;
@@ -283,9 +288,9 @@ hr{border:0;border-top:1px solid var(--bd);margin:13px 0}
 <script>
 "use strict";
 /* ========================= almacenamiento ========================= */
-const VER='1.4';
+const VER='1.5';
 const TOPE=50;
-const K={act:'vmcp:activos',cfg:'vmcp:cfg',uni:'vmcp:uni:v1',chk:'vmcp:lastcheck'};
+const K={act:'vmcp:activos',cfg:'vmcp:cfg',uni:'vmcp:uni:v1',chk:'vmcp:lastcheck',edit:'vmcp:editado'};
 const CFG_DEF={umbral:3,uni:200};
 function ls(k,def){try{const v=localStorage.getItem(k);return v?JSON.parse(v):def}catch(e){return def}}
 function sv(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){toast('No se pudo guardar en este navegador')}}
@@ -294,7 +299,8 @@ let CFG=Object.assign({},CFG_DEF,ls(K.cfg,{}));
 let UNI=ls(K.uni,null);              // {ts, top, lista:[{s,n,par,quote,px}]}
 let TICK=null;                        // mapa symbol -> {px, chg} de Binance
 let LAST=ls(K.chk,null);
-function guardar(){sv(K.act,ACT)}
+let EDITADO=ls(K.edit,null);
+function guardar(){EDITADO=Date.now();sv(K.edit,EDITADO);sv(K.act,ACT)}
 
 /* ========================= utilidades ========================= */
 /* Convención es-AR en todo el artefacto: punto = miles, coma = decimales */
@@ -1116,7 +1122,7 @@ function borrar(){
 
 /* ========================= datos ========================= */
 document.getElementById('btnExp').onclick=()=>{
-  const blob=new Blob([JSON.stringify({ver:VER,ts:Date.now(),cfg:CFG,activos:ACT},null,1)],{type:'application/json'});
+  const blob=new Blob([JSON.stringify({ver:VER,ts:Date.now(),editado:EDITADO,cfg:CFG,activos:ACT},null,1)],{type:'application/json'});
   const u=URL.createObjectURL(blob),a=document.createElement('a');
   const d=new Date(),p=x=>String(x).padStart(2,'0');
   a.href=u;a.download='plan-salida-'+d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'.json';
@@ -1130,9 +1136,7 @@ document.getElementById('fileImp').onchange=e=>{
     try{
       const d=JSON.parse(rd.result);
       if(!d||!Array.isArray(d.activos))throw new Error('formato');
-      ACT=d.activos.slice(0,TOPE).map(a=>normalizar(Object.assign({id:nuevoId()},a)));
-      if(d.cfg)CFG=Object.assign({},CFG_DEF,d.cfg);
-      guardar();sv(K.cfg,CFG);prefs();pintar();toast(ACT.length+' activos importados');
+      confirmarImport(d);
     }catch(err){toast('El archivo no tiene el formato esperado')}
   };
   rd.readAsText(f);e.target.value='';
@@ -1141,9 +1145,61 @@ document.getElementById('btnWipe').onclick=()=>{
   if(!confirm('Esto borra los '+ACT.length+' activos de este navegador. ¿Seguro?'))return;
   ACT=[];guardar();pintar();toast('Lista vacía');
 };
+let PEND=null;
+function fechaArchivo(d){return d.editado||d.ts||null}
+function confirmarImport(d){
+  const entra=d.activos.slice(0,TOPE).map(a=>normalizar(Object.assign({id:nuevoId()},a)));
+  if(!entra.length){toast('El archivo no trae activos');return}
+  PEND={lista:entra,cfg:d.cfg,fecha:fechaArchivo(d)};
+  if(!ACT.length){aplicarImport('reemplazar');return}           // nada que pisar
+  const tengo={};ACT.forEach(a=>tengo[a.s]=1);
+  const nuevos=entra.filter(a=>!tengo[a.s]).length;
+  const masViejo=PEND.fecha&&EDITADO&&PEND.fecha<EDITADO;
+  const dif=masViejo?Math.round((EDITADO-PEND.fecha)/3600e3):0;
+  modal.innerHTML=
+   '<button class="cl" onclick="cerrar()">×</button><h2>Importar lista</h2>'+
+   '<div class="sim" style="margin-top:12px">'+
+     '<div><span>Archivo</span><span>'+entra.length+' activos'+
+       (PEND.fecha?' · '+fecha(PEND.fecha):' · sin fecha')+'</span></div>'+
+     '<div><span>Tu lista en este dispositivo</span><span>'+ACT.length+' activos'+
+       (EDITADO?' · '+fecha(EDITADO):'')+'</span></div>'+
+   '</div>'+
+   (masViejo
+     ? '<p class="err">El archivo es '+(dif>=24?Math.round(dif/24)+' días':dif+' horas')+
+       ' más viejo que lo que tenés acá. Si reemplazás, perdés lo que editaste después.</p>'
+     : '<p class="hint">El archivo es igual de nuevo o más nuevo que tu lista.</p>')+
+   '<div class="tools" style="margin:14px 0 0">'+
+     '<button class="btn'+(masViejo?'':' pri')+'" onclick="aplicarImport(\'reemplazar\')">Reemplazar los '+ACT.length+'</button>'+
+     (nuevos?'<button class="btn'+(masViejo?' pri':'')+'" onclick="aplicarImport(\'fusionar\')">Sumar solo los '+nuevos+' que faltan</button>':'')+
+     '<button class="btn" onclick="cerrar()">Cancelar</button>'+
+   '</div>'+
+   '<p class="hint">Reemplazar deja la lista igual al archivo, incluidos los tramos ya disparados. '+
+   'Sumar no toca ninguno de los que ya tenés.</p>';
+  ov.classList.add('on');
+}
+function aplicarImport(modo){
+  if(!PEND)return;
+  let n;
+  if(modo==='fusionar'){
+    const tengo={};ACT.forEach(a=>tengo[a.s]=1);
+    const suma=PEND.lista.filter(a=>!tengo[a.s]).slice(0,Math.max(0,TOPE-ACT.length));
+    ACT=ACT.concat(suma);n=suma.length;
+    toast(n?n+(n===1?' activo sumado':' activos sumados'):'No había ninguno para sumar');
+  }else{
+    ACT=PEND.lista;n=ACT.length;
+    if(PEND.cfg){CFG=Object.assign({},CFG_DEF,PEND.cfg);sv(K.cfg,CFG)}
+    toast(n+' activos importados');
+  }
+  PEND=null;guardar();prefs();cerrar();pintar();
+  if(ACT.length)refrescar();
+}
 function prefs(){
   document.getElementById('cfgUmbral').value=CFG.umbral;
   document.getElementById('cfgUni').value=String(CFG.uni);
+  const est=document.getElementById('estadoLista');
+  if(est)est.innerHTML=ACT.length
+    ? '<b>'+ACT.length+' activos</b> en este dispositivo · última edición '+(EDITADO?fecha(EDITADO)+' ('+hace(EDITADO)+')':'—')
+    : 'Todavía no hay activos en este dispositivo.';
   document.getElementById('uniInfo').textContent=UNI&&UNI.lista
     ? UNI.lista.length+' activos en el buscador, actualizados '+hace(UNI.ts)+'. Los que estén fuera igual se pueden agregar escribiendo el ticker.'
     : 'El buscador se arma la primera vez que agregues un activo.';
@@ -1181,7 +1237,7 @@ prefs();pintar();
 if(ACT.length)refrescar();
 window.abrirAlta=abrirAlta;window.cerrar=cerrar;window.elegir=elegir;window.repartir=repartir;
 window.plantilla=plantilla;window.guardarNuevo=guardarNuevo;window.repartirDet=repartirDet;
-window.mover=mover;window.escalar=escalar;window.eco=eco;window.forzar=forzar;window.reabrir=reabrir;window.revisar=revisar;window.guardarEdit=guardarEdit;window.borrar=borrar;
+window.mover=mover;window.escalar=escalar;window.eco=eco;window.aplicarImport=aplicarImport;window.forzar=forzar;window.reabrir=reabrir;window.revisar=revisar;window.guardarEdit=guardarEdit;window.borrar=borrar;
 </script>
 </body>
 </html>
