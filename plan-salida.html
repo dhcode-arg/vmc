@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Plan de Salida</title>
+<meta name="theme-color" content="#0a0d12">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a0d12'/%3E%3Crect x='10' y='40' width='44' height='5' rx='2.5' fill='%231a2330'/%3E%3Crect x='10' y='40' width='22' height='5' rx='2.5' fill='%232ecc71'/%3E%3Crect x='22' y='32' width='3' height='21' fill='%232ecc71'/%3E%3Crect x='36' y='32' width='3' height='21' fill='%235b6875'/%3E%3Crect x='49' y='27' width='4' height='26' fill='%23e8c34a'/%3E%3Ccircle cx='32' cy='42.5' r='7' fill='%230a0d12' stroke='%234a9fd8' stroke-width='4'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0a0d12; --panel:#121820; --panel2:#0f141b; --bd:#1e2733; --bd2:#2a3644;
+  --tx:#e4ecf2; --mu:#7d8c9a; --mu2:#5b6875;
+  --grn:#2ecc71; --red:#ef4444; --amb:#f5a623; --gold:#e8c34a; --blu:#4a9fd8; --vio:#9b87e0;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--tx);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-size:15px;line-height:1.45}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+.wrap{max-width:1180px;margin:0 auto;padding:14px 12px 70px}
+button{font:inherit;color:inherit;cursor:pointer}
+input,select{font:inherit}
+:focus-visible{outline:2px solid var(--blu);outline-offset:2px}
+
+.top{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.brand h1{margin:0;font-size:19px;font-weight:650;letter-spacing:-.2px}
+.brand p{margin:2px 0 0;color:var(--mu);font-size:12.5px}
+.tag{display:inline-block;margin-left:8px;padding:1px 7px;border:1px solid var(--bd2);
+  border-radius:999px;color:var(--mu);font-size:11px;vertical-align:2px}
+.top .sp{flex:1 1 auto}
+.btn{background:var(--panel);border:1px solid var(--bd2);border-radius:9px;padding:9px 13px;
+  font-size:13.5px;min-height:40px;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.btn:hover{border-color:#3d4b5c}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.pri{background:#17342a;border-color:#2b6b4f;color:#9fe7c1}
+.btn.dgr{border-color:#5a2a2a;color:#ff9c9c}
+.btn.sm{padding:6px 10px;min-height:34px;font-size:12.5px}
+.stamp{color:var(--mu2);font-size:12px;align-self:center;text-align:right}
+
+.alerts{border:1px solid var(--bd);border-radius:12px;background:linear-gradient(180deg,#141b24,#101620);margin-bottom:12px;overflow:hidden}
+.alerts .hd{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;
+  font-size:12.5px;border:1px solid var(--bd2);background:#0e141c;white-space:nowrap}
+.chip b{font-weight:650}
+.chip.c-hit{border-color:#7a2f2f;background:#241314;color:#ffb4b4}
+.chip.c-near{border-color:#7a5a1e;background:#241d10;color:#ffd79a}
+.chip.c-goal{border-color:#2b6b4f;background:#0f2019;color:#9fe7c1}
+.chip.c-stop{border-color:#6b3b8a;background:#1b1222;color:#dcb9ff}
+.chip.c-warn{border-color:#3f4b5c;background:#111823;color:#bcd0e0}
+.chip.c-man{border-color:#5b3f8a;background:#1a1226;color:#cbb6ff;cursor:pointer}
+.chip.c-man:hover{border-color:#7a57b0}
+.chip.ok{border-color:#2b6b4f;color:#9fe7c1}
+.alerts .more{margin-left:auto;color:var(--mu);font-size:12.5px;background:none;border:0;padding:6px}
+.alist{border-top:1px solid var(--bd);display:none}
+.alist.on{display:block}
+.arow{display:flex;gap:10px;align-items:baseline;padding:9px 12px;border-bottom:1px solid #161e28;font-size:13.5px;cursor:pointer}
+.arow:last-child{border-bottom:0}
+.arow:hover{background:#141c26}
+.arow .k{width:58px;flex:0 0 auto;font-weight:650}
+.arow .d{color:var(--mu);margin-left:auto;text-align:right;white-space:nowrap}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(136px,1fr));gap:8px;margin-bottom:12px}
+.kpi{border:1px solid var(--bd);border-radius:11px;background:var(--panel);padding:10px 11px}
+.kpi .l{color:var(--mu);font-size:11.5px}
+.kpi .v{font-size:19px;font-weight:650;letter-spacing:-.3px;margin-top:2px}
+.kpi .s{font-size:11.5px;color:var(--mu2);margin-top:1px}
+.pos{color:var(--grn)} .neg{color:var(--red)} .hot{color:var(--red)} .warm{color:var(--amb)}
+
+.tabs{display:flex;gap:6px;margin-bottom:12px;border-bottom:1px solid var(--bd)}
+.tab{background:none;border:0;border-bottom:2px solid transparent;padding:9px 12px;color:var(--mu);font-size:14px;min-height:42px}
+.tab.on{color:var(--tx);border-bottom-color:var(--blu)}
+.pane{display:none} .pane.on{display:block}
+
+.tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.inp{background:var(--panel2);border:1px solid var(--bd2);border-radius:9px;padding:9px 11px;color:var(--tx);font-size:13.5px;min-height:40px;width:100%}
+.inp::placeholder{color:var(--mu2)}
+.inp.bad{border-color:#7a2f2f}
+.seg{display:flex;border:1px solid var(--bd2);border-radius:9px;overflow:hidden}
+.seg button{background:var(--panel2);border:0;padding:9px 11px;font-size:13px;color:var(--mu);min-height:40px}
+.seg button.on{background:#1b2431;color:var(--tx)}
+.count{color:var(--mu);font-size:12.5px;margin-left:auto}
+
+.row{border:1px solid var(--bd);border-left-width:3px;border-radius:12px;background:var(--panel);
+  padding:11px 12px;margin-bottom:9px;cursor:pointer}
+.row:hover{border-color:var(--bd2)}
+.row.s-hit{border-left-color:var(--red)}
+.row.s-near{border-left-color:var(--amb)}
+.row.s-goal{border-left-color:var(--grn)}
+.row.s-stop{border-left-color:#9b5ccc}
+.row.s-warn{border-left-color:#3f4b5c}
+.row.s-ok{border-left-color:#23303d}
+.r1{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+.tk{font-size:16px;font-weight:700;letter-spacing:-.2px}
+.nm{color:var(--mu);font-size:12.5px}
+.badge{font-size:10.5px;color:var(--mu);border:1px solid var(--bd2);border-radius:5px;padding:0 5px}
+.badge.man{color:#cbb6ff;border-color:#5b3f8a;background:#1a1226;padding:1px 6px;font-weight:600}
+.badge.man.old{color:#ffd79a;border-color:#7a5a1e;background:#1e1810}
+.row.man{border-left-style:dashed}
+.r1 .px{margin-left:auto;font-size:16px;font-weight:650}
+.r1 .chg{font-size:12.5px}
+
+.lad{position:relative;height:36px;margin:12px 0 6px}
+.lad .rail{position:absolute;left:0;right:0;top:14px;height:6px;border-radius:3px;background:#1a2330}
+.lad .done{position:absolute;left:0;top:14px;height:6px;border-radius:3px;background:linear-gradient(90deg,#1f4d3a,#2ecc71)}
+.lad .step{position:absolute;top:7px;width:2px;height:20px;background:var(--mu2);transform:translateX(-1px)}
+.lad .step.ok{background:var(--grn)}
+.lad .step.wait{background:var(--red);width:3px}
+.lad .step.goal{background:var(--gold);width:3px;height:26px;top:4px}
+.lad .step.stop{background:#9b5ccc}
+.lad .lab{position:absolute;top:27px;font-size:10px;color:var(--mu2);transform:translateX(-50%);white-space:nowrap}
+.lad .cur{position:absolute;top:9px;width:16px;height:16px;border-radius:50%;
+  background:#0a0d12;border:3px solid var(--blu);transform:translateX(-8px);box-shadow:0 0 0 3px rgba(10,13,18,.9)}
+.lad .cur.hit{border-color:var(--red)}
+
+.r2{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px;align-items:center}
+.f{font-size:12px;color:var(--mu);border:1px solid #1b2430;border-radius:7px;padding:3px 8px;background:#0e141c}
+.f b{color:var(--tx);font-weight:600}
+.f.next{border-color:#3f4b5c;color:#bcd0e0}
+.f.alert{border-color:#7a2f2f;background:#1d1113;color:#ffb4b4}
+.f.warn{border-color:#7a5a1e;background:#1e1810;color:#ffd79a}
+.f.good{border-color:#2b6b4f;background:#0f2019;color:#9fe7c1}
+.mini{display:inline-flex;gap:3px;align-items:center;margin-left:auto}
+.mini i{width:14px;height:6px;border-radius:2px;background:#22303e;display:inline-block}
+.mini i.ok{background:var(--grn)} .mini i.wait{background:var(--red)} .mini i.goal{background:var(--gold);width:9px}
+
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:10px}
+.card{border:1px solid var(--bd);border-radius:12px;background:var(--panel);padding:13px}
+.card h3{margin:0 0 3px;font-size:14.5px;font-weight:650}
+.card .sub{color:var(--mu);font-size:12px;margin:0 0 11px}
+.bar{display:flex;align-items:center;gap:9px;margin-bottom:7px;font-size:12.5px}
+.bar .t{width:58px;flex:0 0 auto;font-weight:600;overflow:hidden;text-overflow:ellipsis}
+.bar .track{flex:1;height:16px;background:#151d27;border-radius:4px;overflow:hidden;display:flex}
+.bar .fill{height:100%}
+.bar .v{width:70px;flex:0 0 auto;text-align:right;color:var(--mu)}
+.legend{display:flex;gap:13px;flex-wrap:wrap;font-size:12px;color:var(--mu);margin-top:9px}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px}
+.vacio{border:1px dashed var(--bd2);border-radius:12px;padding:26px 16px;text-align:center;color:var(--mu)}
+.vacio b{display:block;color:var(--tx);font-size:15px;margin-bottom:4px;font-weight:600}
+
+.ov{position:fixed;inset:0;background:rgba(5,8,12,.8);display:none;align-items:flex-start;justify-content:center;
+  padding:14px;overflow:auto;z-index:30}
+.ov.on{display:flex}
+.modal{width:100%;max-width:640px;background:var(--panel);border:1px solid var(--bd2);border-radius:14px;padding:15px;
+  margin-top:env(safe-area-inset-top,0px);position:relative}
+.modal h2{margin:0 6px 2px 0;font-size:18px;padding-right:26px}
+.modal .cl{position:absolute;right:12px;top:10px;background:none;border:0;color:var(--mu);font-size:26px;line-height:1;padding:0 6px}
+.fld{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:12px 0}
+.fld label{font-size:11.5px;color:var(--mu);display:block;margin-bottom:3px}
+.tr{display:grid;grid-template-columns:24px 1fr 84px 1fr;gap:8px;align-items:center;margin-bottom:7px;font-size:13px}
+.tr .n{color:var(--mu);font-size:12px}
+.tr .st{font-size:11.5px;text-align:right}
+.tr input{min-width:0}
+.hint{color:var(--mu);font-size:12px;margin:9px 0 0;line-height:1.55}
+.eco{font-size:12.5px;margin:10px 0 0;padding:7px 10px;border:1px solid var(--bd);border-radius:8px;
+  background:var(--panel2);font-variant-numeric:tabular-nums;line-height:1.5}
+.eco .mut{color:var(--mu2)}
+.err{color:#ffb4b4;font-size:12.5px;margin:9px 0 0;line-height:1.5}
+hr{border:0;border-top:1px solid var(--bd);margin:13px 0}
+.foot{color:var(--mu2);font-size:12px;margin-top:22px;line-height:1.6}
+
+.ac{position:relative}
+.aclist{position:absolute;left:0;right:0;top:calc(100% + 4px);background:#0e141c;border:1px solid var(--bd2);
+  border-radius:10px;max-height:250px;overflow:auto;z-index:5;display:none}
+.aclist.on{display:block}
+.acit{display:flex;gap:9px;align-items:baseline;padding:9px 11px;border-bottom:1px solid #161e28;font-size:13.5px;cursor:pointer}
+.acit:last-child{border-bottom:0}
+.acit:hover,.acit.sel{background:#1a2431}
+.acit .s{font-weight:650;width:62px;flex:0 0 auto}
+.acit .n{color:var(--mu);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acit .p{margin-left:auto;color:var(--mu);font-size:12.5px;white-space:nowrap}
+.acit.act{color:var(--mu2)}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));
+  background:#18212c;border:1px solid var(--bd2);border-radius:10px;padding:10px 15px;font-size:13.5px;
+  z-index:50;opacity:0;pointer-events:none;transition:opacity .18s;max-width:90vw}
+.toast.on{opacity:1}
+.prog{height:3px;background:#1a2330;border-radius:2px;overflow:hidden;margin:8px 0 0;display:none}
+.prog.on{display:block}
+.prog i{display:block;height:100%;background:var(--blu);width:0;transition:width .2s}
+@media(max-width:560px){
+  .wrap{padding:10px 9px 60px}
+  .fld{grid-template-columns:1fr}
+  .tr{grid-template-columns:22px 1fr 70px;grid-template-areas:"n p c" ". s s"}
+  .tr .st{grid-area:s;text-align:left}
+  .top .stamp{order:9;text-align:left}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <div class="brand">
+      <h1>Plan de Salida<span class="tag" id="ver">v1.0</span></h1>
+      <p>Precios de venta escalonados y alertas</p>
+    </div>
+    <div class="sp"></div>
+    <span class="stamp" id="stamp">sin datos todavía</span>
+    <button class="btn pri" id="btnRef">↻ Actualizar precios</button>
+  </div>
+  <div class="prog" id="prog"><i></i></div>
+
+  <div class="alerts" id="alerts" style="display:none">
+    <div class="hd" id="chips"></div>
+    <button class="more" id="moreBtn">ver detalle</button>
+    <div class="alist" id="alist"></div>
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="tabs">
+    <button class="tab on" data-p="lista">Activos</button>
+    <button class="tab" data-p="graf">Gráficos</button>
+    <button class="tab" data-p="datos">Datos</button>
+  </div>
+
+  <div class="pane on" id="p-lista">
+    <div class="tools">
+      <input class="inp" id="buscar" placeholder="Buscar" style="width:135px">
+      <div class="seg" id="filtros">
+        <button class="on" data-f="todos">Todos</button>
+        <button data-f="alerta">Con alerta</button>
+        <button data-f="pendiente">Por disparar</button>
+        <button data-f="manual">A mano</button>
+        <button data-f="listo">Completados</button>
+      </div>
+      <button class="btn" id="btnAdd">+ Agregar activo</button>
+      <span class="count" id="count"></span>
+    </div>
+    <div id="rows"></div>
+  </div>
+
+  <div class="pane" id="p-graf"><div class="grid2" id="charts"></div></div>
+
+  <div class="pane" id="p-datos">
+    <div class="card" style="margin-bottom:10px">
+      <h3>Preferencias</h3>
+      <div class="fld">
+        <div><label>Avisar cuando falte menos de (%)</label><input class="inp" id="cfgUmbral" inputmode="decimal"></div>
+        <div><label>Universo del buscador</label>
+          <select class="inp" id="cfgUni"><option value="100">Top 100</option><option value="200">Top 200</option><option value="300">Top 300</option></select></div>
+      </div>
+      <p class="hint" id="uniInfo"></p>
+    </div>
+    <div class="card" style="margin-bottom:10px">
+      <h3>Respaldo</h3>
+      <p class="sub">Todo se guarda en este navegador. Exportá si vas a cambiar de dispositivo.</p>
+      <div class="tools" style="margin:0">
+        <button class="btn" id="btnExp">Exportar JSON</button>
+        <button class="btn" id="btnImp">Importar JSON</button>
+        <button class="btn dgr" id="btnWipe">Vaciar lista</button>
+      </div>
+      <input type="file" id="fileImp" accept=".json,application/json" style="display:none">
+    </div>
+    <div class="card">
+      <h3>Cómo funciona</h3>
+      <p class="hint" style="margin:0">
+        Los precios salen de Binance, probando el par en USDT, USDC y FDUSD. Al actualizar, el artefacto además mira el
+        máximo de las velas desde la última vez que lo abriste, así no se pierde un tramo tocado de madrugada.<br><br>
+        Un tramo se marca solo cuando el precio lo toca y queda con la fecha. No pregunta si vendiste: <b>Revisado</b> apaga
+        la alerta y <b>Reabrir</b> lo devuelve a pendiente si querés que vuelva a avisarte.<br><br>
+        Los precios se escriben y se muestran a la argentina: el punto separa los miles y la coma los decimales
+        (170.000 · 0,00305). Debajo de cada formulario, la línea «Se leen» muestra cómo se interpretó lo que escribiste.<br><br>
+        Los activos que Binance no lista quedan marcados con <b>✎ precio a mano</b> y la antigüedad de ese valor;
+        pasados tres días la etiqueta se pone ámbar. El filtro <b>A mano</b>, arriba de la lista, los junta a todos
+        para actualizarlos de una sentada.
+      </p>
+    </div>
+  </div>
+
+  <p class="foot" id="foot"></p>
+</div>
+
+<div class="ov" id="ov"><div class="modal" id="modal"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ========================= almacenamiento ========================= */
+const VER='1.4';
+const TOPE=50;
+const K={act:'vmcp:activos',cfg:'vmcp:cfg',uni:'vmcp:uni:v1',chk:'vmcp:lastcheck'};
+const CFG_DEF={umbral:3,uni:200};
+function ls(k,def){try{const v=localStorage.getItem(k);return v?JSON.parse(v):def}catch(e){return def}}
+function sv(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){toast('No se pudo guardar en este navegador')}}
+let ACT=ls(K.act,[]);
+let CFG=Object.assign({},CFG_DEF,ls(K.cfg,{}));
+let UNI=ls(K.uni,null);              // {ts, top, lista:[{s,n,par,quote,px}]}
+let TICK=null;                        // mapa symbol -> {px, chg} de Binance
+let LAST=ls(K.chk,null);
+function guardar(){sv(K.act,ACT)}
+
+/* ========================= utilidades ========================= */
+/* Convención es-AR en todo el artefacto: punto = miles, coma = decimales */
+function fpx(n){
+  if(n===null||n===undefined||!isFinite(n))return '—';
+  const a=Math.abs(n);
+  if(a===0)return '$0';
+  const d=a>=1000?0:a>=1?2:a>=0.01?4:8;
+  let s=n.toLocaleString('es-AR',{minimumFractionDigits:d,maximumFractionDigits:d});
+  if(d===8)s=s.replace(/0+$/,'').replace(/,$/,'');
+  return '$'+s;
+}
+function paraInput(v){
+  if(v===null||v===undefined||v==='')return '';
+  const n=parseFloat(v);
+  if(!isFinite(n))return '';
+  if(Math.abs(n)<1000)return String(n).replace('.',',');
+  const dec=Math.min(8,(String(n).split('.')[1]||'').length);   // no perder decimales
+  return n.toLocaleString('es-AR',{minimumFractionDigits:dec,maximumFractionDigits:dec});
+}
+const pc=n=>(n>0?'+':'')+n.toFixed(1)+'%';
+const cls=n=>n>0?'pos':n<0?'neg':'';
+function fecha(ts){
+  const d=new Date(ts),p=x=>String(x).padStart(2,'0');
+  const hoy=new Date();
+  const mismo=d.toDateString()===hoy.toDateString();
+  return mismo?'hoy '+p(d.getHours())+':'+p(d.getMinutes())
+              :p(d.getDate())+'/'+p(d.getMonth()+1)+' '+p(d.getHours())+':'+p(d.getMinutes());
+}
+function hace(ts){
+  const m=Math.round((Date.now()-ts)/60000);
+  if(m<1)return 'recién';
+  if(m<60)return 'hace '+m+' min';
+  const h=Math.round(m/60);
+  if(h<24)return 'hace '+h+' h';
+  return 'hace '+Math.round(h/24)+' d';
+}
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function num(v){
+  if(typeof v==='number')return isFinite(v)?v:null;
+  let s=String(v==null?'':v).trim().replace(/[\s$]/g,'');
+  if(!s)return null;
+  const coma=s.lastIndexOf(','),punto=s.lastIndexOf('.');
+  if(coma>=0&&punto>=0){
+    if(coma>punto)s=s.replace(/\./g,'').replace(',','.');   // 1.234,56
+    else s=s.replace(/,/g,'');                              // 1,234.56
+  }else if(coma>=0){
+    s=s.replace(/,/g,'.');                                  // coma = decimal
+  }else if(punto>=0){
+    const p=s.split('.'),ent=p[0].replace('-','');
+    // punto = miles si hay varios grupos, o si el último grupo tiene 3 cifras
+    // y la parte entera no es 0 (así 0.305 sigue siendo decimal)
+    const miles=p.length>2||(p.length===2&&p[1].length===3&&/^\d{1,3}$/.test(ent)&&ent!=='0');
+    if(miles)s=p.join('');
+  }
+  const n=parseFloat(s);
+  return isFinite(n)?n:null;
+}
+let toastT=null;
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');
+  clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),2600)}
+async function pool(items,n,fn){
+  const out=new Array(items.length);let i=0;
+  await Promise.all(Array.from({length:Math.min(n,items.length)||0},async()=>{
+    while(i<items.length){const k=i++;try{out[k]=await fn(items[k],k)}catch(e){out[k]=null}}}));
+  return out;
+}
+
+/* ========================= universo y pares ========================= */
+const QUOTES=['USDT','USDC','FDUSD'];
+const RE_APAL=/^[A-Z0-9]{2,}(UP|DOWN|BULL|BEAR)(USDT|USDC|FDUSD)$/;
+const STABLES=['USDT','USDC','FDUSD','DAI','TUSD','USDE','USDS','BUSD','PYUSD','FRAX','USDD','GUSD','LUSD','USD1','RLUSD','USDP','EURT','EURC'];
+
+async function traerTickers(){
+  const r=await fetch('https://api.binance.com/api/v3/ticker/24hr');
+  if(!r.ok)throw new Error('Binance '+r.status);
+  const d=await r.json();
+  const m={};
+  for(const t of d){
+    if(RE_APAL.test(t.symbol))continue;
+    m[t.symbol]={px:parseFloat(t.lastPrice),chg:parseFloat(t.priceChangePercent),vol:parseFloat(t.quoteVolume)};
+  }
+  TICK=m;return m;
+}
+function buscarPar(sym){            // sym = base en mayúsculas
+  if(!TICK)return null;
+  for(const q of QUOTES){const p=sym+q;if(TICK[p]&&TICK[p].px>0)return {par:p,quote:q}}
+  return null;
+}
+function parecidos(sym){            // detector de tickers (BTT -> BTTC, RON -> RONIN)
+  if(!TICK||sym.length<2)return [];
+  const out=[];
+  for(const p in TICK){
+    for(const q of QUOTES){
+      if(!p.endsWith(q))continue;
+      const b=p.slice(0,-q.length);
+      if(b!==sym&&b.startsWith(sym)&&!STABLES.includes(b)){out.push({s:b,par:p,quote:q,px:TICK[p].px});}
+      break;
+    }
+  }
+  const vistos={};
+  return out.filter(x=>vistos[x.s]?false:(vistos[x.s]=1)).slice(0,6);
+}
+async function cargarUniverso(force){
+  const top=CFG.uni;
+  if(!force&&UNI&&UNI.top===top&&Date.now()-UNI.ts<12*3600e3&&UNI.lista&&UNI.lista.length)return UNI;
+  if(!TICK)await traerTickers();
+  let lista=[];
+  try{
+    const porPagina=Math.min(250,top),paginas=Math.ceil(top/250);
+    for(let i=1;i<=paginas;i++){
+      const r=await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page='+porPagina+'&page='+i+'&sparkline=false');
+      if(!r.ok)throw new Error('CoinGecko '+r.status);
+      const d=await r.json();
+      for(const c of d){
+        const s=String(c.symbol||'').toUpperCase();
+        if(!s||STABLES.includes(s))continue;
+        const p=buscarPar(s);
+        lista.push({s,n:c.name,par:p?p.par:null,quote:p?p.quote:null});
+      }
+    }
+    lista=lista.slice(0,top);
+    if(!lista.length)throw new Error('CoinGecko vacío');
+  }catch(e){
+    // respaldo: universo por volumen de Binance
+    const arr=[];
+    for(const p in TICK){
+      for(const q of QUOTES){
+        if(!p.endsWith(q))continue;
+        const b=p.slice(0,-q.length);
+        if(!STABLES.includes(b))arr.push({s:b,n:b,par:p,quote:q,vol:TICK[p].vol||0});
+        break;
+      }
+    }
+    arr.sort((a,b)=>b.vol-a.vol);
+    const vistos={};
+    lista=arr.filter(x=>vistos[x.s]?false:(vistos[x.s]=1)).slice(0,top);
+  }
+  UNI={ts:Date.now(),top,lista};sv(K.uni,UNI);return UNI;
+}
+
+/* ========================= modelo ========================= */
+function nuevoId(){return 'a'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+function nOnull(v){const n=parseFloat(v);return isFinite(n)?n:null}
+function normalizar(a){
+  a.tr=(a.tr||[]).map(t=>{
+    if(!t)return null;
+    const p=nOnull(t.p);
+    if(p===null||p<=0)return null;
+    const c=nOnull(t.pct);
+    return Object.assign({},t,{p,pct:c===null?0:c});
+  }).filter(Boolean).sort((x,y)=>x.p-y.p);
+  a.obj=nOnull(a.obj);a.ent=nOnull(a.ent);a.stop=nOnull(a.stop);
+  const px=nOnull(a.px);if(px!==null)a.px=px;else if(a.px!==undefined)delete a.px;
+  return a;
+}
+function precioDe(a){
+  if(a.par&&TICK&&TICK[a.par])return TICK[a.par].px;
+  if(a.px!==undefined&&a.px!==null)return a.px;          // último conocido o cargado a mano
+  return null;
+}
+function cambioDe(a){
+  if(a.par&&TICK&&TICK[a.par])return TICK[a.par].chg;
+  return null;
+}
+function calc(a){
+  const px=precioDe(a);
+  const tr=a.tr||[];
+  const disp=tr.filter(t=>t.hit);
+  const plan=disp.reduce((s,t)=>s+(t.pct||0),0);
+  const sinRev=tr.filter(t=>t.hit&&!t.vis);
+  const pend=tr.filter(t=>!t.hit);
+  const next=pend[0]||null;
+  const dist=(next&&px)?(next.p-px)/px*100:null;
+  const dObj=(a.obj&&px)?(a.obj-px)/px*100:null;
+  const desde=(a.ent&&px)?(px-a.ent)/a.ent*100:null;
+  const recorrido=(a.ent&&a.obj&&px&&a.obj>a.ent)?Math.max(0,Math.min(100,(px-a.ent)/(a.obj-a.ent)*100)):null;
+  const restoFinal=Math.max(0,100-tr.reduce((s,t)=>s+(t.pct||0),0));
+  const completo=!!(a.obj&&tr.length);
+  const vivo=!!(a.par&&TICK&&TICK[a.par]);
+  const manual=!a.par;                                  // la cripto no tiene par en Binance
+  const dias=(manual&&a.pxTs)?(Date.now()-a.pxTs)/86400e3:null;
+  const viejo=dias!==null&&dias>=3;                     // precio a mano sin refrescar
+  let st='ok',msg='';
+  if(px===null){st='warn';msg='sin precio: cargalo a mano o revisá el par';}
+  else if(!completo){st='warn';msg='plan incompleto: falta '+(!a.obj?'el objetivo':'al menos un tramo');}
+  else if(sinRev.length){st='hit';msg='tramo de '+fpx(sinRev[0].p)+' alcanzado '+(sinRev[0].hit?fecha(sinRev[0].hit):'');}
+  else if(a.objHit&&!a.objVis){st='goal';msg='objetivo '+fpx(a.obj)+' alcanzado '+fecha(a.objHit);}
+  else if(a.stopHit&&!a.stopVis){st='stop';msg='invalidación '+fpx(a.stop)+' tocada '+fecha(a.stopHit);}
+  else if(a.obj&&px>=a.obj){st='goal';msg='por encima del objetivo, queda el '+restoFinal+'% del plan';}
+  else if(a.stop&&px<=a.stop){st='stop';msg='por debajo de la invalidación';}
+  else if(dist!==null&&dist>0&&dist<=CFG.umbral){st='near';msg='a '+dist.toFixed(1)+'% del tramo de '+fpx(next.p);}
+  return {px,plan,disp,sinRev,pend,next,dist,dObj,desde,recorrido,restoFinal,st,msg,completo,vivo,tr,manual,dias,viejo};
+}
+const ORD={hit:0,near:1,goal:2,stop:3,ok:4,warn:5};
+function datos(){
+  const d=ACT.map(a=>({a,c:calc(a)}));
+  d.sort((x,y)=>ORD[x.c.st]!==ORD[y.c.st]?ORD[x.c.st]-ORD[y.c.st]
+    :(x.c.dist===null?9e9:x.c.dist)-(y.c.dist===null?9e9:y.c.dist));
+  return d;
+}
+
+/* ========================= actualización de precios ========================= */
+async function velasDesde(par,desdeTs){
+  const horas=(Date.now()-desdeTs)/3.6e6;
+  if(horas<=0.2)return null;
+  let interval,limit;
+  if(horas<=480){interval='1h';limit=Math.min(500,Math.ceil(horas)+2);}
+  else{interval='1d';limit=Math.min(500,Math.ceil(horas/24)+2);}
+  const r=await fetch('https://api.binance.com/api/v3/klines?symbol='+par+'&interval='+interval+'&limit='+limit);
+  if(!r.ok)return null;
+  const d=await r.json();
+  return d.filter(v=>v[6]>=desdeTs);          // v[6] = cierre de la vela
+}
+function marcarConVelas(a,velas){             // recorre en orden: cada precio queda fechado en su vela
+  let n=0;
+  for(const v of velas)
+    n+=marcarConPrecio(a,parseFloat(v[2]),parseFloat(v[3]),Math.min(parseFloat(v[6]),Date.now()));
+  return n;
+}
+function marcarConPrecio(a,hi,lo,ts){
+  let cambios=0;
+  (a.tr||[]).forEach(t=>{ if(!t.hit&&hi>=t.p){t.hit=ts;t.vis=false;cambios++;} });
+  if(a.obj&&!a.objHit&&hi>=a.obj){a.objHit=ts;a.objVis=false;cambios++;}
+  if(a.stop&&!a.stopHit&&lo<=a.stop){a.stopHit=ts;a.stopVis=false;cambios++;}
+  return cambios;
+}
+let refrescando=false;
+async function refrescar(){
+  if(refrescando)return;refrescando=true;
+  const btn=document.getElementById('btnRef'),pr=document.getElementById('prog');
+  btn.disabled=true;btn.textContent='Actualizando…';pr.classList.add('on');
+  const barra=pr.firstElementChild;barra.style.width='12%';
+  let cambios=0;
+  try{
+    await traerTickers();
+    barra.style.width='40%';
+    const ahora=Date.now();
+    // primero el histórico, así cada tramo queda fechado en la vela donde lo tocó
+    const retro=ACT.filter(a=>a.par&&TICK[a.par]&&((a.tr||[]).some(t=>!t.hit)||(a.obj&&!a.objHit)||(a.stop&&!a.stopHit)));
+    if(LAST&&retro.length){
+      let hechos=0;
+      await pool(retro,6,async a=>{
+        const v=await velasDesde(a.par,LAST);
+        if(v&&v.length)cambios+=marcarConVelas(a,v);
+        hechos++;barra.style.width=(40+hechos/retro.length*55)+'%';
+      });
+    }
+    // después el precio de ahora, que recoge lo que el histórico no cubrió
+    ACT.forEach(a=>{
+      if(a.par&&TICK[a.par]){a.px=TICK[a.par].px;a.pxTs=ahora;a.manual=false;
+        cambios+=marcarConPrecio(a,TICK[a.par].px,TICK[a.par].px,ahora);}
+    });
+    barra.style.width='100%';
+    LAST=Date.now();sv(K.chk,LAST);
+    guardar();
+    pintar();
+    toast(cambios?cambios+(cambios===1?' tramo alcanzado':' tramos alcanzados'):'Precios actualizados');
+  }catch(e){
+    toast('No se pudieron traer los precios: '+e.message);
+  }finally{
+    refrescando=false;btn.disabled=false;btn.textContent='↻ Actualizar precios';
+    setTimeout(()=>{pr.classList.remove('on');barra.style.width='0'},400);
+  }
+}
+
+/* ========================= pintado ========================= */
+function ladder(a,c){
+  if(!a.obj||!(a.tr||[]).length)return '<div class="lad"><div class="rail"></div></div>';
+  const ps=[a.obj].concat(a.tr.map(t=>t.p));
+  if(a.ent)ps.push(a.ent);
+  if(a.stop)ps.push(a.stop);
+  if(c.px)ps.push(c.px);
+  const lo=Math.min.apply(null,ps),hi=Math.max.apply(null,ps),R=hi-lo||1;
+  const at=p=>Math.max(0,Math.min(100,(p-lo)/R*100));
+  let h='<div class="lad"><div class="rail"></div>';
+  const labs=[];
+  if(c.px)h+='<div class="done" style="width:'+at(c.px)+'%"></div>';
+  if(a.stop){h+='<div class="step stop" style="left:'+at(a.stop)+'%"></div>';
+    labs.push({at:at(a.stop),txt:'🛑',col:'#9b5ccc',pri:2});}
+  if(a.ent){h+='<div class="step" style="left:'+at(a.ent)+'%"></div>';
+    labs.push({at:at(a.ent),txt:'compra',col:'',pri:2});}
+  a.tr.forEach(t=>{
+    const k=t.hit?(t.vis?'ok':'wait'):'';
+    h+='<div class="step '+k+'" style="left:'+at(t.p)+'%"></div>';
+    labs.push({at:at(t.p),txt:(t.hit?(t.vis?'✓':'!'):'')+(t.pct||0)+'%',col:(t.hit&&!t.vis?'var(--red)':''),pri:1});
+  });
+  h+='<div class="step goal" style="left:'+at(a.obj)+'%"></div>';
+  labs.push({at:at(a.obj),txt:'🎯',col:'var(--gold)',pri:0});
+  // el objetivo manda; después los tramos; se descarta lo que se encima
+  const puestos=[],ancho=l=>Math.max(3.5,String(l.txt).length*1.3);
+  labs.sort((x,y)=>x.pri-y.pri||x.at-y.at).forEach(l=>{
+    if(puestos.every(p=>Math.abs(p.at-l.at)>=(ancho(p)+ancho(l))/2)){puestos.push(l);
+      h+='<div class="lab" style="left:'+l.at+'%'+(l.col?';color:'+l.col:'')+'">'+l.txt+'</div>';}
+  });
+  if(c.px)h+='<div class="cur '+(c.st==='hit'?'hit':'')+'" style="left:'+at(c.px)+'%"></div>';
+  return h+'</div>';
+}
+function etiqueta(a,c){
+  if(c.manual)return '<span class="badge man'+(c.viejo?' old':'')+'">✎ precio a mano'+
+    (a.pxTs?' · '+hace(a.pxTs):' · sin cargar')+'</span>';
+  if(!c.vivo)return '<span class="badge">sin precio vivo</span>';
+  return '';
+}
+function mini(a){
+  if(!(a.tr||[]).length)return '';
+  return '<span class="mini">'+a.tr.map(t=>'<i class="'+(t.hit?(t.vis?'ok':'wait'):'')+'"></i>').join('')
+    +(a.obj?'<i class="goal"></i>':'')+'</span>';
+}
+const LBL={hit:['c-hit','Tramo alcanzado'],near:['c-near','Cerca del tramo'],goal:['c-goal','Objetivo alcanzado'],
+           stop:['c-stop','Invalidación'],warn:['c-warn','Revisar plan']};
+let FILTRO='todos',BUSCA='';
+
+function pintar(){
+  const D=datos();
+  /* --- alertas --- */
+  const gr={};D.forEach(d=>{if(d.c.st!=='ok')(gr[d.c.st]=gr[d.c.st]||[]).push(d)});
+  const box=document.getElementById('alerts');
+  const claves=Object.keys(LBL).filter(k=>gr[k]);
+  if(!ACT.length){box.style.display='none'}
+  else{
+    box.style.display='';
+    const man=D.filter(d=>d.c.manual);
+    const manViejos=man.filter(d=>d.c.viejo||!d.a.pxTs).length;
+    document.getElementById('chips').innerHTML=(claves.length
+      ? claves.map(k=>'<span class="chip '+LBL[k][0]+'"><b>'+gr[k].length+'</b> '+LBL[k][1]+'</span>').join('')
+      : '<span class="chip ok">Sin alertas: nada tocó sus precios</span>')
+      +(man.length?'<span class="chip c-man" id="chipMan"><b>'+man.length+'</b> con precio a mano'+
+        (manViejos?' · '+manViejos+' sin refrescar':'')+'</span>':'');
+    const cm=document.getElementById('chipMan');
+    if(cm)cm.onclick=()=>{
+      FILTRO='manual';BUSCA='';
+      const b=document.getElementById('buscar');if(b)b.value='';
+      document.getElementById('filtros').querySelectorAll('button').forEach(x=>
+        x.classList.toggle('on',x.dataset.f==='manual'));
+      pintar();
+    };
+    document.getElementById('alist').innerHTML=claves.flatMap(k=>gr[k].map(d=>
+      '<div class="arow" data-id="'+d.a.id+'"><span class="k">'+esc(d.a.s)+'</span><span>'+esc(d.c.msg)+'</span>'+
+      '<span class="d">'+(d.c.next?'próximo '+fpx(d.c.next.p)+' · '+(d.c.next.pct||0)+'%':'sin tramos pendientes')+'</span></div>')).join('')
+      ||'<div class="arow" style="cursor:default"><span>Todo dentro del plan.</span></div>';
+    document.getElementById('alist').querySelectorAll('.arow[data-id]').forEach(el=>el.onclick=()=>detalle(el.dataset.id));
+  }
+  /* --- kpis --- */
+  const conPlan=D.filter(d=>d.a.tr&&d.a.tr.length);
+  const K2={
+    sinRev:D.reduce((s,d)=>s+d.c.sinRev.length,0),
+    pend:D.reduce((s,d)=>s+d.c.pend.length,0),
+    cerca:D.filter(d=>d.c.dist!==null&&d.c.dist>0&&d.c.dist<=CFG.umbral).length,
+    plan:conPlan.length?conPlan.reduce((s,d)=>s+d.c.plan,0)/conPlan.length:0,
+    goal:D.filter(d=>d.c.st==='goal').length,
+    stop:D.filter(d=>d.c.st==='stop').length,
+    manual:D.filter(d=>d.c.manual).length
+  };
+  document.getElementById('kpis').innerHTML=!ACT.length?'':[
+    ['Activos en seguimiento',ACT.length+' / '+TOPE,K2.manual?K2.manual+' con precio a mano':'todos con precio en vivo'],
+    ['Tramos alcanzados',K2.sinRev,'sin revisar',K2.sinRev?'hot':''],
+    ['A menos de '+CFG.umbral+'%',K2.cerca,'próximos a disparar',K2.cerca?'warm':''],
+    ['Tramos por disparar',K2.pend,'en toda la lista'],
+    ['Plan ejecutado',K2.plan.toFixed(0)+'%','promedio de la lista'],
+    ['Objetivos e invalidaciones',K2.goal+' / '+K2.stop,'alcanzados / tocadas']
+  ].map(k=>'<div class="kpi"><div class="l">'+k[0]+'</div><div class="v '+(k[3]||'')+'">'+k[1]+'</div><div class="s">'+k[2]+'</div></div>').join('');
+
+  /* --- filas --- */
+  let vis=D;
+  if(FILTRO==='alerta')vis=vis.filter(d=>d.c.st!=='ok');
+  if(FILTRO==='pendiente')vis=vis.filter(d=>d.c.pend.length);
+  if(FILTRO==='listo')vis=vis.filter(d=>d.c.completo&&!d.c.pend.length);
+  if(FILTRO==='manual')vis=vis.filter(d=>d.c.manual);
+  if(BUSCA)vis=vis.filter(d=>(d.a.s+' '+(d.a.n||'')).toLowerCase().includes(BUSCA));
+  const cont=document.getElementById('rows');
+  if(!ACT.length){
+    cont.innerHTML='<div class="vacio"><b>Todavía no seguís ningún activo</b>'+
+      'Agregá el primero y definí hasta tres precios de venta antes del objetivo.<br><br>'+
+      '<button class="btn pri" onclick="abrirAlta()">+ Agregar activo</button></div>';
+  }else if(!vis.length){
+    cont.innerHTML='<div class="vacio"><b>Nada en este filtro</b>Probá con Todos.</div>';
+  }else{
+    cont.innerHTML=vis.map(d=>{
+      const a=d.a,c=d.c,chg=cambioDe(a);
+      const nx=c.next?'<span class="f next">Próximo '+fpx(c.next.p)+' · '+(c.next.pct||0)+'%'+(c.dist!==null?' · falta '+c.dist.toFixed(1)+'%':'')+'</span>':'';
+      const al=c.st!=='ok'?'<span class="f '+(c.st==='hit'||c.st==='stop'?'alert':c.st==='goal'?'good':'warn')+'">'+esc(c.msg)+'</span>':'';
+      return '<div class="row s-'+c.st+(c.manual?' man':'')+'" data-id="'+a.id+'">'+
+        '<div class="r1"><span class="tk">'+esc(a.s)+'</span><span class="nm">'+esc(a.n||'')+'</span>'+
+        etiqueta(a,c)+
+        '<span class="px num">'+fpx(c.px)+'</span>'+
+        (chg!==null?'<span class="chg num '+cls(chg)+'">'+pc(chg)+'</span>':'')+'</div>'+
+        ladder(a,c)+
+        '<div class="r2">'+
+        (a.obj&&c.dObj!==null?'<span class="f">Objetivo '+fpx(a.obj)+' <b>'+(c.dObj>0?'falta '+c.dObj.toFixed(0)+'%':'alcanzado')+'</b></span>':'')+
+        '<span class="f">Plan ejecutado <b>'+c.plan+'%</b></span>'+
+        (c.desde!==null?'<span class="f">Desde la compra <b class="num '+cls(c.desde)+'">'+pc(c.desde)+'</b></span>':'')+
+        (a.stop?'<span class="f">Invalidación '+fpx(a.stop)+'</span>':'')+
+        nx+al+mini(a)+'</div></div>';
+    }).join('');
+    cont.querySelectorAll('.row').forEach(el=>el.onclick=()=>detalle(el.dataset.id));
+  }
+  document.getElementById('count').textContent=ACT.length+' de '+TOPE+' lugares usados';
+  document.getElementById('stamp').innerHTML=LAST?'precios '+hace(LAST):'sin datos todavía';
+  document.getElementById('foot').textContent=ACT.length?'Los precios son de Binance y los tramos se marcan solos al ser tocados. Nada de esto es una recomendación de compra o venta.':'';
+  graficos(D);
+}
+
+/* ========================= gráficos ========================= */
+function graficos(D){
+  const c=[];
+  const conDist=D.filter(d=>d.c.dist!==null).sort((a,b)=>a.c.dist-b.c.dist).slice(0,10);
+  if(conDist.length){
+    const mx=Math.max.apply(null,conDist.map(r=>Math.abs(r.c.dist)).concat([1]));
+    c.push('<div class="card"><h3>Cuánto falta para el próximo tramo</h3>'+
+      '<p class="sub">La agenda: arriba lo que está por disparar.</p>'+
+      conDist.map(r=>{
+        const w=Math.min(100,Math.abs(r.c.dist)/mx*100);
+        const col=r.c.dist<=0?'var(--red)':r.c.dist<=CFG.umbral?'var(--amb)':'var(--blu)';
+        return '<div class="bar"><span class="t">'+esc(r.a.s)+'</span><span class="track">'+
+          '<span class="fill" style="width:'+w+'%;background:'+col+'"></span></span>'+
+          '<span class="v num">'+(r.c.dist<=0?'alcanzado':'+'+r.c.dist.toFixed(1)+'%')+'</span></div>';
+      }).join('')+'</div>');
+  }
+  const conPlan=D.filter(d=>d.a.tr&&d.a.tr.length).sort((a,b)=>b.c.plan-a.c.plan);
+  if(conPlan.length){
+    c.push('<div class="card"><h3>Avance del plan de cada activo</h3>'+
+      '<p class="sub">Porción del plan ya disparada.</p>'+
+      conPlan.map(r=>'<div class="bar"><span class="t">'+esc(r.a.s)+'</span><span class="track">'+
+        '<span class="fill" style="width:'+r.c.plan+'%;background:var(--grn)"></span>'+
+        '<span class="fill" style="width:'+(100-r.c.plan)+'%;background:#22303e"></span></span>'+
+        '<span class="v num">'+r.c.plan+'%</span></div>').join('')+
+      '<div class="legend"><span><i style="background:#2ecc71"></i>disparado</span><span><i style="background:#22303e"></i>pendiente</span></div></div>');
+  }
+  const b=[0,0,0,0];
+  D.forEach(d=>{if(d.c.px)d.c.pend.forEach(t=>{
+    const x=(t.p-d.c.px)/d.c.px*100;
+    if(x<=CFG.umbral)b[0]++;else if(x<=10)b[1]++;else if(x<=25)b[2]++;else b[3]++;})});
+  const totT=b.reduce((s,x)=>s+x,0);
+  if(totT){
+    const nm=['hasta '+CFG.umbral+'%',CFG.umbral+' a 10%','10 a 25%','más de 25%'];
+    const cl=['var(--red)','var(--amb)','var(--blu)','#2f4356'],mx=Math.max.apply(null,b);
+    c.push('<div class="card"><h3>Dónde están parados los tramos pendientes</h3>'+
+      '<p class="sub">Cuántas ventas caen cerca y cuántas son de largo plazo.</p>'+
+      b.map((x,i)=>'<div class="bar"><span class="t" style="width:78px">'+nm[i]+'</span><span class="track">'+
+        '<span class="fill" style="width:'+(x/mx*100)+'%;background:'+cl[i]+'"></span></span>'+
+        '<span class="v num">'+x+'</span></div>').join('')+
+      '<div class="legend"><span>'+totT+' tramos pendientes en total</span></div></div>');
+  }
+  const conRec=D.filter(d=>d.c.recorrido!==null).sort((a,b)=>b.c.recorrido-a.c.recorrido);
+  if(conRec.length){
+    c.push('<div class="card"><h3>Camino recorrido hacia el objetivo</h3>'+
+      '<p class="sub">Del trayecto entre tu compra y el objetivo, cuánto ya se caminó.</p>'+
+      conRec.map(r=>'<div class="bar"><span class="t">'+esc(r.a.s)+'</span><span class="track">'+
+        '<span class="fill" style="width:'+r.c.recorrido+'%;background:'+(r.c.recorrido>=100?'var(--gold)':'var(--blu)')+'"></span></span>'+
+        '<span class="v num">'+r.c.recorrido.toFixed(0)+'%</span></div>').join('')+
+      '<div class="legend"><span>Solo los activos con precio de compra cargado</span></div></div>');
+  }
+  document.getElementById('charts').innerHTML=c.length?c.join('')
+    :'<div class="vacio"><b>Sin datos para graficar</b>Agregá activos con objetivo y tramos.</div>';
+}
+
+/* ========================= modal: alta ========================= */
+const ov=document.getElementById('ov'),modal=document.getElementById('modal');
+function cerrar(){ov.classList.remove('on');modal.innerHTML=''}
+ov.onclick=e=>{if(e.target===ov)cerrar()};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&ov.classList.contains('on'))cerrar()});
+
+let SEL=null;   // activo elegido en el alta
+function abrirAlta(){
+  if(ACT.length>=TOPE){toast('Ya tenés los '+TOPE+' lugares usados');return}
+  SEL=null;
+  modal.innerHTML=
+   '<button class="cl" onclick="cerrar()">×</button><h2>Agregar activo</h2>'+
+   '<p class="sub" style="color:var(--mu);font-size:12.5px;margin:0 0 10px">Escribí el ticker o el nombre. Si no está en la lista, igual se puede agregar.</p>'+
+   '<div class="ac"><input class="inp" id="acIn" placeholder="SOL, Solana, LINK…" autocomplete="off">'+
+   '<div class="aclist" id="acList"></div></div>'+
+   '<div id="acMsg"></div>'+
+   '<div id="formBox" style="display:none"></div>';
+  ov.classList.add('on');
+  const inp=document.getElementById('acIn');
+  inp.focus();
+  inp.addEventListener('input',()=>autocompletar(inp.value));
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();elegirPrimero()}});
+  cargarUniverso().then(()=>{if(inp.value)autocompletar(inp.value)}).catch(()=>{});
+}
+function autocompletar(q){
+  const lista=document.getElementById('acList'),msg=document.getElementById('acMsg');
+  q=(q||'').trim();
+  if(!q){lista.classList.remove('on');msg.innerHTML='';return}
+  const Q=q.toUpperCase().replace(/[^A-Z0-9]/g,''),ql=q.toLowerCase();
+  if(!Q&&!ql){lista.classList.remove('on');msg.innerHTML='';return}
+  const uni=(UNI&&UNI.lista)||[];
+  const yaTengo=s=>ACT.some(a=>a.s===s);
+  let r=uni.filter(x=>x.s.startsWith(Q)||(x.n||'').toLowerCase().startsWith(ql));
+  if(r.length<8)r=r.concat(uni.filter(x=>r.indexOf(x)<0&&((x.n||'').toLowerCase().includes(ql)||x.s.includes(Q))));
+  r=r.slice(0,8);
+  if(r.length){
+    lista.innerHTML=r.map((x,i)=>'<div class="acit'+(yaTengo(x.s)?' act':'')+'" data-i="'+i+'">'+
+      '<span class="s">'+esc(x.s)+'</span><span class="n">'+esc(x.n||'')+'</span>'+
+      '<span class="p">'+(yaTengo(x.s)?'ya está en la lista':(x.par&&TICK&&TICK[x.par]?fpx(TICK[x.par].px):'sin par'))+'</span></div>').join('');
+    lista.classList.add('on');
+    lista.querySelectorAll('.acit').forEach(el=>el.onclick=()=>{
+      const x=r[+el.dataset.i];
+      if(yaTengo(x.s)){toast(x.s+' ya está en tu lista');return}
+      elegir(x.s,x.n,x.par,x.quote);
+    });
+    msg.innerHTML='';
+  }else{
+    lista.classList.remove('on');
+    const p=buscarPar(Q),cerca=parecidos(Q);
+    let h='<p class="hint">No está en el top '+CFG.uni+'.';
+    if(p)h+=' Pero Binance sí lo lista: <b>'+p.par+'</b> a '+fpx(TICK[p.par].px)+'.</p>'+
+      '<button class="btn pri sm" onclick="elegir(\''+Q+'\',\'\',\''+p.par+'\',\''+p.quote+'\')">Agregar '+Q+' con precio en vivo</button>';
+    else{
+      h+='</p>';
+      if(cerca.length)h+='<p class="hint">¿Quisiste decir?</p><div class="tools" style="margin:6px 0 0">'+
+        cerca.map(x=>'<button class="btn sm" onclick="elegir(\''+x.s+'\',\'\',\''+x.par+'\',\''+x.quote+'\')">'+esc(x.s)+' · '+fpx(x.px)+'</button>').join('')+'</div>';
+      h+='<p class="hint">O agregalo con precio cargado a mano.</p>'+
+        '<button class="btn sm" onclick="elegir(\''+Q+'\',\'\',null,null)">Agregar '+esc(Q)+' a mano</button>';
+    }
+    msg.innerHTML=h;
+  }
+}
+function elegirPrimero(){
+  const it=document.querySelector('#acList .acit:not(.act)');
+  if(it)it.click();
+}
+function elegir(s,n,par,quote){
+  if(ACT.length>=TOPE){toast('Ya tenés los '+TOPE+' lugares usados');return}
+  if(ACT.some(a=>a.s===s)){toast(s+' ya está en tu lista');return}
+  const caja=document.getElementById('formBox');
+  if(!caja){toast('Abrí de nuevo el alta de activo');return}
+  const uni=(UNI&&UNI.lista||[]).find(x=>x.s===s);
+  SEL={s,n:n||(uni?uni.n:'')||'',par:par||null,quote:quote||null};
+  const l=document.getElementById('acList'),m=document.getElementById('acMsg'),i=document.getElementById('acIn');
+  if(l)l.classList.remove('on');
+  if(m)m.innerHTML='';
+  if(i)i.value=s;
+  formulario();
+}
+function formulario(){
+  const box=document.getElementById('formBox');
+  if(!box||!SEL)return;
+  const px=SEL.par&&TICK&&TICK[SEL.par]?TICK[SEL.par].px:null;
+  box.style.display='';
+  box.innerHTML=
+   '<hr><p class="sub" style="color:var(--mu);font-size:12.5px;margin:0 0 4px">'+esc(SEL.s)+(SEL.n?' · '+esc(SEL.n):'')+
+     (px?' · '+fpx(px)+' ahora':' · sin par en Binance, vas a cargar el precio a mano')+'</p>'+
+   '<div class="fld">'+
+   (px?'':'<div><label>Precio actual</label><input class="inp" id="fPx" inputmode="decimal" placeholder="0.00"></div>')+
+   '<div><label>Objetivo de salida total</label><input class="inp" id="fObj" inputmode="decimal" placeholder="obligatorio"></div>'+
+   '<div><label>Precio de compra de referencia</label><input class="inp" id="fEnt" inputmode="decimal" placeholder="opcional"></div>'+
+   '<div><label>Invalidación</label><input class="inp" id="fStop" inputmode="decimal" placeholder="opcional"></div>'+
+   '</div>'+
+   tramosHTML([])+
+   '<div class="tools" style="margin:10px 0 0">'+
+     '<button class="btn sm" onclick="repartir()">Repartir hasta el objetivo</button>'+
+     '<button class="btn sm" onclick="plantilla([25,25,20])">25/25/20</button>'+
+     '<button class="btn sm" onclick="plantilla([30,30,20])">30/30/20</button>'+
+     '<button class="btn sm" onclick="plantilla([33,33,34])">33/33/34</button>'+
+   '</div>'+
+   '<div class="eco" id="eco"></div>'+
+   '<div id="fErr"></div>'+
+   '<div class="tools" style="margin:14px 0 0"><button class="btn pri" onclick="guardarNuevo()">Guardar activo</button>'+
+   '<button class="btn" onclick="cerrar()">Cancelar</button></div>';
+  eco();const o=document.getElementById('fObj');if(o)o.focus();
+}
+function tramosHTML(tr){
+  let h='<div class="tr" style="color:var(--mu);font-size:11.5px"><span></span><span>Precio de venta</span><span>Porción</span><span class="st">estado</span></div>';
+  for(let i=0;i<3;i++){
+    const t=tr[i]||{};
+    h+='<div class="tr"><span class="n">'+(i+1)+'</span>'+
+      '<input class="inp" id="tp'+i+'" inputmode="decimal" value="'+paraInput(t.p)+'" placeholder="precio">'+
+      '<input class="inp" id="tc'+i+'" inputmode="decimal" value="'+(t.pct!==undefined?t.pct:'')+'" placeholder="%">'+
+      '<span class="st" id="ts'+i+'" style="color:var(--mu)">'+(t.hit?(t.vis?'✓ alcanzado '+fecha(t.hit):'⚠ alcanzado '+fecha(t.hit)):'')+'</span></div>';
+  }
+  return h;
+}
+function leerTramos(){
+  const out=[];
+  for(let i=0;i<3;i++){
+    const p=num((document.getElementById('tp'+i)||{}).value),c=num((document.getElementById('tc'+i)||{}).value);
+    if(p!==null&&p>0)out.push({p,pct:c===null?0:c,i});
+  }
+  return out.sort((a,b)=>a.p-b.p);
+}
+function precioForm(){
+  const f=document.getElementById('fPx');
+  if(f)return num(f.value);
+  return SEL&&SEL.par&&TICK&&TICK[SEL.par]?TICK[SEL.par].px:null;
+}
+function repartir(){
+  const obj=num(document.getElementById('fObj').value),px=precioForm();
+  if(!obj||!px||obj<=px){pintarErr('Para repartir necesito el precio actual y un objetivo por encima.');return}
+  const paso=(obj-px)/4;
+  for(let i=0;i<3;i++){
+    const v=px+paso*(i+1);
+    document.getElementById('tp'+i).value=redondear(v);
+    if(!document.getElementById('tc'+i).value)document.getElementById('tc'+i).value=[25,25,20][i];
+  }
+  pintarErr('');eco();
+}
+function plantilla(p){for(let i=0;i<3;i++)document.getElementById('tc'+i).value=p[i]}
+function pintarErr(m,id){
+  const e=document.getElementById(id||'fErr');
+  if(!e)return;
+  e.innerHTML=!m?'':(/^</.test(m)?m:'<p class="err">'+m+'</p>');
+}
+function revisarEscala(obj,tr,px){
+  if(!px||!isFinite(px)||px<=0)return null;
+  const vals=(tr||[]).map(t=>t.p).concat(obj?[obj]:[]).filter(v=>isFinite(v)&&v>0);
+  if(!vals.length)return null;
+  const raros=vals.filter(v=>v/px>=100||px/v>=100);
+  if(!raros.length)return null;
+  let factor=null;
+  if(raros.length===vals.length){
+    const chicos=vals.every(v=>px/v>=100),grandes=vals.every(v=>v/px>=100);
+    if(chicos||grandes){
+      const ratio=chicos?px/Math.max.apply(null,vals):Math.min.apply(null,vals)/px;
+      const e=Math.round(Math.log(ratio)/Math.log(1000));
+      if(e>=1)factor=chicos?Math.pow(1000,e):1/Math.pow(1000,e);
+    }
+  }
+  return {raros,factor,todos:raros.length===vals.length};
+}
+function avisoEscala(r,px,modo){
+  const f=r.factor;
+  const txt=r.todos
+    ? 'El objetivo y los tramos están muy lejos del precio actual ('+fpx(px)+'), así que el plan nace cumplido.'
+    : 'Estos precios están muy lejos del actual ('+fpx(px)+'): '+r.raros.slice(0,4).map(fpx).join(', ')+'.';
+  const lab=f>1?'Multiplicar todo por '+f.toLocaleString('es-AR'):'Dividir todo por '+Math.round(1/f).toLocaleString('es-AR');
+  return '<p class="err">'+txt+' Fijate si faltan o sobran ceros.</p>'+
+    '<div class="tools" style="margin:8px 0 0">'+
+    (f?'<button class="btn sm pri" onclick="escalar('+f+')">'+lab+'</button>':'')+
+    '<button class="btn sm" onclick="forzar(\''+modo+'\')">Guardar igual</button></div>';
+}
+function campo(n){return document.getElementById('f'+n)||document.getElementById('d'+n)}
+function eco(){
+  const caja=document.getElementById('eco');
+  if(!caja)return;
+  const tr=[];
+  for(let i=0;i<3;i++){const el=document.getElementById('tp'+i);
+    if(el){const v=num(el.value);if(v!==null)tr.push(v)}}
+  const o=campo('Obj'),obj=o?num(o.value):null;
+  const e=campo('Ent'),ent=e?num(e.value):null;
+  const st=campo('Stop'),stop=st?num(st.value):null;
+  if(!tr.length&&obj===null&&ent===null&&stop===null){
+    caja.innerHTML='<span class="mut">Punto para los miles, coma para los decimales: 170.000 · 0,00305</span>';
+    return;
+  }
+  caja.innerHTML='<span class="mut">Se leen:</span> '+
+    (tr.length?tr.sort((a,b)=>a-b).map(fpx).join(' · '):'<span class="mut">sin tramos</span>')+
+    (obj!==null?' <span class="mut">→ objetivo</span> '+fpx(obj):'')+
+    (ent!==null?' <span class="mut">· compra</span> '+fpx(ent):'')+
+    (stop!==null?' <span class="mut">· stop</span> '+fpx(stop):'');
+}
+function escalar(f){
+  ['Obj','Ent','Stop'].forEach(n=>{
+    const el=campo(n);if(!el)return;const v=num(el.value);
+    if(v!==null)el.value=redondear(v*f);
+  });
+  for(let i=0;i<3;i++){
+    const el=document.getElementById('tp'+i);if(!el)continue;const v=num(el.value);
+    if(v!==null)el.value=redondear(v*f);
+  }
+  pintarErr('');pintarErr('','dErr');eco();
+}
+function redondear(v){
+  if(Math.abs(v)>=1000)return Math.round(v).toLocaleString('es-AR');
+  return (Math.abs(v)>=1?v.toFixed(2):parseFloat(v.toPrecision(4)).toString()).replace('.',',');
+}
+let FORZAR=false;
+function forzar(modo){FORZAR=true;try{modo==='nuevo'?guardarNuevo():guardarEdit()}finally{FORZAR=false}}
+function validar(obj,ent,stop,tr,px){
+  if(!obj||obj<=0)return 'Falta el objetivo de salida total.';
+  if(!tr.length)return 'Cargá al menos un tramo con su precio.';
+  if(tr.some(t=>t.p>=obj))return 'Cada tramo tiene que estar por debajo del objetivo.';
+  const suma=tr.reduce((s,t)=>s+(t.pct||0),0);
+  if(suma>100)return 'Las porciones suman '+suma+'%. No pueden pasar de 100.';
+  if(tr.some(t=>t.pct<0))return 'Las porciones no pueden ser negativas.';
+  if(stop&&tr.some(t=>t.p<=stop))return 'La invalidación quedó por encima de algún tramo.';
+  if(ent&&obj<=ent)return 'El objetivo está por debajo del precio de compra.';
+  return null;
+}
+function guardarNuevo(){
+  const obj=num(document.getElementById('fObj').value);
+  const ent=num(document.getElementById('fEnt').value);
+  const stop=num(document.getElementById('fStop').value);
+  const px=precioForm();
+  const tr=leerTramos();
+  const e=validar(obj,ent,stop,tr,px);
+  if(e){pintarErr(e);return}
+  if(!SEL.par&&px===null){pintarErr('Cargá el precio actual para poder alertarte.');return}
+  const re=revisarEscala(obj,tr,px);
+  if(re&&!FORZAR){pintarErr(avisoEscala(re,px,'nuevo'));return}
+  const a=normalizar({id:nuevoId(),s:SEL.s,n:SEL.n,par:SEL.par,quote:SEL.quote,
+    obj,ent,stop,tr:tr.map(t=>({p:t.p,pct:t.pct})),
+    px:SEL.par&&TICK&&TICK[SEL.par]?TICK[SEL.par].px:px,pxTs:Date.now(),manual:!SEL.par});
+  // marcado inicial contra el precio de hoy, sin alerta ruidosa
+  (a.tr||[]).forEach(t=>{if(a.px>=t.p){t.hit=Date.now();t.vis=true}});
+  if(a.obj&&a.px>=a.obj){a.objHit=Date.now();a.objVis=true}
+  if(a.stop&&a.px<=a.stop){a.stopHit=Date.now();a.stopVis=true}
+  ACT.push(a);guardar();cerrar();pintar();toast(a.s+' agregado');
+}
+
+/* ========================= modal: detalle ========================= */
+let EDIT=null;
+function detalle(id){
+  const a=ACT.find(x=>x.id===id);if(!a)return;
+  EDIT=a;const c=calc(a);
+  modal.innerHTML=
+   '<button class="cl" onclick="cerrar()">×</button>'+
+   '<h2>'+esc(a.s)+' <span class="nm">'+esc(a.n||'')+'</span></h2>'+
+   '<p class="sub" style="color:var(--mu);font-size:12.5px;margin:0">'+fpx(c.px)+' ahora'+
+     (c.manual?' · ✎ precio a mano de '+(a.pxTs?fecha(a.pxTs):'—'):c.vivo?' · '+a.par:' · sin precio vivo')+
+     (a.ent?' · compra '+fpx(a.ent):'')+(c.desde!==null?' · '+pc(c.desde)+' desde entonces':'')+'</p>'+
+   ladder(a,c)+
+   (c.st!=='ok'?'<p class="err" style="color:'+(c.st==='goal'?'#9fe7c1':c.st==='near'?'#ffd79a':'#ffb4b4')+'">'+esc(c.msg)+'</p>':'')+
+   '<hr>'+
+   (c.vivo?'':'<div class="fld" style="margin-top:0"><div><label>Precio actual'+(c.manual?' — esta cripto no cotiza en Binance, actualizalo vos':'')+'</label><input class="inp" id="dPx" inputmode="decimal" value="'+paraInput(a.px)+'"></div></div>')+
+   tramosDetalle(a)+
+   '<div class="tr"><span class="n">🎯</span><input class="inp" id="dObj" inputmode="decimal" value="'+paraInput(a.obj)+'">'+
+     '<input class="inp" value="'+c.restoFinal+'% resto" disabled style="color:var(--mu)">'+
+     '<span class="st" style="color:var(--gold)">'+(c.dObj!==null?(c.dObj>0?'falta '+c.dObj.toFixed(1)+'%':'alcanzado'):'')+'</span></div>'+
+   '<div class="fld">'+
+     '<div><label>Precio de compra de referencia</label><input class="inp" id="dEnt" inputmode="decimal" value="'+paraInput(a.ent)+'"></div>'+
+     '<div><label>Invalidación</label><input class="inp" id="dStop" inputmode="decimal" value="'+paraInput(a.stop)+'"></div>'+
+     '<div style="grid-column:1/-1"><label>Nota</label><input class="inp" id="dNota" value="'+esc(a.nota||'')+'" placeholder="tesis, marco, de dónde salió la idea"></div>'+
+   '</div>'+
+   '<div class="tools" style="margin:2px 0 0">'+
+     '<button class="btn sm" onclick="repartirDet()">Repartir hasta el objetivo</button>'+
+     '<button class="btn sm" onclick="mover(5)">Subir tramos 5%</button>'+
+     '<button class="btn sm" onclick="mover(-5)">Bajar tramos 5%</button>'+
+   '</div>'+
+   '<div class="eco" id="eco"></div>'+
+   '<div id="dErr"></div>'+
+   '<div class="tools" style="margin:14px 0 0">'+
+     (c.sinRev.length||(a.objHit&&!a.objVis)||(a.stopHit&&!a.stopVis)?'<button class="btn pri" onclick="revisar()">Marcar como revisado</button>':'')+
+     '<button class="btn" onclick="guardarEdit()">Guardar cambios</button>'+
+     '<button class="btn dgr" onclick="borrar()">Eliminar</button>'+
+   '</div>'+
+   '<p class="hint">Los tramos se marcan solos cuando el precio los toca. «Revisado» apaga la alerta sin preguntar si vendiste; «Reabrir» devuelve el tramo a pendiente.</p>';
+  ov.classList.add('on');eco();
+}
+function tramosDetalle(a){
+  const px=precioDe(a);
+  let h='<div class="tr" style="color:var(--mu);font-size:11.5px"><span></span><span>Precio de venta</span><span>Porción</span><span class="st">estado</span></div>';
+  for(let i=0;i<3;i++){
+    const t=(a.tr||[])[i]||{};
+    let st='';
+    if(t.hit)st='<span style="color:'+(t.vis?'var(--grn)':'var(--red)')+'">'+(t.vis?'✓':'⚠')+' '+fecha(t.hit)+'</span> '+
+      '<button class="btn sm" style="min-height:26px;padding:2px 7px" onclick="reabrir('+i+')">Reabrir</button>';
+    else if(t.p&&px)st='falta '+((t.p-px)/px*100).toFixed(1)+'%';
+    h+='<div class="tr"><span class="n">'+(i+1)+'</span>'+
+      '<input class="inp" id="tp'+i+'" inputmode="decimal" value="'+paraInput(t.p)+'" placeholder="precio">'+
+      '<input class="inp" id="tc'+i+'" inputmode="decimal" value="'+(t.pct!==undefined?t.pct:'')+'" placeholder="%">'+
+      '<span class="st">'+st+'</span></div>';
+  }
+  return h;
+}
+function repartirDet(){
+  const obj=num(document.getElementById('dObj').value),px=precioDe(EDIT);
+  if(!obj||!px||obj<=px){pintarErr('Necesito precio actual y objetivo por encima.','dErr');return}
+  const paso=(obj-px)/4;
+  for(let i=0;i<3;i++){
+    const v=px+paso*(i+1);
+    document.getElementById('tp'+i).value=redondear(v);
+    if(!document.getElementById('tc'+i).value)document.getElementById('tc'+i).value=[25,25,20][i];
+  }
+  pintarErr('','dErr');eco();
+}
+function mover(p){
+  for(let i=0;i<3;i++){
+    const el=document.getElementById('tp'+i);if(!el)continue;
+    const v=num(el.value);if(v!==null)el.value=redondear(v*(1+p/100));
+  }
+  const o=document.getElementById('dObj');
+  if(o){const v=num(o.value);if(v!==null)o.value=redondear(v*(1+p/100));}
+  eco();
+}
+function reabrir(i){
+  const t=(EDIT.tr||[])[i];if(!t)return;
+  delete t.hit;delete t.vis;guardar();detalle(EDIT.id);pintar();toast('Tramo reabierto');
+}
+function revisar(){
+  (EDIT.tr||[]).forEach(t=>{if(t.hit)t.vis=true});
+  if(EDIT.objHit)EDIT.objVis=true;
+  if(EDIT.stopHit)EDIT.stopVis=true;
+  guardar();detalle(EDIT.id);pintar();toast('Alertas de '+EDIT.s+' apagadas');
+}
+function guardarEdit(){
+  const a=EDIT;
+  const obj=num(document.getElementById('dObj').value);
+  const ent=num(document.getElementById('dEnt').value);
+  const stop=num(document.getElementById('dStop').value);
+  const pxIn=document.getElementById('dPx');
+  const px=pxIn?num(pxIn.value):precioDe(a);
+  const nuevos=leerTramos();
+  const e=validar(obj,ent,stop,nuevos,px);
+  if(e){pintarErr(e,'dErr');return}
+  const re=revisarEscala(obj,nuevos,px);
+  if(re&&!FORZAR){pintarErr(avisoEscala(re,px,'edit'),'dErr');return}
+  // conserva el estado de los tramos cuyo precio no cambió
+  const viejos=(a.tr||[]).slice();
+  a.tr=nuevos.map(t=>{
+    const v=viejos.find(x=>Math.abs(x.p-t.p)<1e-12);
+    return v?{p:t.p,pct:t.pct,hit:v.hit,vis:v.vis}:{p:t.p,pct:t.pct};
+  });
+  if(a.obj!==obj){delete a.objHit;delete a.objVis}
+  if(a.stop!==stop){delete a.stopHit;delete a.stopVis}
+  a.obj=obj;a.ent=ent;a.stop=stop;
+  a.nota=document.getElementById('dNota').value.slice(0,200);
+  if(pxIn&&px!==null){a.px=px;a.pxTs=Date.now();a.manual=true;
+    (a.tr||[]).forEach(t=>{if(!t.hit&&px>=t.p){t.hit=Date.now();t.vis=false}});
+    if(a.obj&&!a.objHit&&px>=a.obj){a.objHit=Date.now();a.objVis=false}
+    if(a.stop&&!a.stopHit&&px<=a.stop){a.stopHit=Date.now();a.stopVis=false}}
+  normalizar(a);guardar();cerrar();pintar();toast('Cambios guardados');
+}
+function borrar(){
+  if(!confirm('¿Eliminar '+EDIT.s+' de la lista?'))return;
+  ACT=ACT.filter(x=>x.id!==EDIT.id);guardar();cerrar();pintar();toast('Eliminado');
+}
+
+/* ========================= datos ========================= */
+document.getElementById('btnExp').onclick=()=>{
+  const blob=new Blob([JSON.stringify({ver:VER,ts:Date.now(),cfg:CFG,activos:ACT},null,1)],{type:'application/json'});
+  const u=URL.createObjectURL(blob),a=document.createElement('a');
+  const d=new Date(),p=x=>String(x).padStart(2,'0');
+  a.href=u;a.download='plan-salida-'+d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'.json';
+  a.click();URL.revokeObjectURL(u);
+};
+document.getElementById('btnImp').onclick=()=>document.getElementById('fileImp').click();
+document.getElementById('fileImp').onchange=e=>{
+  const f=e.target.files[0];if(!f)return;
+  const rd=new FileReader();
+  rd.onload=()=>{
+    try{
+      const d=JSON.parse(rd.result);
+      if(!d||!Array.isArray(d.activos))throw new Error('formato');
+      ACT=d.activos.slice(0,TOPE).map(a=>normalizar(Object.assign({id:nuevoId()},a)));
+      if(d.cfg)CFG=Object.assign({},CFG_DEF,d.cfg);
+      guardar();sv(K.cfg,CFG);prefs();pintar();toast(ACT.length+' activos importados');
+    }catch(err){toast('El archivo no tiene el formato esperado')}
+  };
+  rd.readAsText(f);e.target.value='';
+};
+document.getElementById('btnWipe').onclick=()=>{
+  if(!confirm('Esto borra los '+ACT.length+' activos de este navegador. ¿Seguro?'))return;
+  ACT=[];guardar();pintar();toast('Lista vacía');
+};
+function prefs(){
+  document.getElementById('cfgUmbral').value=CFG.umbral;
+  document.getElementById('cfgUni').value=String(CFG.uni);
+  document.getElementById('uniInfo').textContent=UNI&&UNI.lista
+    ? UNI.lista.length+' activos en el buscador, actualizados '+hace(UNI.ts)+'. Los que estén fuera igual se pueden agregar escribiendo el ticker.'
+    : 'El buscador se arma la primera vez que agregues un activo.';
+}
+document.getElementById('cfgUmbral').onchange=e=>{
+  const v=num(e.target.value);CFG.umbral=(v&&v>0&&v<=50)?v:CFG_DEF.umbral;
+  e.target.value=CFG.umbral;sv(K.cfg,CFG);pintar();
+};
+document.getElementById('cfgUni').onchange=e=>{
+  CFG.uni=parseInt(e.target.value,10);sv(K.cfg,CFG);
+  cargarUniverso(true).then(()=>{prefs();toast('Buscador actualizado')}).catch(()=>toast('No se pudo actualizar el buscador'));
+};
+
+/* ========================= arranque ========================= */
+document.getElementById('btnRef').onclick=refrescar;
+document.getElementById('btnAdd').onclick=abrirAlta;
+document.getElementById('moreBtn').onclick=function(){
+  const l=document.getElementById('alist');l.classList.toggle('on');
+  this.textContent=l.classList.contains('on')?'ocultar detalle':'ver detalle';
+};
+document.getElementById('buscar').oninput=e=>{BUSCA=e.target.value.trim().toLowerCase();pintar()};
+document.getElementById('filtros').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+  document.getElementById('filtros').querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');FILTRO=b.dataset.f;pintar();
+});
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('on'));
+  document.getElementById('p-'+b.dataset.p).classList.add('on');
+});
+modal.addEventListener('input',eco);
+document.getElementById('ver').textContent='v'+VER;
+ACT=ACT.map(normalizar);
+prefs();pintar();
+if(ACT.length)refrescar();
+window.abrirAlta=abrirAlta;window.cerrar=cerrar;window.elegir=elegir;window.repartir=repartir;
+window.plantilla=plantilla;window.guardarNuevo=guardarNuevo;window.repartirDet=repartirDet;
+window.mover=mover;window.escalar=escalar;window.eco=eco;window.forzar=forzar;window.reabrir=reabrir;window.revisar=revisar;window.guardarEdit=guardarEdit;window.borrar=borrar;
+</script>
+</body>
+</html>
