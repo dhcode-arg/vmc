@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Smart Money Hyperliquid · v1.2</title>
+<title>Smart Money Hyperliquid · v1.4</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -87,6 +87,16 @@ td.sym{font-family:'Space Grotesk',Inter,sans-serif;font-weight:600;font-size:16
 .lbox{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:24px 28px;min-width:280px;display:flex;flex-direction:column;gap:12px}
 .prog{height:6px;background:#1C2230;border-radius:3px;overflow:hidden}
 .prog i{display:block;height:6px;background:var(--blue);width:0;transition:width .2s}
+.stale-msg{font-size:13px;border-radius:8px;padding:10px 12px;border:1px solid #5A4C22;background:#2E2814;color:#F2D58A}
+.stale-msg.bad{border-color:#7A3B3B;background:#2A1515;color:var(--bad)}
+.stale-msg[hidden]{display:none}
+#sec-setup.stale .setups{opacity:.35;filter:grayscale(.7);pointer-events:none;user-select:none}
+.status.stale{border-color:#5A4C22;background:#211d10}.status.stale b{color:#F2D58A}
+.setup-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px}
+.px-now{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:500;color:var(--tx);white-space:nowrap}
+.px-now small{font-family:Inter,sans-serif;font-size:12px;font-weight:400;color:var(--mut);margin-left:6px}
+.px-now.old{color:var(--mut)}
+.px-now[hidden]{display:none}
 .c-blue{color:var(--blue)}.c-orange{color:var(--orange)}.c-good{color:var(--good)}.c-bad{color:var(--bad)}.c-warn{color:var(--warn)}.c-mut{color:var(--mut)}
 @media (max-width:600px){.wrap{padding:18px 14px 40px}h1{font-size:26px}.kpi .v{font-size:26px}.setup{flex-basis:100%}}
 @media (max-width:640px){
@@ -111,7 +121,7 @@ td.sym{font-family:'Space Grotesk',Inter,sans-serif;font-weight:600;font-size:16
 <div class="wrap">
   <header class="hd">
     <div>
-      <div class="eyebrow"><span class="dot"></span>Ecosistema VMC · Módulo de posicionamiento · v1.2</div>
+      <div class="eyebrow"><span class="dot"></span>Ecosistema VMC · Módulo de posicionamiento · v1.4</div>
       <h1>Smart Money Hyperliquid</h1>
       <p class="sub">Hacia dónde están posicionadas las mejores billeteras de Hyperliquid por PnL del último mes, a qué precio entraron, cuánto apalancamiento usan, dónde tienen salidas y qué operación se desprende de eso.</p>
     </div>
@@ -132,9 +142,10 @@ td.sym{font-family:'Space Grotesk',Inter,sans-serif;font-weight:600;font-size:16
 
   <section class="card" id="sec-setup" aria-label="Operación sugerida">
     <div class="row">
-      <h2 id="setup-title">Operación sugerida</h2>
+      <h2 class="setup-h"><span id="setup-title">Operación sugerida</span><span id="setup-price" class="px-now" hidden></span></h2>
       <label class="note" style="display:flex;align-items:center;gap:8px">Activo <select id="sel-coin" aria-label="Activo para la operación sugerida"></select></label>
     </div>
+    <div class="stale-msg" id="setup-stale" role="status" hidden></div>
     <div class="setups" id="setups"></div>
     <div class="note" id="setup-rules"></div>
   </section>
@@ -469,13 +480,13 @@ td.sym{font-family:'Space Grotesk',Inter,sans-serif;font-weight:600;font-size:16
   function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
 
   /* Limitador por peso: Hyperliquid permite 1.200 de peso por minuto por IP.
-     Usamos 1.100 de presupuesto. Pesos oficiales: allMids y clearinghouseState = 2,
+     Usamos 1.150 de presupuesto (margen de 50). Pesos oficiales: allMids y clearinghouseState = 2,
      frontendOpenOrders = 20. El registro se guarda en localStorage (si existe) para
      que recargar la página o abrir otra pestaña no lo saltee. */
   var WEIGHTS = { allMids: 2, clearinghouseState: 2, frontendOpenOrders: 20 };
   function makeLimiter(opts) {
     opts = opts || {};
-    var budget = opts.budget || 1100, windowMs = opts.windowMs || 60000;
+    var budget = opts.budget || 1150, windowMs = opts.windowMs || 60000;
     var now = opts.now || function () { return Date.now(); };
     var wait = opts.sleep || sleep;
     var store = opts.store === undefined ? (function () { try { return root.localStorage || null; } catch (e) { return null; } })() : opts.store;
@@ -534,29 +545,46 @@ td.sym{font-family:'Space Grotesk',Inter,sans-serif;font-weight:600;font-size:16
     var ws = []; for (var k = 0; k < Math.min(limit, items.length); k++) ws.push(worker());
     await Promise.all(ws); return out;
   }
-  async function loadAll(cfg, onProgress) {
-    var SM = root.SM; cfg = Object.assign({}, SM.CFG, cfg || {});
+  /* La lista de billeteras sale del ranking mensual, que cambia poco en el día: se guarda 6 h.
+     Posiciones, órdenes y precios NO se guardan: se consultan en vivo en cada carga. */
+  var WKEY = 'smhl.wallets.v2', WALLET_TTL = 6 * 3600 * 1000;
+  function store() { try { return root.localStorage || null; } catch (e) { return null; } }
+  function readJSON(k) { var st = store(); if (!st) return null; try { return JSON.parse(st.getItem(k) || 'null'); } catch (e) { return null; } }
+  function writeJSON(k, v) { var st = store(); if (!st) return false; try { st.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
+
+  async function loadAll(cfg, onProgress, opts) {
+    var SM = root.SM; cfg = Object.assign({}, SM.CFG, cfg || {}); opts = opts || {};
+    var now = (opts.now || Date.now)();
     onLimitWait = function (ms) { onProgress && onProgress({ phase: 'wait', ms: ms }); };
-    onProgress && onProgress({ phase: 'leaderboard', done: 0, total: 1 });
-    var lb = await getJSON(LB, {}, 3, 45000);
-    var rows = (lb && lb.leaderboardRows) || [];
-    if (!rows.length) throw new Error('El leaderboard llegó vacío');
-    var wallets = SM.selectWallets(rows, cfg);
+    var wc = opts.refreshWallets ? null : readJSON(WKEY), wallets, lbCount, walletsTs, fromCache = false;
+    if (wc && wc.v === 1 && wc.topN === cfg.topN && Array.isArray(wc.wallets) && wc.wallets.length && wc.ts <= now && now - wc.ts < WALLET_TTL) {
+      wallets = wc.wallets.map(function (x) { return Object.assign({}, x); }); lbCount = wc.lbCount; walletsTs = wc.ts; fromCache = true;
+    } else {
+      onProgress && onProgress({ phase: 'leaderboard', done: 0, total: 1 });
+      var lb = await getJSON(LB, {}, 3, 45000);
+      var rows = (lb && lb.leaderboardRows) || [];
+      if (!rows.length) throw new Error('El leaderboard llegó vacío');
+      wallets = SM.selectWallets(rows, cfg); lbCount = rows.length; walletsTs = now;
+      writeJSON(WKEY, { v: 1, ts: now, topN: cfg.topN, lbCount: lbCount, wallets: wallets.map(function (w) { return { addr: w.addr, name: w.name, av: w.av, mPnl: w.mPnl, mRoi: w.mRoi, aPnl: w.aPnl, turn: w.turn }; }) });
+    }
+    onProgress && onProgress({ phase: 'wallets', done: 0, total: wallets.length });
     var mids = await info({ type: 'allMids' });
     var done = 0, errors = [], positions = [], ordersBy = {};
-    await pool(wallets, 4, async function (w) {
+    await pool(wallets, 8, async function (w) {
       try {
-        var res = await Promise.all([info({ type: 'clearinghouseState', user: w.addr }), info({ type: 'frontendOpenOrders', user: w.addr })]);
-        ordersBy[w.addr] = res[1] || [];
-        w.av = SM.num(res[0] && res[0].marginSummary && res[0].marginSummary.accountValue) ?? w.av;
-        var ps = SM.parsePositions(w, res[0], res[1], mids, cfg);
+        var st = await info({ type: 'clearinghouseState', user: w.addr });
+        var hasPos = !!(st && Array.isArray(st.assetPositions) && st.assetPositions.length);
+        var oo = hasPos ? await info({ type: 'frontendOpenOrders', user: w.addr }) : []; // sin posiciones no hacen falta sus órdenes
+        ordersBy[w.addr] = oo || [];
+        w.av = SM.num(st && st.marginSummary && st.marginSummary.accountValue) ?? w.av;
+        var ps = SM.parsePositions(w, st, oo, mids, cfg);
         w.npos = ps.length; Array.prototype.push.apply(positions, ps);
       } catch (e) { errors.push({ w: w.addr, msg: String(e && e.message || e) }); w.npos = null; }
       done++; onProgress && onProgress({ phase: 'wallets', done: done, total: wallets.length });
     });
-    return { ts: new Date(), lbCount: rows.length, wallets: wallets, positions: positions, ordersBy: ordersBy, mids: mids, errors: errors };
+    return { ts: new Date(), lbCount: lbCount, wallets: wallets, positions: positions, ordersBy: ordersBy, mids: mids, errors: errors, walletsTs: walletsTs, walletsFromCache: fromCache };
   }
-  root.SMData = { loadAll: loadAll, getJSON: getJSON, pool: pool, API: API, LB: LB, limiter: limiter, makeLimiter: makeLimiter, WEIGHTS: WEIGHTS, loadWeight: loadWeight };
+  root.SMData = { loadAll: loadAll, getJSON: getJSON, pool: pool, API: API, LB: LB, limiter: limiter, makeLimiter: makeLimiter, WEIGHTS: WEIGHTS, loadWeight: loadWeight, WKEY: WKEY, WALLET_TTL: WALLET_TTL, readJSON: readJSON, writeJSON: writeJSON };
 })(typeof window !== 'undefined' ? window : globalThis);
 </script>
 
@@ -565,7 +593,8 @@ td.sym{font-family:'Space Grotesk',Inter,sans-serif;font-weight:600;font-size:16
 (function () {
   'use strict';
   var SM = window.SM, D = window.SMData;
-  var state = { data: null, coin: 'BTC', loading: false, lastLoad: 0, timer: null };
+  var state = { data: null, coin: 'BTC', loading: false, lastLoad: 0, timer: null, fresh: false, failed: null, quiet: false };
+  var SKEY = 'smhl.snapshot.v1';
   var $ = function (id) { return document.getElementById(id); };
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined && text !== null) e.textContent = text; return e; }
   function td(text, cls) { return el('td', cls, text); }
@@ -578,10 +607,15 @@ td.sym{font-family:'Space Grotesk',Inter,sans-serif;font-weight:600;font-size:16
   function wLink(addr, name) { var a = el('a', 'mono', wLabel(addr, name)); a.href = 'https://app.hyperliquid.xyz/explorer/address/' + addr; a.target = '_blank'; a.rel = 'noopener'; a.title = addr; return a; }
 
   function setStatus(kind, title, text) {
-    var s = $('status'); s.className = 'status' + (kind === 'err' ? ' err' : ''); clear(s);
+    var s = $('status'); s.className = 'status' + (kind === 'err' ? ' err' : kind === 'stale' ? ' stale' : ''); clear(s);
     s.appendChild(el('b', null, title)); s.appendChild(el('span', null, text));
   }
   function progress(p) {
+    if (state.quiet) { // hay datos guardados en pantalla: el progreso va en el aviso, sin tapar nada
+      var tx = p.phase === 'wait' ? 'pausa de ' + Math.ceil(p.ms / 1000) + ' s por el límite de la API' : p.phase === 'leaderboard' ? 'descargando ranking…' : 'leyendo billeteras ' + p.done + ' de ' + p.total + '…';
+      var m = $('setup-stale'); if (m && !m.hidden && !state.failed) m.textContent = 'Actualizando la operación con posiciones y precios en vivo (' + tx + ')';
+      return;
+    }
     $('loading').hidden = false;
     if (p.phase === 'wait') { $('load-s').textContent = 'Pausa de ' + Math.ceil(p.ms / 1000) + ' s para respetar el límite de la API'; return; }
     $('load-t').textContent = p.phase === 'leaderboard' ? 'Descargando leaderboard…' : 'Leyendo billeteras…';
@@ -741,15 +775,45 @@ td.sym{font-family:'Space Grotesk',Inter,sans-serif;font-weight:600;font-size:16
     var agg = SM.aggregate(d.positions), sum = SM.summarize(d.wallets, d.positions, d.ordersBy);
     var row = agg.filter(function (a) { return a.coin === state.coin; })[0];
     var res = SM.buildSetups(row, d.positions);
+    var stale = !state.fresh;
     renderKpis(sum); renderCoinSelect(agg);
     $('reading').textContent = SM.buildReading(sum, agg, res, state.coin);
-    renderSetups(res, state.coin); renderAssets(agg); renderTop(d.positions); renderExits(d.positions, sum); renderWallets(d.wallets, d.positions);
-    renderAlerts(SM.buildAlerts(sum, agg, res, state.coin));
+    renderSetups(res, state.coin);
+    var pxNow = row ? row.mark : (d.mids ? SM.num(d.mids[state.coin]) : null);
+    var pe = $('setup-price');
+    if (pxNow) {
+      clear(pe); pe.hidden = false; pe.className = 'px-now' + (stale ? ' old' : '');
+      pe.setAttribute('data-price', String(pxNow));
+      pe.appendChild(document.createTextNode('$' + SM.fmtPx(pxNow)));
+      pe.appendChild(el('small', null, stale ? 'precio guardado' : 'precio actual'));
+      pe.title = (stale ? 'Precio de la última carga guardada' : 'Precio de Hyperliquid al ') + ' ' + d.ts.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+    } else { pe.hidden = true; pe.removeAttribute('data-price'); }
+    renderAssets(agg); renderTop(d.positions); renderExits(d.positions, sum); renderWallets(d.wallets, d.positions);
+    renderAlerts(SM.buildAlerts(sum, agg, stale ? null : res, state.coin)); // con datos guardados no se anuncia la operación como alerta
     labelTables();
     var t = d.ts.toLocaleString('es-AR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-    var errTxt = d.errors.length ? ' · ' + d.errors.length + (d.errors.length === 1 ? ' billetera no respondió' : ' billeteras no respondieron') : '';
-    setStatus(d.errors.length > d.wallets.length / 2 ? 'err' : 'ok', 'Datos en vivo', 'Actualizado ' + t + ' · ' + d.lbCount.toLocaleString('es-AR') + ' billeteras en el leaderboard · ' + d.wallets.length + ' analizadas' + errTxt + ' · API pública de Hyperliquid');
-    window.__SM_RENDERED__ = { ts: d.ts.toISOString(), sum: sum, agg: agg, setups: res };
+    var age = Math.max(0, Math.round((Date.now() - d.ts.getTime()) / 60000));
+    var ageTxt = age < 1 ? 'hace menos de 1 min' : age < 120 ? 'hace ' + age + ' min' : 'hace ' + Math.round(age / 60) + ' h';
+    var sec = $('sec-setup'), msg = $('setup-stale');
+    if (stale) {
+      sec.classList.add('stale'); msg.hidden = false;
+      if (state.failed) {
+        msg.className = 'stale-msg bad';
+        msg.textContent = 'No se pudo actualizar (' + state.failed + '). Esta operación es de ' + ageTxt + ': no la uses hasta que se actualice.';
+        setStatus('err', 'Datos guardados', 'De ' + t + ' (' + ageTxt + '). No se pudieron traer datos nuevos: ' + state.failed + '.');
+      } else {
+        msg.className = 'stale-msg';
+        msg.textContent = 'Actualizando la operación con posiciones y precios en vivo… Lo que ves abajo es de ' + ageTxt + '.';
+        setStatus('stale', 'Datos guardados', 'De ' + t + ' (' + ageTxt + ') · actualizando con datos en vivo…');
+      }
+    } else {
+      sec.classList.remove('stale'); msg.hidden = true;
+      var errTxt = d.errors.length ? ' · ' + d.errors.length + (d.errors.length === 1 ? ' billetera no respondió' : ' billeteras no respondieron') : '';
+      var wAge = d.walletsTs ? Math.round((Date.now() - d.walletsTs) / 60000) : 0;
+      var wTxt = d.walletsFromCache ? ' · ranking de hace ' + (wAge < 60 ? wAge + ' min' : Math.round(wAge / 60) + ' h') : '';
+      setStatus(d.errors.length > d.wallets.length / 2 ? 'err' : 'ok', 'Datos en vivo', 'Actualizado ' + t + ' · ' + (d.lbCount || 0).toLocaleString('es-AR') + ' billeteras en el leaderboard · ' + d.wallets.length + ' analizadas' + errTxt + wTxt + ' · API pública de Hyperliquid');
+    }
+    window.__SM_RENDERED__ = { ts: d.ts.toISOString(), sum: sum, agg: agg, setups: res, fresh: !stale };
   }
 
   var COOLDOWN_MS = 60000;
@@ -769,29 +833,45 @@ td.sym{font-family:'Space Grotesk',Inter,sans-serif;font-weight:600;font-size:16
     b.title = ms > 0 ? 'Espera para no superar el límite de consultas de Hyperliquid (1.200 por minuto)' : '';
   }
 
+  function saveSnapshot(d) {
+    var trig = Object.keys(d.ordersBy || {}).filter(function (w) { return (d.ordersBy[w] || []).some(function (o) { return o && o.isTrigger; }); });
+    var ok = D.writeJSON(SKEY, { v: 1, ts: d.ts.getTime(), topN: +$('sel-topn').value, lbCount: d.lbCount, walletsTs: d.walletsTs, walletsFromCache: d.walletsFromCache, wallets: d.wallets, positions: d.positions, trig: trig, errors: d.errors });
+    if (!ok) D.writeJSON(SKEY, null); // sin espacio: mejor no dejar una instantánea vieja
+  }
+  function restoreSnapshot() {
+    var x = D.readJSON(SKEY);
+    if (!x || x.v !== 1 || x.topN !== +$('sel-topn').value || !Array.isArray(x.positions) || !Array.isArray(x.wallets) || !(x.ts > 0)) return false;
+    var ordersBy = {}; (x.trig || []).forEach(function (w) { ordersBy[w] = [{ isTrigger: true }]; });
+    state.data = { ts: new Date(x.ts), lbCount: x.lbCount || 0, wallets: x.wallets, positions: x.positions, ordersBy: ordersBy, errors: x.errors || [], walletsTs: x.walletsTs, walletsFromCache: x.walletsFromCache };
+    state.fresh = false; return true;
+  }
+
   async function load(opts) {
     opts = opts || {};
     if (state.loading) return;
     if (!opts.force && cooldownLeft() > 0) { tickButton(); return; }
     state.loading = true; tickButton();
     try {
-      state.data = await D.loadAll({ topN: +$('sel-topn').value }, progress);
+      var fresh = await D.loadAll({ topN: +$('sel-topn').value }, progress);
+      state.data = fresh; state.fresh = true; state.failed = null;
       state.lastLoad = Date.now(); // la espera fija de 60 s aplica solo tras una carga exitosa
-      renderAll();
+      renderAll(); saveSnapshot(fresh);
     } catch (e) {
-      setStatus('err', 'No se pudieron leer los datos', String(e && e.message || e) + '. Revisá la conexión y volvé a intentar.' + (state.data ? ' Se muestran los últimos datos cargados.' : ''));
+      var em = String(e && e.message || e);
+      if (state.data && !state.fresh) { state.failed = em; renderAll(); }
+      else setStatus('err', 'No se pudieron leer los datos', em + '. Revisá la conexión y volvé a intentar.' + (state.data ? ' Se muestran los últimos datos cargados.' : ''));
       window.__SM_ERROR__ = String(e && e.message || e);
-    } finally { state.loading = false; $('loading').hidden = true; tickButton(); }
+    } finally { state.loading = false; state.quiet = false; $('loading').hidden = true; tickButton(); }
   }
 
   $('btn-refresh').addEventListener('click', function () { load(); });
   // cambiar el universo no saltea la espera: el limitador ordena las consultas igual
-  $('sel-topn').addEventListener('change', function () { load({ force: true }); });
+  $('sel-topn').addEventListener('change', function () { state.fresh = false; state.failed = null; if (restoreSnapshot()) { renderAll(); state.quiet = true; } else { state.data = null; } load({ force: true }); });
   $('sel-coin').addEventListener('change', function (e) { state.coin = e.target.value; renderAll(); });
   $('chk-auto').addEventListener('change', function (e) { clearInterval(state.timer); state.timer = e.target.checked ? setInterval(function () { load(); }, 300000) : null; });
   setInterval(tickButton, 1000);
   window.SMUI = { load: load, renderAll: renderAll, state: state, cooldownLeft: cooldownLeft };
-  if (!window.__SM_NO_AUTOLOAD__) load({ force: true });
+  if (!window.__SM_NO_AUTOLOAD__) { if (restoreSnapshot()) { renderAll(); state.quiet = true; } load({ force: true }); }
 })();
 </script>
 </body>
