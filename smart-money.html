@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Smart Money Hyperliquid · v1.2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0B0E14;--card:#131823;--card2:#0F141D;--bd:#232A38;--bd2:#1C2230;--tx:#E6E9EF;--mut:#9AA3B2;--mut2:#B4BCCB;--blue:#5AA9FF;--orange:#FF9F43;--warn:#FFC27A;--good:#8FD3A8;--bad:#FF8A8A}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:Inter,system-ui,sans-serif;font-size:14px;line-height:1.45}
+a{color:#7DB8FF}a:hover{color:#A9D0FF}
+.wrap{max-width:1360px;margin:0 auto;padding:28px 24px 48px;display:flex;flex-direction:column;gap:22px}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+.hd{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px}
+.eyebrow{display:flex;align-items:center;gap:10px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--blue);display:inline-block}
+h1{margin:4px 0;font-family:'Space Grotesk',Inter,sans-serif;font-size:32px;font-weight:700}
+h2{margin:0;font-family:'Space Grotesk',Inter,sans-serif;font-size:20px;font-weight:600}
+.sub{margin:0;color:var(--mut);max-width:720px}
+.ctrls{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end}
+.ctrls label{display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em}
+select,.btn{background:var(--card);color:var(--tx);border:1px solid #2A3242;border-radius:8px;padding:10px 12px;font:inherit;font-size:14px;min-height:44px}
+.btn{cursor:pointer;font-weight:600;background:#17304F;border-color:#3B6FB0;padding:0 18px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.chk{flex-direction:row!important;align-items:center;gap:8px!important;min-height:44px;text-transform:none!important;letter-spacing:0!important;font-size:13px!important;color:var(--mut2)!important}
+.status{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;padding:10px 14px;border:1px solid #2B4466;background:#111A27;border-radius:10px;color:var(--mut2);font-size:13px}
+.status.err{border-color:#7A3B3B;background:#2A1515}
+.status b{color:#7DB8FF}
+.status.err b{color:var(--bad)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.row{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px}
+.note{font-size:12px;color:var(--mut)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
+.kpi{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:18px 20px;display:flex;flex-direction:column;gap:8px}
+.kpi .l{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em}
+.kpi .v{font-family:'Space Grotesk',Inter,sans-serif;font-size:30px;font-weight:700}
+.kpi .s{font-size:13px;color:var(--mut2)}
+.read{background:#16202F;border:1px solid #2B4466;border-radius:12px;padding:18px 20px;display:flex;flex-wrap:wrap;gap:16px;align-items:center}
+.read .t{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#7DB8FF}
+.read p{margin:0;flex:1 1 520px;font-size:15px}
+.setups{display:flex;flex-wrap:wrap;gap:16px}
+.setup{flex:1 1 480px;min-width:0;background:var(--card2);border:1px solid var(--bd);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:14px}
+.setup .nm{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut)}
+.setup .ti{font-family:'Space Grotesk',Inter,sans-serif;font-size:26px;font-weight:700}
+.trig{font-size:13px;background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:10px 12px}
+.lvls{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
+.lv{display:flex;flex-direction:column;gap:4px;padding:10px 12px;border-radius:8px;background:var(--card);border:1px solid var(--bd)}
+.lv .k{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut)}
+.lv .v{font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:500}
+.lv .d{font-size:12px;color:var(--mut2)}
+.meta{display:flex;flex-wrap:wrap;gap:18px;font-size:13px;color:var(--mut2)}
+.meta span span{color:var(--tx);font-weight:600}
+.why{display:flex;flex-direction:column;gap:6px;font-size:13px;color:#D3D8E2}
+.why div::before{content:'·';margin-right:8px;color:var(--mut)}
+.pill{display:inline-block;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600;border:1px solid}
+.p-bear{background:#3A2412;color:#FFC48A;border-color:#6B4220}
+.p-bull{background:#13283F;color:#9CCBFF;border-color:#2B4F7A}
+.p-warn{background:#2E2814;color:#F2D58A;border-color:#5A4C22}
+.p-neu{background:#1A1F2A;color:var(--mut2);border-color:#2A3242}
+.p-act{background:#173325;color:#A8E6BF;border-color:#2F6B48}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:.05em;font-weight:600;padding:10px 12px;border-bottom:1px solid var(--bd);white-space:nowrap}
+td{padding:12px;border-bottom:1px solid var(--bd2);white-space:nowrap}
+th.r,td.r{text-align:right}
+td.sym{font-family:'Space Grotesk',Inter,sans-serif;font-weight:600;font-size:16px}
+.bar{display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--orange);min-width:160px}
+.bar i{display:block;height:10px;background:var(--blue)}
+.barl{display:flex;justify-content:space-between;font-size:12px;color:var(--mut2);margin-top:6px}
+.legend{display:flex;flex-wrap:wrap;gap:16px;font-size:12px;color:var(--mut2)}
+.legend span{display:flex;align-items:center;gap:6px}
+.sw{width:12px;height:12px;border-radius:3px;display:inline-block}
+.two{display:flex;flex-wrap:wrap;gap:16px}
+.two>.card:first-child{flex:999 1 640px}
+.two>.card:last-child{flex:1 1 340px}
+.alert{display:flex;gap:12px;padding:12px 14px;border-radius:10px;background:var(--card2);border:1px solid var(--bd)}
+.alert .bd{flex:0 0 4px;border-radius:2px}
+.alert .at{font-weight:600}
+.alert .ab{font-size:13px;color:var(--mut2)}
+.method{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;color:var(--mut2);font-size:13px}
+.method b{display:block;color:var(--tx);margin-bottom:6px}
+.empty{color:var(--mut);font-size:13px;padding:8px 0}
+.loading{position:fixed;inset:0;background:rgba(11,14,20,.82);display:flex;align-items:center;justify-content:center;z-index:10}
+.loading[hidden]{display:none}
+.lbox{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:24px 28px;min-width:280px;display:flex;flex-direction:column;gap:12px}
+.prog{height:6px;background:#1C2230;border-radius:3px;overflow:hidden}
+.prog i{display:block;height:6px;background:var(--blue);width:0;transition:width .2s}
+.c-blue{color:var(--blue)}.c-orange{color:var(--orange)}.c-good{color:var(--good)}.c-bad{color:var(--bad)}.c-warn{color:var(--warn)}.c-mut{color:var(--mut)}
+@media (max-width:600px){.wrap{padding:18px 14px 40px}h1{font-size:26px}.kpi .v{font-size:26px}.setup{flex-basis:100%}}
+@media (max-width:640px){
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .kpi{padding:14px}.kpi .v{font-size:22px}.kpi .l{font-size:11px}.kpi .s{font-size:12px}
+  .card{padding:16px}
+  .tw{overflow:visible}
+  table.cards,table.cards tbody{display:block}
+  table.cards thead{display:none}
+  table.cards tr{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;padding:14px 0;border-bottom:1px solid var(--bd)}
+  table.cards td{display:flex;flex-direction:column;gap:2px;padding:0;border:0;white-space:normal;text-align:left!important;min-width:0}
+  table.cards td::before{content:attr(data-label);font-family:Inter,sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--mut);font-weight:500}
+  table.cards td.full{grid-column:1/-1}
+  table.cards td.full::before{display:none}
+  table.cards td.empty{grid-column:1/-1}
+  table.cards td.empty::before{display:none}
+  .bar{min-width:0}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hd">
+    <div>
+      <div class="eyebrow"><span class="dot"></span>Ecosistema VMC · Módulo de posicionamiento · v1.2</div>
+      <h1>Smart Money Hyperliquid</h1>
+      <p class="sub">Hacia dónde están posicionadas las mejores billeteras de Hyperliquid por PnL del último mes, a qué precio entraron, cuánto apalancamiento usan, dónde tienen salidas y qué operación se desprende de eso.</p>
+    </div>
+    <div class="ctrls">
+      <label>Universo
+        <select id="sel-topn"><option value="50" selected>Top 50 por PnL 30d</option><option value="100">Top 100 por PnL 30d</option><option value="25">Top 25 por PnL 30d</option></select>
+      </label>
+      <label class="chk"><input type="checkbox" id="chk-auto"> Auto cada 5 min</label>
+      <button type="button" class="btn" id="btn-refresh">Actualizar</button>
+    </div>
+  </header>
+
+  <div class="status" id="status" role="status" aria-live="polite"><b>Cargando…</b><span>Conectando con la API pública de Hyperliquid</span></div>
+
+  <section class="kpis" id="kpis" aria-label="Resumen"></section>
+
+  <section class="read" aria-label="Lectura"><div class="t">Lectura del momento</div><p id="reading">—</p></section>
+
+  <section class="card" id="sec-setup" aria-label="Operación sugerida">
+    <div class="row">
+      <h2 id="setup-title">Operación sugerida</h2>
+      <label class="note" style="display:flex;align-items:center;gap:8px">Activo <select id="sel-coin" aria-label="Activo para la operación sugerida"></select></label>
+    </div>
+    <div class="setups" id="setups"></div>
+    <div class="note" id="setup-rules"></div>
+  </section>
+
+  <section class="card" aria-label="Posicionamiento por activo">
+    <div class="row">
+      <h2>Posicionamiento por activo</h2>
+      <div class="legend"><span><i class="sw" style="background:var(--blue)"></i>Long</span><span><i class="sw" style="background:var(--orange)"></i>Short</span><span>Top 10 por notional abierto</span></div>
+    </div>
+    <div class="tw"><table id="tbl-assets" class="cards"><thead><tr><th>Activo</th><th>Long / Short</th><th class="r">Neto</th><th class="r">Billeteras L / S</th><th class="r">Apalanc. medio</th><th class="r">Entrada media dominante</th><th class="r">Precio actual</th><th class="r">PnL abierto</th><th>Lectura</th></tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section class="card" aria-label="Posiciones más grandes">
+    <div class="row"><h2>Posiciones más grandes: entrada y rendimiento</h2><span class="note">Rend. s/margen = PnL no realizado sobre el margen (ROE)</span></div>
+    <div class="tw"><table id="tbl-top" class="cards"><thead><tr><th>Billetera</th><th>Posición</th><th class="r">Tamaño</th><th class="r">Entrada</th><th class="r">Actual</th><th class="r">Mov. a favor</th><th class="r">PnL</th><th class="r">Rend. s/margen</th><th class="r">Liquidación</th><th>Salida</th></tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section class="card" aria-label="Salidas detectadas">
+    <div><h2>Salidas detectadas: a qué precio esperan salir</h2><p class="note" id="exits-note" style="margin:6px 0 0"></p></div>
+    <div class="tw"><table id="tbl-exits" class="cards"><thead><tr><th>Billetera</th><th>Posición</th><th>Fuente</th><th class="r">Entrada</th><th class="r">Actual</th><th class="r">Salida esperada</th><th class="r">Cubre</th><th class="r">Mov. esperado</th><th class="r">Rend. esperado s/margen</th></tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <div class="two">
+    <section class="card" aria-label="Billeteras top">
+      <div class="row"><h2>Billeteras top con posición abierta</h2><span class="note">Ordenadas por PnL del mes</span></div>
+      <div class="tw"><table id="tbl-wallets" class="cards"><thead><tr><th>Billetera</th><th class="r">Cuenta</th><th class="r">PnL 30d</th><th class="r">ROI 30d</th><th class="r">Posiciones</th><th>Posición principal</th></tr></thead><tbody></tbody></table></div>
+    </section>
+    <section class="card" aria-label="Alertas"><h2>Alertas</h2><div id="alerts" style="display:flex;flex-direction:column;gap:12px"></div></section>
+  </div>
+
+  <section class="method" aria-label="Metodología">
+    <div><b>De dónde salen los datos</b>API pública de Hyperliquid, consultada desde tu navegador: leaderboard, posiciones abiertas (clearinghouseState), órdenes abiertas (frontendOpenOrders) y precios (allMids).</div>
+    <div><b>Qué billeteras entran</b>Cuenta de 500.000 USD o más, PnL positivo en el mes y en el histórico, y rotación mensual menor a 150 veces la cuenta, para excluir market makers.</div>
+    <div><b>Qué es visible y qué no</b>Entrada, tamaño, apalancamiento, PnL y liquidación son públicos. La salida solo se ve si hay un TP cargado o órdenes límite del lado contrario que cubran al menos 10% de la posición.</div>
+    <div><b>No es asesoramiento financiero</b>La operación sugerida es una lectura con reglas fijas sobre datos públicos. Validala con el VMC antes de operar.</div>
+  </section>
+</div>
+
+<div class="loading" id="loading" hidden><div class="lbox"><b id="load-t">Leyendo billeteras…</b><div class="prog"><i id="load-p"></i></div><span class="note" id="load-s"></span></div></div>
+
+<script id="sm-engine">
+/* ===== Motor Smart Money · puro, sin DOM (testeable en node) ===== */
+(function (root) {
+  'use strict';
+  var CFG = {
+    topN: 50, minAccount: 5e5, maxTurnover: 150, exitMinCover: 0.10,
+    dominantShare: 0.60, crowdedShare: 0.90, lev: 5,
+    followStopBuf: 0.0035, squeezeEntryBuf: 0.0015, squeezeStopPct: 0.02, mmr: 0.005,
+    minTp1R: 1.5
+  };
+
+  function num(x) { var n = Number(x); return (x === null || x === undefined || x === '' || !isFinite(n)) ? null : n; }
+  function plural(n, one, many) { return n + ' ' + (n === 1 ? one : many); }
+  function shortAddr(a) { a = String(a || ''); return a.length > 12 ? a.slice(0, 6) + '…' + a.slice(-4) : a; }
+
+  function perf(row, key) {
+    var wp = (row && row.windowPerformances) || [];
+    for (var i = 0; i < wp.length; i++) if (wp[i] && wp[i][0] === key) return wp[i][1] || {};
+    return {};
+  }
+
+  function selectWallets(rows, cfg) {
+    cfg = Object.assign({}, CFG, cfg || {});
+    if (!Array.isArray(rows)) return [];
+    var out = [];
+    for (var i = 0; i < rows.length; i++) {
+      var r = rows[i]; if (!r || !r.ethAddress) continue;
+      var m = perf(r, 'month'), a = perf(r, 'allTime');
+      var av = num(r.accountValue), mPnl = num(m.pnl), aPnl = num(a.pnl), mVlm = num(m.vlm);
+      if (av === null || mPnl === null || aPnl === null) continue;
+      var turn = (mVlm || 0) / Math.max(av, 1);
+      if (av < cfg.minAccount || mPnl <= 0 || aPnl <= 0 || turn >= cfg.maxTurnover) continue;
+      out.push({ addr: String(r.ethAddress).toLowerCase(), name: r.displayName || null, av: av, mPnl: mPnl, mRoi: num(m.roi) || 0, aPnl: aPnl, turn: turn });
+    }
+    out.sort(function (x, y) { return y.mPnl - x.mPnl; });
+    return out.slice(0, cfg.topN);
+  }
+
+  function isOpposite(side, orderSide) { return (side === 'L' && orderSide === 'A') || (side === 'S' && orderSide === 'B'); }
+
+  function parsePositions(wallet, state, orders, mids, cfg) {
+    cfg = Object.assign({}, CFG, cfg || {});
+    var aps = (state && Array.isArray(state.assetPositions)) ? state.assetPositions : [];
+    orders = Array.isArray(orders) ? orders : [];
+    mids = mids || {};
+    var out = [];
+    for (var i = 0; i < aps.length; i++) {
+      var q = aps[i] && aps[i].position; if (!q || !q.coin) continue;
+      var szi = num(q.szi); if (!szi) continue;
+      var side = szi > 0 ? 'L' : 'S', sz = Math.abs(szi);
+      var entry = num(q.entryPx), notional = num(q.positionValue);
+      if (!entry || !notional) continue;
+      var mark = num(mids[q.coin]); if (!mark) mark = notional / sz;
+      var lev = (q.leverage && num(q.leverage.value)) || null;
+      var coinOrders = orders.filter(function (o) { return o && o.coin === q.coin; });
+      var tp = null, sl = null, oppSz = 0, oppVal = 0;
+      coinOrders.forEach(function (o) {
+        var t = String(o.orderType || '');
+        var trig = num(o.triggerPx);
+        if (o.isTrigger) {
+          if (/take profit/i.test(t) && trig) { if (tp === null || Math.abs(trig - entry) < Math.abs(tp - entry)) tp = trig; }
+          else if (/stop/i.test(t) && trig) { if (sl === null || Math.abs(trig - entry) < Math.abs(sl - entry)) sl = trig; }
+          return;
+        }
+        if (isOpposite(side, o.side)) { var s = num(o.sz) || 0, p = num(o.limitPx) || 0; if (s > 0 && p > 0) { oppSz += s; oppVal += s * p; } }
+      });
+      var cover = sz ? oppSz / sz : 0, wpx = oppSz ? oppVal / oppSz : null;
+      var limitExit = (wpx !== null && cover >= cfg.exitMinCover - 1e-9 &&((side === 'L' && wpx > entry) || (side === 'S' && wpx < entry))) ? wpx : null;
+      var exit = tp !== null ? tp : limitExit;
+      var exitSource = tp !== null ? 'tp' : (limitExit !== null ? 'limit' : null);
+      var dir = side === 'L' ? 1 : -1;
+      var moveNow = dir * (mark / entry - 1);
+      var expMove = exit !== null ? dir * (exit / entry - 1) : null;
+      out.push({
+        w: wallet.addr, wName: wallet.name || null, coin: q.coin, side: side, sz: sz, entry: entry, mark: mark,
+        notional: notional, upnl: num(q.unrealizedPnl) || 0, roe: num(q.returnOnEquity) || 0,
+        lev: lev, levType: (q.leverage && q.leverage.type) || null, liq: num(q.liquidationPx),
+        tp: tp, sl: sl, exit: exit, exitSource: exitSource, exitCover: exitSource === 'tp' ? 1 : cover,
+        moveNow: moveNow, expMove: expMove, expRoe: (expMove !== null && lev) ? expMove * lev : null
+      });
+    }
+    return out;
+  }
+
+  function aggregate(positions) {
+    var by = {};
+    (positions || []).forEach(function (p) {
+      var c = by[p.coin] || (by[p.coin] = { coin: p.coin, L: 0, S: 0, wL: {}, wS: {}, levN: 0, levD: 0, eL: 0, szL: 0, eS: 0, szS: 0, upL: 0, upS: 0, mark: p.mark });
+      if (p.side === 'L') { c.L += p.notional; c.wL[p.w] = 1; c.eL += p.entry * p.sz; c.szL += p.sz; c.upL += p.upnl; }
+      else { c.S += p.notional; c.wS[p.w] = 1; c.eS += p.entry * p.sz; c.szS += p.sz; c.upS += p.upnl; }
+      if (p.lev) { c.levN += p.lev * p.notional; c.levD += p.notional; }
+      c.mark = p.mark;
+    });
+    return Object.keys(by).map(function (k) {
+      var c = by[k], gross = c.L + c.S;
+      return {
+        coin: c.coin, longN: c.L, shortN: c.S, gross: gross, net: c.L - c.S,
+        longPct: gross ? 100 * c.L / gross : 0, lev: c.levD ? c.levN / c.levD : null,
+        wL: Object.keys(c.wL).length, wS: Object.keys(c.wS).length,
+        entryL: c.szL ? c.eL / c.szL : null, entryS: c.szS ? c.eS / c.szS : null,
+        mark: c.mark, upnl: c.upL + c.upS, upnlL: c.upL, upnlS: c.upS
+      };
+    }).sort(function (a, b) { return b.gross - a.gross; });
+  }
+
+  function summarize(wallets, positions, ordersByWallet) {
+    positions = positions || [];
+    var L = 0, S = 0, levN = 0, levD = 0, wp = {}, wExit = {}, wTrig = {};
+    positions.forEach(function (p) {
+      if (p.side === 'L') L += p.notional; else S += p.notional;
+      if (p.lev) { levN += p.lev * p.notional; levD += p.notional; }
+      wp[p.w] = 1; if (p.exit !== null) wExit[p.w] = 1;
+    });
+    Object.keys(ordersByWallet || {}).forEach(function (w) { if ((ordersByWallet[w] || []).some(function (o) { return o && o.isTrigger; })) wTrig[w] = 1; });
+    var g = L + S;
+    return {
+      nWallets: (wallets || []).length, nWithPos: Object.keys(wp).length, nPos: positions.length,
+      totL: L, totS: S, shortPct: g ? 100 * S / g : 0, longPct: g ? 100 * L / g : 0,
+      levW: levD ? levN / levD : null, nWithTrig: Object.keys(wTrig).length, nWithExit: Object.keys(wExit).length
+    };
+  }
+
+  function roundPx(p) {
+    if (!isFinite(p) || p <= 0) return p;
+    var step = Math.pow(10, Math.floor(Math.log10(p)) - 3);
+    return Math.round(p / step) * step;
+  }
+
+  function mkLevels(dirSign, entry, stop, tp1, tp2, lev, mmr) {
+    var risk = Math.abs(entry - stop);
+    var mv = function (x) { return dirSign * (x / entry - 1); };
+    return {
+      entry: entry, stop: stop, tp1: tp1, tp2: tp2, risk: risk,
+      rr1: risk ? Math.abs(tp1 - entry) / risk : null, rr2: risk ? Math.abs(tp2 - entry) / risk : null,
+      mvStop: mv(stop), mvTp1: mv(tp1), mvTp2: mv(tp2),
+      mgStop: mv(stop) * lev, mgTp1: mv(tp1) * lev, mgTp2: mv(tp2) * lev,
+      liq: dirSign > 0 ? entry * (1 - 1 / lev + mmr) : entry * (1 + 1 / lev - mmr)
+    };
+  }
+
+  function validateSetup(s) {
+    var e = [];
+    if (!s || !s.lv) return ['sin niveles'];
+    var v = s.lv, n = ['entry', 'stop', 'tp1', 'tp2'];
+    n.forEach(function (k) { if (!isFinite(v[k]) || v[k] <= 0) e.push(k + ' inválido'); });
+    if (s.dir === 'S' && !(v.tp2 < v.tp1 && v.tp1 < v.entry && v.entry < v.stop)) e.push('orden de niveles short incorrecto');
+    if (s.dir === 'L' && !(v.tp2 > v.tp1 && v.tp1 > v.entry && v.entry > v.stop)) e.push('orden de niveles long incorrecto');
+    if (!(v.rr1 > 0 && v.rr2 > v.rr1)) e.push('riesgo/beneficio incoherente');
+    if (s.dir === 'L' && !(v.liq < v.stop)) e.push('liquidación por encima del stop');
+    if (s.dir === 'S' && !(v.liq > v.stop)) e.push('liquidación por debajo del stop');
+    return e;
+  }
+
+  function buildSetups(aggRow, positions, cfg) {
+    cfg = Object.assign({}, CFG, cfg || {});
+    if (!aggRow || !aggRow.gross) return { state: 'none', setups: [], reason: 'Sin posiciones del smart money en este activo.' };
+    var lp = aggRow.longPct / 100, sp = 1 - lp;
+    var dom = sp >= cfg.dominantShare ? 'S' : (lp >= cfg.dominantShare ? 'L' : null);
+    if (!dom) return { state: 'neutral', setups: [], reason: 'Posicionamiento repartido (' + Math.round(aggRow.longPct) + '% long): no hay sesgo dominante del que derivar una operación.' };
+    var share = dom === 'S' ? sp : lp;
+    var pivot = dom === 'S' ? aggRow.entryS : aggRow.entryL;
+    var mark = aggRow.mark;
+    if (!pivot || !mark) return { state: 'none', setups: [], reason: 'Faltan precios para calcular niveles.' };
+    var f = dom === 'S' ? -1 : 1;          // dirección de seguir al smart money
+    var opp = dom === 'S' ? 'L' : 'S';
+    var domTxt = dom === 'S' ? 'short' : 'long', oppTxt = dom === 'S' ? 'long' : 'short';
+    var nDom = dom === 'S' ? aggRow.wS : aggRow.wL, nOpp = dom === 'S' ? aggRow.wL : aggRow.wS;
+
+    // A) seguir
+    var followActive = f < 0 ? mark < pivot : mark > pivot;
+    var aEntry = roundPx(followActive ? mark + (pivot - mark) * 0.5 : pivot);
+    var aStop = roundPx(pivot * (1 - f * cfg.followStopBuf));
+    var aRisk = Math.abs(aEntry - aStop);
+    var exitCands = (positions || []).filter(function (p) {
+      return p.coin === aggRow.coin && p.side === dom && p.exit !== null && (f * (p.exit - aEntry) > 0) && Math.abs(p.exit - aEntry) / aRisk >= cfg.minTp1R;
+    }).sort(function (a, b) { return b.notional - a.notional; });
+    var aTp1, aTp1Src;
+    if (exitCands.length) { aTp1 = roundPx(exitCands[0].exit); aTp1Src = 'salida real detectada de una billetera top (' + shortAddr(exitCands[0].w) + ')'; }
+    else { aTp1 = roundPx(aEntry + f * 2 * aRisk); aTp1Src = '2 veces el riesgo (no hay salidas declaradas útiles)'; }
+    var aTp2 = roundPx(aEntry + f * 3 * aRisk);
+    if (f * (aTp2 - aTp1) <= 0) aTp2 = roundPx(aTp1 + f * aRisk);
+    var A = {
+      key: 'follow', name: 'Escenario A · seguir al smart money', dir: dom, lev: cfg.lev,
+      status: followActive ? 'activo' : 'invalidado',
+      trigger: followActive
+        ? 'Gatillo: el precio sigue del lado ' + (f < 0 ? 'de abajo' : 'de arriba') + ' de ' + fmtPx(pivot) + '. Entrar en retrocesos hacia la zona ' + fmtPx(Math.min(mark, pivot)) + '–' + fmtPx(Math.max(mark, pivot)) + ', sin perseguir el precio.'
+        : 'Invalidado: el precio ya cruzó la entrada media del smart money (' + fmtPx(pivot) + '). Sus posiciones están en pérdida.',
+      lv: mkLevels(f, aEntry, aStop, aTp1, aTp2, cfg.lev, cfg.mmr),
+      conf: !followActive ? '—' : (share >= cfg.crowdedShare ? 'Media' : 'Media-alta'),
+      why: [
+        nDom + ' de ' + plural(nDom + nOpp, 'billetera top', 'billeteras top') + ' en ' + aggRow.coin + (nDom === 1 ? ' está ' : ' están ') + domTxt + ', con ' + fmtUsd(Math.abs(aggRow.net)) + ' netos ' + domTxt + '.',
+        'Stop del otro lado de su entrada media (' + fmtPx(pivot) + '): si se cruza, el smart money pasa a pérdida y la tesis se cae.',
+        'TP1 = ' + aTp1Src + '. TP2 = 3 veces el riesgo.',
+        share >= cfg.crowdedShare ? 'Le resta confianza: ' + Math.round(share * 100) + '% del notional está del mismo lado. El consenso saturado puede barrer el stop.' : 'Consenso firme pero no saturado (' + Math.round(share * 100) + '%).'
+      ]
+    };
+
+    // B) squeeze
+    var sqTrig = f < 0 ? mark > pivot : mark < pivot;
+    var bEntry = roundPx(pivot * (1 - f * cfg.squeezeEntryBuf));
+    var bStop = roundPx(pivot * (1 + f * cfg.squeezeStopPct));
+    var bRisk = Math.abs(bEntry - bStop);
+    var B = {
+      key: 'squeeze', name: 'Escenario B · squeeze de ' + (dom === 'S' ? 'cortos' : 'largos'), dir: opp, lev: cfg.lev,
+      status: sqTrig ? 'activo' : 'espera',
+      trigger: (sqTrig ? 'Gatillado: ' : 'Gatillo: ') + 'cierre diario ' + (f < 0 ? 'arriba' : 'abajo') + ' de ' + fmtPx(pivot) + '. Ahí la mayoría de los ' + domTxt + ' del smart money pasa a pérdida y su cierre forzado puede acelerar el movimiento.',
+      lv: mkLevels(-f, bEntry, bStop, roundPx(bEntry - f * 1.5 * bRisk), roundPx(bEntry - f * 3 * bRisk), cfg.lev, cfg.mmr),
+      conf: sqTrig ? 'Media' : 'Media-baja hasta que gatille',
+      why: [
+        fmtUsd(dom === 'S' ? aggRow.shortN : aggRow.longN) + ' en ' + domTxt + ': si el precio pasa su entrada media, se convierten en combustible ' + (dom === 'S' ? 'comprador' : 'vendedor') + '.',
+        'Stop de vuelta del otro lado de la entrada media, a ' + (cfg.squeezeStopPct * 100).toFixed(0) + '%.',
+        'Objetivos a 1,5 y 3 veces el riesgo: no hay salidas declaradas en esta dirección para anclarlos.'
+      ]
+    };
+    var setups = [A, B];
+    setups.forEach(function (s) { s.errors = validateSetup(s); });
+    var rec = setups.filter(function (s) { return s.status === 'activo' && !s.errors.length; })[0] || null;
+    return { state: 'ok', dominant: dom, share: share, pivot: pivot, mark: mark, setups: setups, recommended: rec ? rec.key : null };
+  }
+
+  function buildAlerts(sum, agg, setupRes, coin) {
+    var out = [];
+    (agg || []).slice(0, 10).forEach(function (a) {
+      var sp = 100 - a.longPct;
+      if (a.gross > 0 && (sp >= 90 || a.longPct >= 90) && out.length < 2) {
+        var d = sp >= 90 ? 'short' : 'long';
+        out.push({ tone: d === 'short' ? 'orange' : 'blue', title: a.coin + ': consenso ' + d + ' extremo', body: plural(d === 'short' ? a.wS : a.wL, 'billetera', 'billeteras') + ' en ' + d + ' contra ' + (d === 'short' ? a.wL : a.wS) + '. Entrada media ' + fmtPx(d === 'short' ? a.entryS : a.entryL) + ' vs ' + fmtPx(a.mark) + ' actual.' });
+      }
+    });
+    (agg || []).slice(0, 10).forEach(function (a) {
+      var domShort = a.shortN >= a.longN, up = domShort ? a.upnlS : a.upnlL;
+      if (up < 0 && out.length < 4) out.push({ tone: 'warn', title: a.coin + ': el lado dominante va perdiendo', body: 'Los ' + (domShort ? 'cortos' : 'largos') + ' del smart money acumulan ' + fmtUsd(up) + ' de PnL abierto.' });
+    });
+    if (sum && sum.shortPct >= 80) out.push({ tone: 'blue', title: 'Combustible para un squeeze', body: Math.round(sum.shortPct) + '% del posicionamiento es short. Un rebote puede forzar recompras en cadena. Cruzar con el short-squeeze-detector.' });
+    if (sum && sum.longPct >= 80) out.push({ tone: 'orange', title: 'Riesgo de cascada de liquidaciones long', body: Math.round(sum.longPct) + '% del posicionamiento es long. Una caída puede forzar ventas en cadena.' });
+    if (sum) out.push({ tone: 'mut', title: 'Salidas poco visibles', body: sum.nWithTrig + ' de ' + sum.nWallets + ' billeteras tienen TP/SL cargado. Hay salida inferible en ' + sum.nWithExit + '.' });
+    if (setupRes && setupRes.state === 'ok') {
+      var r = setupRes.setups.filter(function (s) { return s.key === setupRes.recommended; })[0];
+      out.unshift({ tone: r ? (r.dir === 'L' ? 'blue' : 'orange') : 'mut', title: coin + ': ' + (r ? 'escenario activo · ' + (r.dir === 'L' ? 'long' : 'short') + ' ' + r.lev + 'x' : 'sin escenario activo'), body: r ? 'Entrada ' + fmtPx(r.lv.entry) + ', stop ' + fmtPx(r.lv.stop) + ', TP1 ' + fmtPx(r.lv.tp1) + '.' : 'Esperar gatillo.' });
+    }
+    return out;
+  }
+
+  function buildReading(sum, agg, setupRes, coin) {
+    if (!sum || !sum.nPos) return 'Las billeteras seleccionadas no tienen posiciones abiertas en este momento.';
+    var side = sum.shortPct >= sum.longPct ? 'short' : 'long', pct = fmtShare(Math.max(sum.shortPct, sum.longPct));
+    var lead = (agg || []).slice(0, 5).map(function (a) { return a.coin; }).join(', ');
+    var t = 'El smart money está ' + pct + ' ' + side + ' en notional (' + fmtUsd(side === 'short' ? sum.totS : sum.totL) + '), concentrado en ' + lead + '.';
+    if (setupRes && setupRes.state === 'ok') {
+      t += ' En ' + coin + ' el nivel clave es ' + fmtPx(setupRes.pivot) + ', su entrada media ' + (setupRes.dominant === 'S' ? 'short' : 'long') + ': ';
+      t += (setupRes.recommended === 'follow') ? 'mientras el precio (' + fmtPx(setupRes.mark) + ') no lo cruce, van ganando.' : (setupRes.recommended === 'squeeze' ? 'el precio (' + fmtPx(setupRes.mark) + ') ya lo cruzó y esas posiciones están en pérdida.' : 'el precio está justo en ese nivel.');
+    } else if (setupRes) t += ' ' + setupRes.reason;
+    return t;
+  }
+
+  // ---------- formato es-AR ----------
+  function fmtUsd(n, signed) {
+    if (n === null || n === undefined || !isFinite(n)) return '—';
+    var a = Math.abs(n), s = signed ? (n < 0 ? '−' : '+') : (n < 0 ? '−' : '');
+    var body;
+    if (a >= 1e9) body = (a / 1e9).toFixed(2) + 'B';
+    else if (a >= 1e6) body = (a / 1e6).toFixed(1) + 'M';
+    else if (a >= 1e3) body = Math.round(a / 1e3) + 'k';
+    else body = Math.round(a).toString();
+    return s + '$' + body.replace('.', ',');
+  }
+  function fmtPx(n) {
+    if (n === null || n === undefined || !isFinite(n)) return '—';
+    var a = Math.abs(n), d = a >= 1000 ? 0 : a >= 10 ? 2 : a >= 1 ? 3 : a >= 0.01 ? 4 : 6;
+    return n.toLocaleString('es-AR', { minimumFractionDigits: d, maximumFractionDigits: d });
+  }
+  function fmtShare(p) { if (!isFinite(p)) return '—'; var r = (p >= 99 && p < 100) ? Math.floor(p * 10) / 10 : Math.round(p); return String(r).replace('.', ',') + '%'; }
+  function fmtPct(x, dec, signed) {
+    if (x === null || x === undefined || !isFinite(x)) return '—';
+    dec = dec === undefined ? 1 : dec;
+    var v = x * 100, s = (signed === false) ? '' : (v > 0 ? '+' : v < 0 ? '−' : '');
+    return s + Math.abs(v).toFixed(dec).replace('.', ',') + '%';
+  }
+
+  var SM = { CFG: CFG, num: num, shortAddr: shortAddr, perf: perf, selectWallets: selectWallets, parsePositions: parsePositions, aggregate: aggregate, summarize: summarize, roundPx: roundPx, mkLevels: mkLevels, validateSetup: validateSetup, buildSetups: buildSetups, buildAlerts: buildAlerts, buildReading: buildReading, fmtUsd: fmtUsd, fmtPx: fmtPx, fmtPct: fmtPct, fmtShare: fmtShare };
+  root.SM = SM;
+  if (typeof module !== 'undefined' && module.exports) module.exports = SM;
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script id="sm-data">
+/* ===== Capa de datos · API pública de Hyperliquid ===== */
+(function (root) {
+  'use strict';
+  var API = 'https://api.hyperliquid.xyz/info';
+  var LB = 'https://stats-data.hyperliquid.xyz/Mainnet/leaderboard';
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+
+  /* Limitador por peso: Hyperliquid permite 1.200 de peso por minuto por IP.
+     Usamos 1.100 de presupuesto. Pesos oficiales: allMids y clearinghouseState = 2,
+     frontendOpenOrders = 20. El registro se guarda en localStorage (si existe) para
+     que recargar la página o abrir otra pestaña no lo saltee. */
+  var WEIGHTS = { allMids: 2, clearinghouseState: 2, frontendOpenOrders: 20 };
+  function makeLimiter(opts) {
+    opts = opts || {};
+    var budget = opts.budget || 1100, windowMs = opts.windowMs || 60000;
+    var now = opts.now || function () { return Date.now(); };
+    var wait = opts.sleep || sleep;
+    var store = opts.store === undefined ? (function () { try { return root.localStorage || null; } catch (e) { return null; } })() : opts.store;
+    var KEY = 'smhl.ratelog.v1', mem = [];
+    function read() { if (!store) return mem; try { var v = JSON.parse(store.getItem(KEY) || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return mem; } }
+    function write(log) { mem = log; if (!store) return; try { store.setItem(KEY, JSON.stringify(log)); } catch (e) { /* sin storage: queda en memoria */ } }
+    function prune(log, t) { return log.filter(function (x) { return x && t - x[0] < windowMs && x[0] <= t; }); }
+    return {
+      budget: budget, windowMs: windowMs,
+      used: function () { var t = now(); return prune(read(), t).reduce(function (a, x) { return a + x[1]; }, 0); },
+      // ms hasta que entren `w` unidades de peso (0 = ya)
+      waitFor: function (w) {
+        var t = now(), log = prune(read(), t), used = log.reduce(function (a, x) { return a + x[1]; }, 0);
+        if (used + w <= budget) return 0;
+        log.sort(function (a, b) { return a[0] - b[0]; });
+        for (var i = 0; i < log.length; i++) { used -= log[i][1]; if (used + w <= budget) return windowMs - (t - log[i][0]) + 50; }
+        return windowMs;
+      },
+      take: async function (w, onWait) {
+        if (w > budget) throw new Error('consulta más pesada que el presupuesto');
+        for (;;) {
+          var ms = this.waitFor(w);
+          if (ms <= 0) { var t = now(); var log = prune(read(), t); log.push([t, w]); write(log); return; }
+          onWait && onWait(ms);
+          await wait(Math.min(ms, 5000));
+        }
+      }
+    };
+  }
+  var limiter = makeLimiter();
+  var onLimitWait = null;
+
+  async function getJSON(url, opts, tries, timeoutMs, weight) {
+    tries = tries || 3; timeoutMs = timeoutMs || 20000;
+    var last;
+    for (var i = 0; i < tries; i++) {
+      if (weight) await limiter.take(weight, onLimitWait); // cada intento cuenta, también los reintentos
+      var ctl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      var to = setTimeout(function () { if (ctl) ctl.abort(); }, timeoutMs);
+      try {
+        var r = await root.fetch(url, Object.assign({}, opts || {}, ctl ? { signal: ctl.signal } : {}));
+        clearTimeout(to);
+        if (r.status === 429 || r.status >= 500) { last = new Error('HTTP ' + r.status); await sleep((r.status === 429 ? 5000 : 800) * Math.pow(2, i)); continue; }
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return await r.json();
+      } catch (e) { clearTimeout(to); last = e; if (i < tries - 1) await sleep(500 * Math.pow(2, i)); }
+    }
+    throw last || new Error('error de red');
+  }
+  function info(body) { return getJSON(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }, 3, 20000, WEIGHTS[body.type] || 20); }
+  // Peso total de una carga completa para N billeteras
+  function loadWeight(n) { return WEIGHTS.allMids + n * (WEIGHTS.clearinghouseState + WEIGHTS.frontendOpenOrders); }
+  async function pool(items, limit, fn) {
+    var out = new Array(items.length), idx = 0;
+    async function worker() { while (idx < items.length) { var i = idx++; out[i] = await fn(items[i], i); } }
+    var ws = []; for (var k = 0; k < Math.min(limit, items.length); k++) ws.push(worker());
+    await Promise.all(ws); return out;
+  }
+  async function loadAll(cfg, onProgress) {
+    var SM = root.SM; cfg = Object.assign({}, SM.CFG, cfg || {});
+    onLimitWait = function (ms) { onProgress && onProgress({ phase: 'wait', ms: ms }); };
+    onProgress && onProgress({ phase: 'leaderboard', done: 0, total: 1 });
+    var lb = await getJSON(LB, {}, 3, 45000);
+    var rows = (lb && lb.leaderboardRows) || [];
+    if (!rows.length) throw new Error('El leaderboard llegó vacío');
+    var wallets = SM.selectWallets(rows, cfg);
+    var mids = await info({ type: 'allMids' });
+    var done = 0, errors = [], positions = [], ordersBy = {};
+    await pool(wallets, 4, async function (w) {
+      try {
+        var res = await Promise.all([info({ type: 'clearinghouseState', user: w.addr }), info({ type: 'frontendOpenOrders', user: w.addr })]);
+        ordersBy[w.addr] = res[1] || [];
+        w.av = SM.num(res[0] && res[0].marginSummary && res[0].marginSummary.accountValue) ?? w.av;
+        var ps = SM.parsePositions(w, res[0], res[1], mids, cfg);
+        w.npos = ps.length; Array.prototype.push.apply(positions, ps);
+      } catch (e) { errors.push({ w: w.addr, msg: String(e && e.message || e) }); w.npos = null; }
+      done++; onProgress && onProgress({ phase: 'wallets', done: done, total: wallets.length });
+    });
+    return { ts: new Date(), lbCount: rows.length, wallets: wallets, positions: positions, ordersBy: ordersBy, mids: mids, errors: errors };
+  }
+  root.SMData = { loadAll: loadAll, getJSON: getJSON, pool: pool, API: API, LB: LB, limiter: limiter, makeLimiter: makeLimiter, WEIGHTS: WEIGHTS, loadWeight: loadWeight };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script id="sm-ui">
+/* ===== Interfaz ===== */
+(function () {
+  'use strict';
+  var SM = window.SM, D = window.SMData;
+  var state = { data: null, coin: 'BTC', loading: false, lastLoad: 0, timer: null };
+  var $ = function (id) { return document.getElementById(id); };
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined && text !== null) e.textContent = text; return e; }
+  function td(text, cls) { return el('td', cls, text); }
+  function clear(n) { while (n.firstChild) n.removeChild(n.firstChild); }
+  var toneCls = { blue: 'var(--blue)', orange: 'var(--orange)', warn: 'var(--warn)', mut: 'var(--mut)', good: 'var(--good)', bad: 'var(--bad)' };
+  function sideCls(s) { return s === 'L' ? 'c-blue' : 'c-orange'; }
+  function sideTxt(s) { return s === 'L' ? 'long' : 'short'; }
+  function signCls(x) { return x >= 0 ? 'c-good' : 'c-bad'; }
+  function wLabel(addr, name) { return name ? name : SM.shortAddr(addr); }
+  function wLink(addr, name) { var a = el('a', 'mono', wLabel(addr, name)); a.href = 'https://app.hyperliquid.xyz/explorer/address/' + addr; a.target = '_blank'; a.rel = 'noopener'; a.title = addr; return a; }
+
+  function setStatus(kind, title, text) {
+    var s = $('status'); s.className = 'status' + (kind === 'err' ? ' err' : ''); clear(s);
+    s.appendChild(el('b', null, title)); s.appendChild(el('span', null, text));
+  }
+  function progress(p) {
+    $('loading').hidden = false;
+    if (p.phase === 'wait') { $('load-s').textContent = 'Pausa de ' + Math.ceil(p.ms / 1000) + ' s para respetar el límite de la API'; return; }
+    $('load-t').textContent = p.phase === 'leaderboard' ? 'Descargando leaderboard…' : 'Leyendo billeteras…';
+    var pct = p.total ? Math.round(100 * p.done / p.total) : 0;
+    $('load-p').style.width = (p.phase === 'leaderboard' ? 5 : 5 + pct * 0.95) + '%';
+    $('load-s').textContent = p.phase === 'wallets' ? p.done + ' de ' + p.total : '';
+  }
+
+  function renderKpis(sum) {
+    var k = $('kpis'); clear(k);
+    var side = sum.shortPct >= sum.longPct ? 'short' : 'long';
+    var items = [
+      ['Sesgo neto del smart money', sum.nPos ? SM.fmtShare(Math.max(sum.shortPct, sum.longPct)) + ' ' + side : '—', 'Short ' + SM.fmtUsd(sum.totS) + ' vs long ' + SM.fmtUsd(sum.totL), side === 'short' ? 'c-orange' : 'c-blue'],
+      ['Apalancamiento medio', sum.levW ? sum.levW.toFixed(1).replace('.', ',') + 'x' : '—', 'Ponderado por notional', 'c-warn'],
+      ['Billeteras con posición', sum.nWithPos + ' / ' + sum.nWallets, sum.nPos + ' posiciones abiertas', ''],
+      ['Con TP/SL en el libro', sum.nWithTrig + ' / ' + sum.nWallets, 'Salida inferible en ' + sum.nWithExit + ' billeteras', 'c-mut']
+    ];
+    items.forEach(function (it) { var d = el('div', 'kpi'); d.appendChild(el('div', 'l', it[0])); d.appendChild(el('div', 'v ' + it[3], it[1])); d.appendChild(el('div', 's', it[2])); k.appendChild(d); });
+  }
+
+  function renderSetups(res, coin) {
+    $('setup-title').textContent = 'Operación sugerida · ' + coin;
+    var box = $('setups'); clear(box);
+    if (res.state !== 'ok') { box.appendChild(el('div', 'empty', res.reason)); $('setup-rules').textContent = ''; return; }
+    res.setups.forEach(function (s) {
+      var c = el('div', 'setup'); c.setAttribute('data-setup', s.key); c.setAttribute('data-status', s.status);
+      var color = s.dir === 'L' ? 'var(--blue)' : 'var(--orange)';
+      c.style.borderColor = s.status === 'activo' ? color : 'var(--bd)';
+      var top = el('div', 'row');
+      var ttl = el('div'); ttl.appendChild(el('div', 'nm', s.name)); var t = el('div', 'ti ' + sideCls(s.dir), (s.dir === 'L' ? 'Long ' : 'Short ') + s.lev + 'x'); ttl.appendChild(t);
+      var pc = s.status === 'activo' ? 'p-act' : (s.status === 'espera' ? 'p-neu' : 'p-warn');
+      top.appendChild(ttl); top.appendChild(el('span', 'pill ' + pc, s.status === 'activo' ? 'Activo ahora' : (s.status === 'espera' ? 'En espera de gatillo' : 'Invalidado')));
+      c.appendChild(top);
+      c.appendChild(el('div', 'trig', s.trigger));
+      var lv = el('div', 'lvls'), L = s.lv;
+      [['Entrada', L.entry, '', ''], ['Stop', L.stop, SM.fmtPct(L.mvStop) + ' · ' + SM.fmtPct(L.mgStop, 0) + ' s/margen', 'c-bad'], ['TP1 (50%)', L.tp1, SM.fmtPct(L.mvTp1) + ' · ' + SM.fmtPct(L.mgTp1, 0) + ' s/margen', 'c-good'], ['TP2 (50%)', L.tp2, SM.fmtPct(L.mvTp2) + ' · ' + SM.fmtPct(L.mgTp2, 0) + ' s/margen', 'c-good']].forEach(function (x) {
+        var b = el('div', 'lv'); b.setAttribute('data-level', x[0].split(' ')[0].toLowerCase());
+        b.appendChild(el('div', 'k', x[0])); b.appendChild(el('div', 'v ' + x[3], SM.fmtPx(x[1]))); b.appendChild(el('div', 'd', x[2] || ' ')); lv.appendChild(b);
+      });
+      c.appendChild(lv);
+      var m = el('div', 'meta');
+      var add = function (k, v) { var s1 = el('span', null, k + ' '); s1.appendChild(el('span', null, v)); m.appendChild(s1); };
+      add('Riesgo/beneficio', '1 : ' + L.rr1.toFixed(1).replace('.', ',') + ' / 1 : ' + L.rr2.toFixed(1).replace('.', ','));
+      add('Confianza', s.conf); add('Liquidación aprox.', SM.fmtPx(L.liq));
+      c.appendChild(m);
+      if (s.errors && s.errors.length) c.appendChild(el('div', 'trig c-bad', 'Revisión automática: ' + s.errors.join('; ')));
+      var w = el('div', 'why'); w.appendChild(el('b', 'note', 'POR QUÉ')); s.why.forEach(function (y) { w.appendChild(el('div', null, y)); }); c.appendChild(w);
+      box.appendChild(c);
+    });
+    $('setup-rules').textContent = 'Reglas: la entrada media del lado dominante del smart money (' + SM.fmtPx(res.pivot) + ') separa los dos escenarios. Stop siempre del otro lado de ese nivel, apalancamiento fijo ' + SM.CFG.lev + 'x, TP1 anclado a salidas reales cuando existen. Requiere al menos ' + Math.round(SM.CFG.dominantShare * 100) + '% de un lado.';
+  }
+
+  function tagFor(a) {
+    var domS = a.shortN >= a.longN, up = domS ? a.upnlS : a.upnlL, share = domS ? 100 - a.longPct : a.longPct;
+    if (up < 0) return ['p-warn', (domS ? 'Shorts' : 'Longs') + ' perdiendo'];
+    if (share >= 90) return [domS ? 'p-bear' : 'p-bull', 'Consenso ' + (domS ? 'short' : 'long')];
+    if (share >= 60) return ['p-neu', 'Sesgo ' + (domS ? 'short' : 'long')];
+    return ['p-neu', 'Repartido'];
+  }
+
+  function renderAssets(agg) {
+    var tb = $('tbl-assets').tBodies[0]; clear(tb);
+    if (!agg.length) { var r0 = el('tr'); var c0 = td('Sin posiciones abiertas.', 'empty'); c0.colSpan = 9; r0.appendChild(c0); tb.appendChild(r0); return; }
+    agg.slice(0, 10).forEach(function (a) {
+      var tr = el('tr'); tr.setAttribute('data-coin', a.coin);
+      tr.appendChild(td(a.coin, 'sym'));
+      var bc = el('td'); var bar = el('div', 'bar'); bar.setAttribute('role', 'img'); bar.setAttribute('aria-label', a.longPct.toFixed(1) + '% long');
+      var i = el('i'); i.style.width = a.longPct.toFixed(2) + '%'; bar.appendChild(i); bc.appendChild(bar);
+      var bl = el('div', 'barl mono'); bl.appendChild(el('span', null, a.longPct.toFixed(1).replace('.', ',') + '% L')); bl.appendChild(el('span', null, (100 - a.longPct).toFixed(1).replace('.', ',') + '% S')); bc.appendChild(bl); tr.appendChild(bc);
+      tr.appendChild(td(SM.fmtUsd(a.net, true), 'r mono ' + (a.net >= 0 ? 'c-blue' : 'c-orange')));
+      tr.appendChild(td(a.wL + ' / ' + a.wS, 'r mono'));
+      tr.appendChild(td(a.lev ? a.lev.toFixed(1).replace('.', ',') + 'x' : '—', 'r mono' + (a.lev > 15 ? ' c-warn' : '')));
+      tr.appendChild(td(SM.fmtPx(a.shortN >= a.longN ? a.entryS : a.entryL), 'r mono'));
+      tr.appendChild(td(SM.fmtPx(a.mark), 'r mono'));
+      tr.appendChild(td(SM.fmtUsd(a.upnl, true), 'r mono ' + signCls(a.upnl)));
+      var tg = tagFor(a), tc = el('td'); tc.appendChild(el('span', 'pill ' + tg[0], tg[1])); tr.appendChild(tc);
+      tb.appendChild(tr);
+    });
+  }
+
+  function renderTop(pos) {
+    var tb = $('tbl-top').tBodies[0]; clear(tb);
+    var top = pos.slice().sort(function (a, b) { return b.notional - a.notional; }).slice(0, 10);
+    if (!top.length) { var r0 = el('tr'); var c0 = td('Sin posiciones abiertas.', 'empty'); c0.colSpan = 10; r0.appendChild(c0); tb.appendChild(r0); return; }
+    top.forEach(function (p) {
+      var tr = el('tr'); var w = el('td'); w.appendChild(wLink(p.w, p.wName)); tr.appendChild(w);
+      tr.appendChild(td(p.coin + ' ' + sideTxt(p.side) + ' ' + (p.lev || '?') + 'x', sideCls(p.side)));
+      tr.appendChild(td(SM.fmtUsd(p.notional), 'r mono'));
+      tr.appendChild(td(SM.fmtPx(p.entry), 'r mono')); tr.appendChild(td(SM.fmtPx(p.mark), 'r mono'));
+      tr.appendChild(td(SM.fmtPct(p.moveNow), 'r mono ' + signCls(p.moveNow)));
+      tr.appendChild(td(SM.fmtUsd(p.upnl, true), 'r mono ' + signCls(p.upnl)));
+      tr.appendChild(td(SM.fmtPct(p.roe, 0), 'r mono ' + signCls(p.roe)));
+      tr.appendChild(td(SM.fmtPx(p.liq), 'r mono'));
+      tr.appendChild(td(p.exit !== null ? SM.fmtPx(p.exit) + (p.exitSource === 'tp' ? ' (TP)' : ' (límite)') : 'Sin salida visible', p.exit !== null ? 'mono' : 'c-mut'));
+      tb.appendChild(tr);
+    });
+  }
+
+  function renderExits(pos, sum) {
+    var ex = pos.filter(function (p) { return p.exit !== null; }).sort(function (a, b) { return b.notional - a.notional; }).slice(0, 12);
+    $('exits-note').textContent = sum.nWithTrig + ' de ' + sum.nWallets + ' billeteras tienen TP/SL cargado como orden. El resto de las salidas se infiere de órdenes límite del lado contrario que cubren al menos 10% de la posición. Hay salida visible en ' + sum.nWithExit + ' billeteras.';
+    var tb = $('tbl-exits').tBodies[0]; clear(tb);
+    if (!ex.length) { var r0 = el('tr'); var c0 = td('Ninguna billetera tiene una salida visible en este momento.', 'empty'); c0.colSpan = 9; r0.appendChild(c0); tb.appendChild(r0); return; }
+    ex.forEach(function (p) {
+      var tr = el('tr'); var w = el('td'); w.appendChild(wLink(p.w, p.wName)); tr.appendChild(w);
+      tr.appendChild(td(p.coin + ' ' + sideTxt(p.side) + ' ' + (p.lev || '?') + 'x', sideCls(p.side)));
+      tr.appendChild(td(p.exitSource === 'tp' ? 'TP cargado' : 'Órdenes límite', 'c-mut'));
+      tr.appendChild(td(SM.fmtPx(p.entry), 'r mono')); tr.appendChild(td(SM.fmtPx(p.mark), 'r mono'));
+      var e = td(SM.fmtPx(p.exit), 'r mono'); e.style.fontWeight = '600'; tr.appendChild(e);
+      tr.appendChild(td(Math.round(Math.min(p.exitCover, 1) * 100) + '%', 'r mono'));
+      tr.appendChild(td(SM.fmtPct(p.expMove, 2), 'r mono c-good'));
+      tr.appendChild(td(SM.fmtPct(p.expRoe, 0), 'r mono c-good'));
+      tb.appendChild(tr);
+    });
+  }
+
+  function renderWallets(wallets, pos) {
+    var tb = $('tbl-wallets').tBodies[0]; clear(tb);
+    var withPos = wallets.filter(function (w) { return w.npos > 0; }).slice(0, 10);
+    if (!withPos.length) { var r0 = el('tr'); var c0 = td('Ninguna billetera tiene posiciones abiertas.', 'empty'); c0.colSpan = 6; r0.appendChild(c0); tb.appendChild(r0); return; }
+    withPos.forEach(function (w) {
+      var mp = pos.filter(function (p) { return p.w === w.addr; }).sort(function (a, b) { return b.notional - a.notional; })[0];
+      var tr = el('tr'); var c = el('td'); c.appendChild(wLink(w.addr, w.name)); tr.appendChild(c);
+      tr.appendChild(td(SM.fmtUsd(w.av), 'r mono')); tr.appendChild(td(SM.fmtUsd(w.mPnl, true), 'r mono c-good'));
+      tr.appendChild(td(SM.fmtPct(w.mRoi, 0), 'r mono')); tr.appendChild(td(String(w.npos), 'r mono'));
+      tr.appendChild(td(mp ? mp.coin + ' ' + sideTxt(mp.side) + ' ' + (mp.lev || '?') + 'x · ' + SM.fmtUsd(mp.notional) : '—', mp ? sideCls(mp.side) : ''));
+      tb.appendChild(tr);
+    });
+  }
+
+  function renderAlerts(list) {
+    var b = $('alerts'); clear(b);
+    list.forEach(function (a) {
+      var d = el('div', 'alert'); var bd = el('div', 'bd'); bd.style.background = toneCls[a.tone] || toneCls.mut; d.appendChild(bd);
+      var x = el('div'); x.appendChild(el('div', 'at', a.title)); x.appendChild(el('div', 'ab', a.body)); d.appendChild(x); b.appendChild(d);
+    });
+  }
+
+  function renderCoinSelect(agg) {
+    var s = $('sel-coin'), cur = state.coin; clear(s);
+    var coins = agg.slice(0, 15).map(function (a) { return a.coin; });
+    if (coins.indexOf(cur) < 0) coins.unshift(cur);
+    coins.forEach(function (c) { var o = el('option', null, c); o.value = c; if (c === cur) o.selected = true; s.appendChild(o); });
+  }
+
+  function labelTables() {
+    ['tbl-assets', 'tbl-top', 'tbl-exits', 'tbl-wallets'].forEach(function (id) {
+      var t = $(id), heads = [].map.call(t.tHead.rows[0].cells, function (c) { return c.textContent; });
+      [].forEach.call(t.tBodies[0].rows, function (tr) {
+        [].forEach.call(tr.cells, function (td, i) { td.setAttribute('data-label', heads[i] || ''); if (i === 0 || (id === 'tbl-assets' && i === 1)) td.classList.add('full'); });
+      });
+    });
+  }
+
+  function renderAll() {
+    var d = state.data; if (!d) return;
+    var agg = SM.aggregate(d.positions), sum = SM.summarize(d.wallets, d.positions, d.ordersBy);
+    var row = agg.filter(function (a) { return a.coin === state.coin; })[0];
+    var res = SM.buildSetups(row, d.positions);
+    renderKpis(sum); renderCoinSelect(agg);
+    $('reading').textContent = SM.buildReading(sum, agg, res, state.coin);
+    renderSetups(res, state.coin); renderAssets(agg); renderTop(d.positions); renderExits(d.positions, sum); renderWallets(d.wallets, d.positions);
+    renderAlerts(SM.buildAlerts(sum, agg, res, state.coin));
+    labelTables();
+    var t = d.ts.toLocaleString('es-AR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    var errTxt = d.errors.length ? ' · ' + d.errors.length + (d.errors.length === 1 ? ' billetera no respondió' : ' billeteras no respondieron') : '';
+    setStatus(d.errors.length > d.wallets.length / 2 ? 'err' : 'ok', 'Datos en vivo', 'Actualizado ' + t + ' · ' + d.lbCount.toLocaleString('es-AR') + ' billeteras en el leaderboard · ' + d.wallets.length + ' analizadas' + errTxt + ' · API pública de Hyperliquid');
+    window.__SM_RENDERED__ = { ts: d.ts.toISOString(), sum: sum, agg: agg, setups: res };
+  }
+
+  var COOLDOWN_MS = 60000;
+  function cooldownLeft() {
+    // espera visible del botón = máximo entre el mínimo fijo y lo que pide el limitador para una carga completa
+    var fixed = state.lastLoad ? Math.max(0, COOLDOWN_MS - (Date.now() - state.lastLoad)) : 0;
+    var need = D.loadWeight(+$('sel-topn').value);
+    var lim = need <= D.limiter.budget ? D.limiter.waitFor(need) : 0;
+    return Math.max(fixed, lim);
+  }
+  function tickButton() {
+    var b = $('btn-refresh');
+    if (state.loading) { b.disabled = true; b.textContent = 'Actualizando…'; return; }
+    var ms = cooldownLeft();
+    b.disabled = ms > 0;
+    b.textContent = ms > 0 ? 'Actualizar en ' + Math.ceil(ms / 1000) + ' s' : 'Actualizar';
+    b.title = ms > 0 ? 'Espera para no superar el límite de consultas de Hyperliquid (1.200 por minuto)' : '';
+  }
+
+  async function load(opts) {
+    opts = opts || {};
+    if (state.loading) return;
+    if (!opts.force && cooldownLeft() > 0) { tickButton(); return; }
+    state.loading = true; tickButton();
+    try {
+      state.data = await D.loadAll({ topN: +$('sel-topn').value }, progress);
+      state.lastLoad = Date.now(); // la espera fija de 60 s aplica solo tras una carga exitosa
+      renderAll();
+    } catch (e) {
+      setStatus('err', 'No se pudieron leer los datos', String(e && e.message || e) + '. Revisá la conexión y volvé a intentar.' + (state.data ? ' Se muestran los últimos datos cargados.' : ''));
+      window.__SM_ERROR__ = String(e && e.message || e);
+    } finally { state.loading = false; $('loading').hidden = true; tickButton(); }
+  }
+
+  $('btn-refresh').addEventListener('click', function () { load(); });
+  // cambiar el universo no saltea la espera: el limitador ordena las consultas igual
+  $('sel-topn').addEventListener('change', function () { load({ force: true }); });
+  $('sel-coin').addEventListener('change', function (e) { state.coin = e.target.value; renderAll(); });
+  $('chk-auto').addEventListener('change', function (e) { clearInterval(state.timer); state.timer = e.target.checked ? setInterval(function () { load(); }, 300000) : null; });
+  setInterval(tickButton, 1000);
+  window.SMUI = { load: load, renderAll: renderAll, state: state, cooldownLeft: cooldownLeft };
+  if (!window.__SM_NO_AUTOLOAD__) load({ force: true });
+})();
+</script>
+</body>
+</html>
