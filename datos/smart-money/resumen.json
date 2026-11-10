@@ -1,0 +1,136 @@
+{
+ "actualizado": "2026-11-10 00:07 UTC",
+ "dias": 1,
+ "desde": "2026-11-10",
+ "motor": "1.4",
+ "criterio": {
+  "tp": 0.08,
+  "sl": 0.06,
+  "maxBars": 30,
+  "fillDays": 5,
+  "minMuestra": 20
+ },
+ "direccionalTodas": {
+  "resueltas": 0,
+  "ganadas": 0,
+  "perdidas": 0,
+  "vencidas": 0,
+  "abiertas": 5,
+  "ambiguas": 0,
+  "acierto": null,
+  "ic95": [
+   null,
+   null
+  ],
+  "equilibrio": 42.9,
+  "muestraSuficiente": false
+ },
+ "direccionalNuevas": {
+  "resueltas": 0,
+  "ganadas": 0,
+  "perdidas": 0,
+  "vencidas": 0,
+  "abiertas": 5,
+  "ambiguas": 0,
+  "acierto": null,
+  "ic95": [
+   null,
+   null
+  ],
+  "equilibrio": 42.9,
+  "muestraSuficiente": false
+ },
+ "plan": {
+  "resueltas": 0,
+  "ganadas": 0,
+  "perdidas": 0,
+  "vencidas": 0,
+  "abiertas": 5,
+  "ambiguas": 0,
+  "acierto": null,
+  "ic95": [
+   null,
+   null
+  ],
+  "equilibrio": 34.8,
+  "muestraSuficiente": false,
+  "noEntro": 0
+ },
+ "porCoin": {
+  "BTC": {
+   "resueltas": 0,
+   "ganadas": 0,
+   "perdidas": 0,
+   "vencidas": 0,
+   "abiertas": 1,
+   "ambiguas": 0,
+   "acierto": null,
+   "ic95": [
+    null,
+    null
+   ],
+   "equilibrio": 42.9,
+   "muestraSuficiente": false
+  },
+  "ETH": {
+   "resueltas": 0,
+   "ganadas": 0,
+   "perdidas": 0,
+   "vencidas": 0,
+   "abiertas": 1,
+   "ambiguas": 0,
+   "acierto": null,
+   "ic95": [
+    null,
+    null
+   ],
+   "equilibrio": 42.9,
+   "muestraSuficiente": false
+  },
+  "SOL": {
+   "resueltas": 0,
+   "ganadas": 0,
+   "perdidas": 0,
+   "vencidas": 0,
+   "abiertas": 1,
+   "ambiguas": 0,
+   "acierto": null,
+   "ic95": [
+    null,
+    null
+   ],
+   "equilibrio": 42.9,
+   "muestraSuficiente": false
+  },
+  "HYPE": {
+   "resueltas": 0,
+   "ganadas": 0,
+   "perdidas": 0,
+   "vencidas": 0,
+   "abiertas": 1,
+   "ambiguas": 0,
+   "acierto": null,
+   "ic95": [
+    null,
+    null
+   ],
+   "equilibrio": 42.9,
+   "muestraSuficiente": false
+  },
+  "ZEC": {
+   "resueltas": 0,
+   "ganadas": 0,
+   "perdidas": 0,
+   "vencidas": 0,
+   "abiertas": 1,
+   "ambiguas": 0,
+   "acierto": null,
+   "ic95": [
+    null,
+    null
+   ],
+   "equilibrio": 42.9,
+   "muestraSuficiente": false
+  }
+ }
+}

@@ -1,0 +1,11 @@
+fecha;coin;metodo;direccion;escenario;nueva;precio;entrada;stop;tp1;rr1;resultado;dias;ambigua;retorno;R
+2026-11-10;BTC;direccional;S;follow;sí;75364,5;;;;;abierta;1;;;
+2026-11-10;BTC;plan;S;follow;sí;75364,5;76630;78170;73740;1,88;pendiente;;;;
+2026-11-10;ETH;direccional;S;follow;sí;2133,05;;;;;abierta;1;;;
+2026-11-10;ETH;plan;S;follow;sí;2133,05;2241;2358;2007;2;pendiente;;;;
+2026-11-10;SOL;direccional;S;follow;sí;86,6675;;;;;abierta;1;;;
+2026-11-10;SOL;plan;S;follow;sí;86,6675;91,57;96,8;81,11;2;pendiente;;;;
+2026-11-10;HYPE;direccional;L;squeeze;sí;75,1495;;;;;abierta;1;;;
+2026-11-10;HYPE;plan;L;squeeze;sí;75,1495;69,87;68,37;72,12;1,5;pendiente;;;;
+2026-11-10;ZEC;direccional;S;follow;sí;1168,4;;;;;abierta;1;;;
+2026-11-10;ZEC;plan;S;follow;sí;1168,4;1256;1348;1072;2;pendiente;;;;
