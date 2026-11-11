@@ -1,14 +1,14 @@
 # Smart Money · track record
 
-Actualizado 2026-11-10 07:21 UTC · 1 días registrados (desde 2026-11-10) · motor v1.4
+Actualizado 2026-11-11 06:25 UTC · 2 días registrados (desde 2026-11-10) · motor v1.4
 
 Criterio: objetivo +8 %, stop −6 %, 30 velas diarias. Si objetivo y stop caen en la misma vela, cuenta como pérdida.
 
 | Medición | Resueltas | Acierto | Rango probable (95 %) | Necesario para no perder | Abiertas | Muestra suficiente |
 |---|---|---|---|---|---|---|
-| Dirección sugerida, todos los días | 0 | — | — | 42.9 % | 5 | no (mín. 20) |
-| Dirección sugerida, solo cuando cambia | 0 | — | — | 42.9 % | 5 | no (mín. 20) |
-| Plan exacto (entrada → TP1 o stop) | 0 | — | — | 34.5 % | 5 | no (mín. 20) |
+| Dirección sugerida, todos los días | 1 | 100 % | 20.7 – 100 % | 42.9 % | 9 | no (mín. 20) |
+| Dirección sugerida, solo cuando cambia | 1 | 100 % | 20.7 – 100 % | 42.9 % | 4 | no (mín. 20) |
+| Plan exacto (entrada → TP1 o stop) | 0 | — | — | 34.5 % | 10 | no (mín. 20) |
 
 ## Por activo (dirección, todos los días)
 
@@ -18,7 +18,7 @@ Criterio: objetivo +8 %, stop −6 %, 30 velas diarias. Si objetivo y stop caen 
 | ETH | 0 | — | — |
 | SOL | 0 | — | — |
 | HYPE | 0 | — | — |
-| ZEC | 0 | — | — |
+| ZEC | 1 | 100 % | 20.7 – 100 % |
 
 Lectura: el acierto sirve si el rango probable completo queda por encima del "necesario para no perder". Con menos de 20 operaciones resueltas el número todavía no dice nada.
 
