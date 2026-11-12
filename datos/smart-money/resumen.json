@@ -1,6 +1,6 @@
 {
- "actualizado": "2026-11-11 06:25 UTC",
- "dias": 2,
+ "actualizado": "2026-11-12 07:13 UTC",
+ "dias": 3,
  "desde": "2026-11-10",
  "motor": "1.4",
  "criterio": {
@@ -15,7 +15,7 @@
   "ganadas": 1,
   "perdidas": 0,
   "vencidas": 0,
-  "abiertas": 9,
+  "abiertas": 14,
   "ambiguas": 0,
   "acierto": 100,
   "ic95": [
@@ -45,7 +45,7 @@
   "ganadas": 0,
   "perdidas": 0,
   "vencidas": 0,
-  "abiertas": 10,
+  "abiertas": 15,
   "ambiguas": 0,
   "acierto": null,
   "ic95": [
@@ -62,7 +62,7 @@
    "ganadas": 0,
    "perdidas": 0,
    "vencidas": 0,
-   "abiertas": 2,
+   "abiertas": 3,
    "ambiguas": 0,
    "acierto": null,
    "ic95": [
@@ -77,7 +77,7 @@
    "ganadas": 0,
    "perdidas": 0,
    "vencidas": 0,
-   "abiertas": 2,
+   "abiertas": 3,
    "ambiguas": 0,
    "acierto": null,
    "ic95": [
@@ -92,7 +92,7 @@
    "ganadas": 0,
    "perdidas": 0,
    "vencidas": 0,
-   "abiertas": 2,
+   "abiertas": 3,
    "ambiguas": 0,
    "acierto": null,
    "ic95": [
@@ -107,7 +107,7 @@
    "ganadas": 0,
    "perdidas": 0,
    "vencidas": 0,
-   "abiertas": 2,
+   "abiertas": 3,
    "ambiguas": 0,
    "acierto": null,
    "ic95": [
@@ -122,7 +122,7 @@
    "ganadas": 1,
    "perdidas": 0,
    "vencidas": 0,
-   "abiertas": 1,
+   "abiertas": 2,
    "ambiguas": 0,
    "acierto": 100,
    "ic95": [
