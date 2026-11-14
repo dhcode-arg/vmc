@@ -1,6 +1,6 @@
 {
- "actualizado": "2026-11-13 06:48 UTC",
- "dias": 4,
+ "actualizado": "2026-11-14 06:26 UTC",
+ "dias": 5,
  "desde": "2026-11-10",
  "motor": "1.4",
  "criterio": {
@@ -11,16 +11,16 @@
   "minMuestra": 20
  },
  "direccionalTodas": {
-  "resueltas": 10,
-  "ganadas": 9,
-  "perdidas": 1,
+  "resueltas": 15,
+  "ganadas": 12,
+  "perdidas": 3,
   "vencidas": 0,
   "abiertas": 10,
   "ambiguas": 0,
-  "acierto": 90,
+  "acierto": 80,
   "ic95": [
-   59.6,
-   98.2
+   54.8,
+   93
   ],
   "equilibrio": 42.9,
   "muestraSuficiente": false
@@ -41,21 +41,21 @@
   "muestraSuficiente": false
  },
  "plan": {
-  "resueltas": 3,
+  "resueltas": 4,
   "ganadas": 3,
-  "perdidas": 0,
+  "perdidas": 1,
   "vencidas": 0,
   "abiertas": 17,
   "ambiguas": 0,
-  "acierto": 100,
+  "acierto": 75,
   "ic95": [
-   43.8,
-   100
+   30.1,
+   95.4
   ],
-  "equilibrio": 34.5,
+  "equilibrio": 34.6,
   "muestraSuficiente": false,
-  "Rpromedio": 1.5,
-  "noEntro": 0
+  "Rpromedio": 0.88,
+  "noEntro": 4
  },
  "porCoin": {
   "BTC": {
@@ -63,7 +63,7 @@
    "ganadas": 3,
    "perdidas": 0,
    "vencidas": 0,
-   "abiertas": 1,
+   "abiertas": 2,
    "ambiguas": 0,
    "acierto": 100,
    "ic95": [
@@ -74,46 +74,46 @@
    "muestraSuficiente": false
   },
   "ETH": {
-   "resueltas": 2,
-   "ganadas": 2,
+   "resueltas": 3,
+   "ganadas": 3,
    "perdidas": 0,
    "vencidas": 0,
    "abiertas": 2,
    "ambiguas": 0,
    "acierto": 100,
    "ic95": [
-    34.2,
+    43.8,
     100
    ],
    "equilibrio": 42.9,
    "muestraSuficiente": false
   },
   "SOL": {
-   "resueltas": 1,
-   "ganadas": 1,
+   "resueltas": 3,
+   "ganadas": 3,
    "perdidas": 0,
    "vencidas": 0,
-   "abiertas": 3,
+   "abiertas": 2,
    "ambiguas": 0,
    "acierto": 100,
    "ic95": [
-    20.7,
+    43.8,
     100
    ],
    "equilibrio": 42.9,
    "muestraSuficiente": false
   },
   "HYPE": {
-   "resueltas": 1,
+   "resueltas": 3,
    "ganadas": 0,
-   "perdidas": 1,
+   "perdidas": 3,
    "vencidas": 0,
-   "abiertas": 3,
+   "abiertas": 2,
    "ambiguas": 0,
    "acierto": 0,
    "ic95": [
     0,
-    79.3
+    56.2
    ],
    "equilibrio": 42.9,
    "muestraSuficiente": false
@@ -123,7 +123,7 @@
    "ganadas": 3,
    "perdidas": 0,
    "vencidas": 0,
-   "abiertas": 1,
+   "abiertas": 2,
    "ambiguas": 0,
    "acierto": 100,
    "ic95": [
