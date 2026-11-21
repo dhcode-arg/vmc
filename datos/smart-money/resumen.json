@@ -1,6 +1,6 @@
 {
- "actualizado": "2026-11-20 07:18 UTC",
- "dias": 11,
+ "actualizado": "2026-11-21 07:11 UTC",
+ "dias": 12,
  "desde": "2026-11-10",
  "motor": "1.4",
  "criterio": {
@@ -11,124 +11,124 @@
   "minMuestra": 20
  },
  "direccionalTodas": {
-  "resueltas": 34,
-  "ganadas": 20,
-  "perdidas": 14,
+  "resueltas": 53,
+  "ganadas": 37,
+  "perdidas": 16,
   "vencidas": 0,
-  "abiertas": 19,
+  "abiertas": 5,
   "ambiguas": 0,
-  "acierto": 58.8,
+  "acierto": 69.8,
   "ic95": [
-   42.2,
-   73.6
+   56.5,
+   80.5
   ],
   "equilibrio": 42.9,
   "muestraSuficiente": true
  },
  "direccionalNuevas": {
-  "resueltas": 8,
-  "ganadas": 4,
+  "resueltas": 9,
+  "ganadas": 5,
   "perdidas": 4,
   "vencidas": 0,
-  "abiertas": 1,
+  "abiertas": 0,
   "ambiguas": 0,
-  "acierto": 50,
+  "acierto": 55.6,
   "ic95": [
-   21.5,
-   78.5
+   26.7,
+   81.1
   ],
   "equilibrio": 42.9,
   "muestraSuficiente": false
  },
  "plan": {
-  "resueltas": 10,
-  "ganadas": 4,
-  "perdidas": 6,
+  "resueltas": 13,
+  "ganadas": 5,
+  "perdidas": 8,
   "vencidas": 0,
-  "abiertas": 17,
+  "abiertas": 15,
   "ambiguas": 0,
-  "acierto": 40,
+  "acierto": 38.5,
   "ic95": [
-   16.8,
-   68.7
+   17.7,
+   64.5
   ],
-  "equilibrio": 34.8,
+  "equilibrio": 34.3,
   "muestraSuficiente": false,
   "Rpromedio": 0,
-  "noEntro": 26
+  "noEntro": 30
  },
  "porCoin": {
   "BTC": {
-   "resueltas": 5,
-   "ganadas": 5,
+   "resueltas": 11,
+   "ganadas": 11,
    "perdidas": 0,
    "vencidas": 0,
-   "abiertas": 6,
+   "abiertas": 1,
    "ambiguas": 0,
    "acierto": 100,
    "ic95": [
-    56.6,
+    74.1,
     100
    ],
    "equilibrio": 42.9,
    "muestraSuficiente": false
   },
   "ETH": {
-   "resueltas": 5,
-   "ganadas": 5,
+   "resueltas": 11,
+   "ganadas": 11,
    "perdidas": 0,
    "vencidas": 0,
-   "abiertas": 6,
+   "abiertas": 1,
    "ambiguas": 0,
    "acierto": 100,
    "ic95": [
-    56.6,
+    74.1,
     100
    ],
    "equilibrio": 42.9,
    "muestraSuficiente": false
   },
   "SOL": {
-   "resueltas": 7,
-   "ganadas": 5,
+   "resueltas": 11,
+   "ganadas": 9,
    "perdidas": 2,
    "vencidas": 0,
-   "abiertas": 4,
+   "abiertas": 1,
    "ambiguas": 0,
-   "acierto": 71.4,
+   "acierto": 81.8,
    "ic95": [
-    35.9,
-    91.8
+    52.3,
+    94.9
    ],
    "equilibrio": 42.9,
    "muestraSuficiente": false
   },
   "HYPE": {
-   "resueltas": 9,
+   "resueltas": 11,
    "ganadas": 0,
-   "perdidas": 9,
+   "perdidas": 11,
    "vencidas": 0,
-   "abiertas": 2,
+   "abiertas": 1,
    "ambiguas": 0,
    "acierto": 0,
    "ic95": [
     0,
-    29.9
+    25.9
    ],
    "equilibrio": 42.9,
    "muestraSuficiente": false
   },
   "ZEC": {
-   "resueltas": 8,
-   "ganadas": 5,
+   "resueltas": 9,
+   "ganadas": 6,
    "perdidas": 3,
    "vencidas": 0,
    "abiertas": 1,
    "ambiguas": 0,
-   "acierto": 62.5,
+   "acierto": 66.7,
    "ic95": [
-    30.6,
-    86.3
+    35.4,
+    87.9
    ],
    "equilibrio": 42.9,
    "muestraSuficiente": false
