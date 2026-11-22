@@ -1,6 +1,6 @@
 {
- "actualizado": "2026-11-21 07:11 UTC",
- "dias": 12,
+ "actualizado": "2026-11-22 06:51 UTC",
+ "dias": 13,
  "desde": "2026-11-10",
  "motor": "1.4",
  "criterio": {
@@ -11,16 +11,16 @@
   "minMuestra": 20
  },
  "direccionalTodas": {
-  "resueltas": 53,
+  "resueltas": 54,
   "ganadas": 37,
-  "perdidas": 16,
+  "perdidas": 17,
   "vencidas": 0,
-  "abiertas": 5,
+  "abiertas": 9,
   "ambiguas": 0,
-  "acierto": 69.8,
+  "acierto": 68.5,
   "ic95": [
-   56.5,
-   80.5
+   55.3,
+   79.3
   ],
   "equilibrio": 42.9,
   "muestraSuficiente": true
@@ -45,17 +45,17 @@
   "ganadas": 5,
   "perdidas": 8,
   "vencidas": 0,
-  "abiertas": 15,
+  "abiertas": 16,
   "ambiguas": 0,
   "acierto": 38.5,
   "ic95": [
    17.7,
    64.5
   ],
-  "equilibrio": 34.3,
+  "equilibrio": 34,
   "muestraSuficiente": false,
   "Rpromedio": 0,
-  "noEntro": 30
+  "noEntro": 34
  },
  "porCoin": {
   "BTC": {
@@ -63,7 +63,7 @@
    "ganadas": 11,
    "perdidas": 0,
    "vencidas": 0,
-   "abiertas": 1,
+   "abiertas": 2,
    "ambiguas": 0,
    "acierto": 100,
    "ic95": [
@@ -78,7 +78,7 @@
    "ganadas": 11,
    "perdidas": 0,
    "vencidas": 0,
-   "abiertas": 1,
+   "abiertas": 2,
    "ambiguas": 0,
    "acierto": 100,
    "ic95": [
@@ -93,7 +93,7 @@
    "ganadas": 9,
    "perdidas": 2,
    "vencidas": 0,
-   "abiertas": 1,
+   "abiertas": 2,
    "ambiguas": 0,
    "acierto": 81.8,
    "ic95": [
@@ -108,7 +108,7 @@
    "ganadas": 0,
    "perdidas": 11,
    "vencidas": 0,
-   "abiertas": 1,
+   "abiertas": 2,
    "ambiguas": 0,
    "acierto": 0,
    "ic95": [
@@ -119,16 +119,16 @@
    "muestraSuficiente": false
   },
   "ZEC": {
-   "resueltas": 9,
+   "resueltas": 10,
    "ganadas": 6,
-   "perdidas": 3,
+   "perdidas": 4,
    "vencidas": 0,
    "abiertas": 1,
    "ambiguas": 0,
-   "acierto": 66.7,
+   "acierto": 60,
    "ic95": [
-    35.4,
-    87.9
+    31.3,
+    83.2
    ],
    "equilibrio": 42.9,
    "muestraSuficiente": false
