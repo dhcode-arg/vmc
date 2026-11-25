@@ -1,6 +1,6 @@
 {
- "actualizado": "2026-11-24 09:56 UTC",
- "dias": 15,
+ "actualizado": "2026-11-25 08:37 UTC",
+ "dias": 16,
  "desde": "2026-11-10",
  "motor": "1.4",
  "criterio": {
@@ -11,16 +11,16 @@
   "minMuestra": 20
  },
  "direccionalTodas": {
-  "resueltas": 67,
+  "resueltas": 68,
   "ganadas": 40,
-  "perdidas": 27,
+  "perdidas": 28,
   "vencidas": 0,
-  "abiertas": 6,
+  "abiertas": 10,
   "ambiguas": 0,
-  "acierto": 59.7,
+  "acierto": 58.8,
   "ic95": [
-   47.7,
-   70.6
+   47,
+   69.7
   ],
   "equilibrio": 42.9,
   "muestraSuficiente": true
@@ -41,21 +41,21 @@
   "muestraSuficiente": false
  },
  "plan": {
-  "resueltas": 14,
-  "ganadas": 5,
-  "perdidas": 9,
+  "resueltas": 16,
+  "ganadas": 6,
+  "perdidas": 10,
   "vencidas": 0,
   "abiertas": 18,
   "ambiguas": 0,
-  "acierto": 35.7,
+  "acierto": 37.5,
   "ic95": [
-   16.3,
-   61.2
+   18.5,
+   61.4
   ],
-  "equilibrio": 33.4,
+  "equilibrio": 33.3,
   "muestraSuficiente": false,
-  "Rpromedio": -0.07,
-  "noEntro": 41
+  "Rpromedio": 0,
+  "noEntro": 44
  },
  "porCoin": {
   "BTC": {
@@ -63,7 +63,7 @@
    "ganadas": 11,
    "perdidas": 2,
    "vencidas": 0,
-   "abiertas": 2,
+   "abiertas": 3,
    "ambiguas": 0,
    "acierto": 84.6,
    "ic95": [
@@ -78,7 +78,7 @@
    "ganadas": 11,
    "perdidas": 3,
    "vencidas": 0,
-   "abiertas": 1,
+   "abiertas": 2,
    "ambiguas": 0,
    "acierto": 78.6,
    "ic95": [
@@ -93,7 +93,7 @@
    "ganadas": 9,
    "perdidas": 5,
    "vencidas": 0,
-   "abiertas": 1,
+   "abiertas": 2,
    "ambiguas": 0,
    "acierto": 64.3,
    "ic95": [
@@ -104,16 +104,16 @@
    "muestraSuficiente": false
   },
   "HYPE": {
-   "resueltas": 14,
+   "resueltas": 15,
    "ganadas": 3,
-   "perdidas": 11,
+   "perdidas": 12,
    "vencidas": 0,
    "abiertas": 1,
    "ambiguas": 0,
-   "acierto": 21.4,
+   "acierto": 20,
    "ic95": [
-    7.6,
-    47.6
+    7,
+    45.2
    ],
    "equilibrio": 42.9,
    "muestraSuficiente": false
@@ -138,7 +138,7 @@
    "ganadas": 0,
    "perdidas": 0,
    "vencidas": 0,
-   "abiertas": 1,
+   "abiertas": 2,
    "ambiguas": 0,
    "acierto": null,
    "ic95": [
